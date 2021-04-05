@@ -80,7 +80,8 @@ package riscv_types;
     } rca_fn7_t;
 
     typedef enum logic [2:0] {
-        USE_fn3 = 3'b000,
+        USE_FB_fn3 = 3'b000,
+        USE_NFB_fn3 = 3'b110,
         CPU_REG_CONFIG_fn3 = 3'b001,
         GRID_MUX_CONFIG_fn3 = 3'b010,
         IO_MUX_CONFIG_fn3 = 3'b011,
