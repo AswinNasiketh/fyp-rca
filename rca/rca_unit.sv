@@ -42,7 +42,7 @@ module rca_unit(
         .rca_use_fb_instr(rca_inputs.rca_use_fb_instr),
 
         .cpu_fb_reg_addr_wr_en(rca_fb_cpu_reg_config_instr_r && issue.new_request),
-        .cpu_nfb_reg_addr_wr_en(rca_nfb_cpu_reg_config_instr_r && issue.new_request)
+        .cpu_nfb_reg_addr_wr_en(rca_nfb_cpu_reg_config_instr_r && issue.new_request),
         .cpu_port_sel(rca_inputs.cpu_port_sel),
         .cpu_src_dest_port(rca_inputs.cpu_src_dest_port),
         .cpu_reg_addr(rca_inputs.cpu_reg_addr),

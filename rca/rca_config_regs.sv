@@ -73,20 +73,22 @@ module rca_config_regs (
     // Implementation - Reg file to store which of the CPU regs to read from and write to
     initial begin
         cpu_src_reg_addrs = '{default: '0};
-        cpu_dest_reg_addrs = '{default: '0};
+        cpu_dest_fb_reg_addrs = '{default: '0};
+        cpu_dest_nfb_reg_addrs = '{default: '0};
     end
 
     always_ff @(posedge clk) begin
         if (rst) begin
-            cpu_src_reg_addrs <= '{default: '0};
-            cpu_dest_reg_addrs <= '{default: '0};
+            cpu_src_reg_addrs = '{default: '0};
+            cpu_dest_fb_reg_addrs = '{default: '0};
+            cpu_dest_nfb_reg_addrs = '{default: '0};
         end
         else if (cpu_fb_reg_addr_wr_en) begin
             if (cpu_src_dest_port == 0) cpu_src_reg_addrs[rca_sel][cpu_port_sel] <= cpu_reg_addr;
-            else cpu_fb_dest_reg_addrs[rca_sel][cpu_port_sel] <= cpu_reg_addr;
+            else cpu_dest_fb_reg_addrs[rca_sel][cpu_port_sel] <= cpu_reg_addr;
         end
         else if (cpu_nfb_reg_addr_wr_en) begin
-            cpu_nfb_dest_reg_addrs[rca_sel][cpu_port_sel] <= cpu_reg_addr;
+            cpu_dest_nfb_reg_addrs[rca_sel][cpu_port_sel] <= cpu_reg_addr;
         end
     end
 
@@ -158,7 +160,7 @@ module rca_config_regs (
         assert property (@(posedge clk) disable iff (rst) !(cpu_nfb_reg_addr_wr_en & cpu_src_dest_port == 0))
         else $error("Write of src reg address for non feedback register set occurred");
 
-    write_nfb_src_reg_addr:
+    write_nfb_fb_reg_addr:
         assert property (@(posedge clk) disable iff (rst) !(cpu_nfb_reg_addr_wr_en & cpu_fb_reg_addr_wr_en))
         else $error("Trying to write feedback and non feedback register addresses simultaneously");
 endmodule
