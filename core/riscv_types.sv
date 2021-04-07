@@ -76,17 +76,17 @@ package riscv_types;
     } opcodes_trimmed_t;
 
     typedef enum logic [6:0] {
-        RCA_fn7 = 7'b1000000 
+        USE_FB_fn7 = 7'b0000000,
+        USE_NFB_fn7 = 7'b000001,
+        CPU_REG_CONFIG_fn7 = 7'b0000010,
+        GRID_MUX_CONFIG_fn7 = 7'b0000011,
+        IO_MUX_CONFIG_fn7 = 7'b0000100,
+        RESULT_MUX_CONFIG_fn7 = 7'b0000101,
+        IO_INP_MAP_CONFIG_fn7 = 7'b0000110        
     } rca_fn7_t;
 
     typedef enum logic [2:0] {
-        USE_FB_fn3 = 3'b000,
-        USE_NFB_fn3 = 3'b110,
-        CPU_REG_CONFIG_fn3 = 3'b001,
-        GRID_MUX_CONFIG_fn3 = 3'b010,
-        IO_MUX_CONFIG_fn3 = 3'b011,
-        RESULT_MUX_CONFIG_fn3 = 3'b100,
-        IO_INP_MAP_CONFIG_fn3 = 3'b101
+        RCA_fn7 = 3'b100 //not used, fn3 is used to select which RCA to use 
     } rca_fn3_t;
 
     typedef enum logic [6:0] {
