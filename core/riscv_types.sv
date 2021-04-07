@@ -86,7 +86,7 @@ package riscv_types;
     } rca_fn7_t;
 
     typedef enum logic [2:0] {
-        RCA_fn7 = 3'b100 //not used, fn3 is used to select which RCA to use 
+        RCA_fn3 = 3'b100 //not used, fn3 is used to select which RCA to use 
     } rca_fn3_t;
 
     typedef enum logic [6:0] {

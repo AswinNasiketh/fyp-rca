@@ -198,8 +198,36 @@ match_srxi_as_c_srxi (const struct riscv_opcode *op, insn_t insn)
 const struct riscv_opcode riscv_opcodes[] =
 {
 /* name,     xlen, isa,   operands, match, mask, match_func, pinfo.  */
-{"rcau",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCA0_USE_MATCH, TAIGA_RCA0_USE_MASK, match_opcode, 0},
-{"rcac",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCA0_CONFIG_MATCH, TAIGA_RCA0_CONFIG_MASK, match_opcode, 0},
+{"rcaufb.a",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAA_USE_FB_MATCH, TAIGA_RCAA_USE_FB_MASK, match_opcode, 0},
+{"rcaufb.b",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAB_USE_FB_MATCH, TAIGA_RCAB_USE_FB_MASK, match_opcode, 0},
+{"rcaufb.c",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAC_USE_FB_MATCH, TAIGA_RCAC_USE_FB_MASK, match_opcode, 0},
+{"rcaufb.d",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAD_USE_FB_MATCH, TAIGA_RCAD_USE_FB_MASK, match_opcode, 0},
+
+{"rcaunfb.a",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAA_USE_NFB_MATCH, TAIGA_RCAA_USE_NFB_MASK, match_opcode, 0},
+{"rcaunfb.b",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAB_USE_NFB_MATCH, TAIGA_RCAB_USE_NFB_MASK, match_opcode, 0},
+{"rcaunfb.c",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAC_USE_NFB_MATCH, TAIGA_RCAC_USE_NFB_MASK, match_opcode, 0},
+{"rcaunfb.d",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAD_USE_NFB_MATCH, TAIGA_RCAD_USE_NFB_MASK, match_opcode, 0},
+
+{"rcaccr.a",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAA_CPU_REG_CONFIG_MATCH, TAIGA_RCAA_CPU_REG_CONFIG_MASK, match_opcode, 0},
+{"rcaccr.b",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAB_CPU_REG_CONFIG_MATCH, TAIGA_RCAB_CPU_REG_CONFIG_MASK, match_opcode, 0},
+{"rcaccr.c",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAC_CPU_REG_CONFIG_MATCH, TAIGA_RCAC_CPU_REG_CONFIG_MASK, match_opcode, 0},
+{"rcaccr.d",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAD_CPU_REG_CONFIG_MATCH, TAIGA_RCAD_CPU_REG_CONFIG_MASK, match_opcode, 0},
+
+{"rcacgm",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCA_GRID_MUX_CONFIG_MATCH, TAIGA_RCA_GRID_MUX_CONFIG_MASK, match_opcode, 0},
+
+{"rcacim",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCA_IO_MUX_CONFIG_MATCH, TAIGA_RCA_IO_MUX_CONFIG_MASK, match_opcode, 0},
+
+{"rcacrm.a",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAA_RESULT_MUX_CONFIG_MATCH, TAIGA_RCAA_RESULT_MUX_CONFIG_MASK, match_opcode, 0},
+{"rcacrm.b",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAB_RESULT_MUX_CONFIG_MATCH, TAIGA_RCAB_RESULT_MUX_CONFIG_MASK, match_opcode, 0},
+{"rcacrm.c",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAC_RESULT_MUX_CONFIG_MATCH, TAIGA_RCAC_RESULT_MUX_CONFIG_MASK, match_opcode, 0},
+{"rcacrm.d",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAD_RESULT_MUX_CONFIG_MATCH, TAIGA_RCAD_RESULT_MUX_CONFIG_MASK, match_opcode, 0},
+
+{"rcacinp.a",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAA_IO_INP_MAP_CONFIG_MATCH, TAIGA_RCAA_IO_INP_MAP_CONFIG_MASK, match_opcode, 0},
+{"rcacinp.b",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAB_IO_INP_MAP_CONFIG_MATCH, TAIGA_RCAB_IO_INP_MAP_CONFIG_MASK, match_opcode, 0},
+{"rcacinp.c",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAC_IO_INP_MAP_CONFIG_MATCH, TAIGA_RCAC_IO_INP_MAP_CONFIG_MASK, match_opcode, 0},
+{"rcacinp.d",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAD_IO_INP_MAP_CONFIG_MATCH, TAIGA_RCAD_IO_INP_MAP_CONFIG_MASK, match_opcode, 0},
+
+
 // {"tadd",        0, {"I", 0}, "d,s,t", TAIGA_TESTADDER_MATCH, TAIGA_TESTADDER_MASK, match_opcode, 0},
 {"unimp",       0, INSN_CLASS_C,   "",  0, 0xffffU,  match_opcode, INSN_ALIAS },
 {"unimp",       0, INSN_CLASS_I,   "",  MATCH_CSRRW | (CSR_CYCLE << OP_SH_CSR), 0xffffffffU,  match_opcode, 0 }, /* csrw cycle, x0 */
