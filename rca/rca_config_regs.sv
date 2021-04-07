@@ -34,7 +34,7 @@ module rca_config_regs (
     //Reg file to store IO Unit crossbar configurations
     //Read interface
     input [$clog2(GRID_NUM_ROWS)-1:0] io_mux_addr,
-    output [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sel,
+    output [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sels [GRID_NUM_ROWS],
     
     //Write interface - uses address from read interface
     input io_mux_wr_en,
@@ -121,7 +121,7 @@ module rca_config_regs (
         else if (io_mux_wr_en) io_unit_mux_sels[io_mux_addr] <= new_io_mux_sel;
     end
 
-    assign curr_io_mux_sel = io_unit_mux_sels[io_mux_addr];
+    assign curr_io_mux_sels = io_unit_mux_sels;
 
     //Implementation - Reg file to store rca result crossbar configuration
     initial begin
