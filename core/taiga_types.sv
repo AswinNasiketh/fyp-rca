@@ -290,7 +290,7 @@ package taiga_types;
 
         logic rca_result_mux_config_instr;
 
-        logic rca_io_use_config_instr;
+        logic rca_io_inp_map_config_instr;
 
         //Interface for RCA use
         logic [XLEN-1:0] rs1;
@@ -317,8 +317,8 @@ package taiga_types;
         logic [$clog2(NUM_WRITE_PORTS)-1:0] rca_result_mux_addr;
         logic [$clog2(GRID_NUM_ROWS)-1:0] new_rca_result_mux_sel;
 
-        //Interface for IO Usage storage
-        logic [GRID_NUM_ROWS-1:0] new_rca_io_inp_use;
+        //Interface for RCA-IO input map storage
+        logic [GRID_NUM_ROWS-1:0] new_rca_io_inp_map;
 
     } rca_inputs_t;
 
