@@ -70,7 +70,7 @@ module rca_config_regs (
 
     logic [GRID_NUM_ROWS-1:0] rca_io_inp_map [NUM_RCAS];
 
-    // Implementation - Reg file to store which of the CPU regs to read from and write to
+    //Reg file to store which of the CPU regs to read from and write to
     initial begin
         cpu_src_reg_addrs = '{default: '0};
         cpu_dest_fb_reg_addrs = '{default: '0};
@@ -103,7 +103,7 @@ module rca_config_regs (
         end
     end    
 
-    //Implementation - Reg file to store grid crossbar configuration
+    //Reg file to store grid crossbar configuration
     initial grid_mux_sels = '{default: '0};
 
     always_ff @(posedge clk) begin
@@ -113,7 +113,7 @@ module rca_config_regs (
 
     assign curr_grid_mux_sel = grid_mux_sels[grid_mux_addr];
 
-    //Implementation - Reg file to store io unit crossbar configuration (same as above)
+    // Reg file to store io unit crossbar configuration (same as above)
     initial io_unit_mux_sels = '{default: '0};
 
     always_ff @(posedge clk) begin
@@ -123,7 +123,7 @@ module rca_config_regs (
 
     assign curr_io_mux_sels = io_unit_mux_sels;
 
-    //Implementation - Reg file to store rca result crossbar configuration
+    //Reg file to store rca result crossbar configuration
     initial begin
         for (int i = 0; i < NUM_RCAS; i++) begin
             for (int j = 0; j < NUM_WRITE_PORTS; j++)
@@ -146,7 +146,7 @@ module rca_config_regs (
             curr_rca_result_mux_sel[i] = rca_result_mux_sels[rca_sel][i];
     end
 
-    //Implementation - Reg file to store which IO (input) unit is associated with which accelerator
+    //Reg file to store which IO (input) unit is associated with which accelerator
     initial rca_io_inp_map = '{default: '0};
 
     always_ff @(posedge clk) begin
