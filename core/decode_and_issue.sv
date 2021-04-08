@@ -244,35 +244,43 @@ module decode_and_issue (
     //decode interface
 
     generate if (USE_RCA)
-        assign rca_inputs.rca_use_instr = rca_use_instr;
-        assign rca_inputs.rca_use_fb_instr = rca_use_fb_instr;
+        always_ff @(posedge clk) begin
+            rca_inputs.rca_use_instr <= rca_use_instr;
+            rca_inputs.rca_use_fb_instr <= rca_use_fb_instr;
+        end
 
         assign rca_inputs.rs1 = rs_data[RS1];
         assign rca_inputs.rs2 = rs_data[RS2];
         assign rca_inputs.rs3 = rs_data[RS3];
         assign rca_inputs.rs4 = rs_data[RS4];
         assign rca_inputs.rs5 = rs_data[RS5];
-        assign rca_inputs.rca_sel = (opcode_trim == RCA_T) ? fn3[$clog2(NUM_RCAS)-1:0] : 0;
 
-        assign rca_inputs.rca_fb_cpu_reg_config_instr = rca_cpu_reg_config_instr && rs_data[RS1][$clog2(NUM_READ_PORTS) + 1];
-        assign rca_inputs.rca_nfb_cpu_reg_config_instr = rca_cpu_reg_config_instr && ~rs_data[RS1][$clog2(NUM_READ_PORTS) + 1];
+        always_ff @(posedge clk) rca_inputs.rca_sel <= (opcode_trim == RCA_T) ? fn3[$clog2(NUM_RCAS)-1:0] : 0;
+
+        assign rca_inputs.rca_fb_cpu_reg_config_instr <= rca_cpu_reg_config_instr && rs_data[RS1][$clog2(NUM_READ_PORTS) + 1];
+        assign rca_inputs.rca_nfb_cpu_reg_config_instr <= rca_cpu_reg_config_instr && ~rs_data[RS1][$clog2(NUM_READ_PORTS) + 1];
+
         assign rca_inputs.cpu_port_sel = rs_data[RS1][$clog2(NUM_READ_PORTS)-1:0];
         assign rca_inputs.cpu_src_dest_port = rs_data[RS1][$clog2(NUM_READ_PORTS)];
         assign rca_inputs.cpu_reg_addr = rs_data[RS2][4:0];
 
-        assign rca_inputs.rca_grid_mux_config_instr = rca_grid_mux_config_instr;
+        always_ff @(posedge clk) rca_inputs.rca_grid_mux_config_instr <= rca_grid_mux_config_instr;
+
         assign rca_inputs.grid_mux_addr = rs_data[RS1][$clog2(NUM_GRID_MUXES)-1:0];
         assign rca_inputs.new_grid_mux_sel = rs_data[RS2][$clog2(GRID_MUX_INPUTS)-1:0];
 
-        assign rca_inputs.rca_io_mux_config_instr = rca_io_mux_config_instr;
+        always_ff @(posedge clk) rca_inputs.rca_io_mux_config_instr <= rca_io_mux_config_instr;
+
         assign rca_inputs.io_mux_addr = rs_data[RS1][$clog2(GRID_NUM_ROWS)-1:0];
         assign rca_inputs.new_io_mux_sel = rs_data[RS2][$clog2(IO_UNIT_MUX_INPUTS)-1:0];
 
-        assign rca_inputs.rca_result_mux_config_instr = rca_result_mux_config_instr;
+        always_ff @(posedge clk) rca_inputs.rca_result_mux_config_instr <= rca_result_mux_config_instr;
+
         assign rca_inputs.rca_result_mux_addr = rs_data[RS1][$clog2(NUM_WRITE_PORTS)-1:0];
         assign rca_inputs.new_rca_result_mux_sel = rs_data[RS2][$clog2(GRID_NUM_ROWS)-1:0];
 
-        assign rca_inputs.rca_io_inp_map_config_instr = rca_io_inp_map_config_instr;
+        always_ff @(posedge clk) rca_inputs.rca_io_inp_map_config_instr <= rca_io_inp_map_config_instr;
+
         assign rca_inputs.new_rca_io_inp_map = rs_data[RS1][GRID_NUM_ROWS-1:0];
     endgenerate
 

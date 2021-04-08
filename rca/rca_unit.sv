@@ -10,22 +10,6 @@ module rca_unit(
     output rca_config_t rca_config_regs_op,
     rca_writeback_interface.unit rca_wb
 );
-    logic rca_fb_cpu_reg_config_instr_r;
-    logic rca_nfb_cpu_reg_config_instr_r;
-    logic rca_grid_mux_config_instr_r;
-    logic rca_io_mux_config_instr_r;
-    logic rca_result_mux_config_instr_r;
-    logic rca_io_use_config_instr_r;
-
-    //Signals delayed by 1 clock cycle
-    always_ff @(posedge clk) begin 
-        rca_fb_cpu_reg_config_instr_r <= rca_inputs.rca_fb_cpu_reg_config_instr;
-        rca_nfb_cpu_reg_config_instr_r <= rca_inputs.rca_nfb_cpu_reg_config_instr;
-        rca_grid_mux_config_instr_r <= rca_inputs.rca_grid_mux_config_instr;
-        rca_io_mux_config_instr_r <= rca_inputs.rca_io_mux_config_instr;
-        rca_result_mux_config_instr_r <= rca_inputs.rca_result_mux_config_instr;
-        rca_io_use_config_instr_r <= rca_inputs.rca_io_use_config_instr;
-    end
 
     logic [$clog2(GRID_MUX_INPUTS)-1:0] curr_grid_mux_sel;
     logic [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sel [GRID_NUM_ROWS];
@@ -41,25 +25,25 @@ module rca_unit(
         .rca_cpu_dest_reg_addrs(rca_config_regs_op.rca_cpu_dest_reg_addrs),
         .rca_use_fb_instr(rca_inputs.rca_use_fb_instr),
 
-        .cpu_fb_reg_addr_wr_en(rca_fb_cpu_reg_config_instr_r && issue.new_request),
-        .cpu_nfb_reg_addr_wr_en(rca_nfb_cpu_reg_config_instr_r && issue.new_request),
+        .cpu_fb_reg_addr_wr_en(rca_inputs.rca_fb_cpu_reg_config_instr && issue.new_request),
+        .cpu_nfb_reg_addr_wr_en(rca_inputs.rca_nfb_cpu_reg_config_instr && issue.new_request),
         .cpu_port_sel(rca_inputs.cpu_port_sel),
         .cpu_src_dest_port(rca_inputs.cpu_src_dest_port),
         .cpu_reg_addr(rca_inputs.cpu_reg_addr),
 
         .grid_mux_addr(rca_inputs.grid_mux_addr),
-        .grid_mux_wr_en(rca_grid_mux_config_instr_r && issue.new_request),
+        .grid_mux_wr_en(rca_inputs.rca_grid_mux_config_instr && issue.new_request),
         .new_grid_mux_sel(rca_inputs.new_grid_mux_sel),
 
         .io_mux_addr(rca_inputs.io_mux_addr),
-        .io_mux_wr_en(rca_io_mux_config_instr_r && issue.new_request),
+        .io_mux_wr_en(rca_inputs.rca_io_mux_config_instr && issue.new_request),
         .new_io_mux_sel(rca_inputs.new_io_mux_sel),
 
         .rca_result_mux_addr(rca_inputs.rca_result_mux_addr),
-        .rca_result_mux_wr_en(rca_result_mux_config_instr_r && issue.new_request),
+        .rca_result_mux_wr_en(rca_inputs.rca_result_mux_config_instr && issue.new_request),
         .new_rca_result_mux_sel(rca_inputs.new_rca_result_mux_sel),
 
-        .rca_io_inp_use_wr_en(rca_io_use_config_instr_r && issue.new_request),
+        .rca_io_inp_use_wr_en(rca_inputs.rca_io_use_config_instr && issue.new_request),
         .new_rca_io_inp_use(rca_inputs.new_rca_io_inp_use)
     );
 
