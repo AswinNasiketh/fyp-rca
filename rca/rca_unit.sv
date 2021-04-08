@@ -11,7 +11,7 @@ module rca_unit(
     rca_writeback_interface.unit rca_wb
 );
 
-    logic [$clog2(GRID_MUX_INPUTS)-1:0] curr_grid_mux_sel;
+    logic [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel_out [NUM_GRID_MUXES];
     logic [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sel [GRID_NUM_ROWS];
     logic [$clog2(GRID_NUM_ROWS)-1:0] curr_rca_result_mux_sel [NUM_WRITE_PORTS];
     logic [GRID_NUM_ROWS-1:0] curr_rca_io_inp_use;
@@ -20,10 +20,13 @@ module rca_unit(
         .*,
         .clk(clk),
         .rst(rst),
-        .rca_sel(rca_inputs.rca_sel),
-        .rca_cpu_src_reg_addrs(rca_config_regs_op.rca_cpu_src_reg_addrs),
-        .rca_cpu_dest_reg_addrs(rca_config_regs_op.rca_cpu_dest_reg_addrs),
-        .rca_use_fb_instr(rca_inputs.rca_use_fb_instr),
+        .rca_sel_issue(rca_inputs.rca_sel),
+        .rca_sel_decode(rca_inputs.rca_sel_decode),
+        //.rca_sel_grid_control() TODO
+
+        .rca_cpu_src_reg_addrs_decode(rca_config_regs_op.rca_cpu_src_reg_addrs),
+        .rca_cpu_dest_reg_addrs_decode(rca_config_regs_op.rca_cpu_dest_reg_addrs),
+        .rca_use_fb_instr_decode(rca_inputs.rca_use_fb_instr_decode),
 
         .cpu_fb_reg_addr_wr_en(rca_inputs.rca_fb_cpu_reg_config_instr && issue.new_request),
         .cpu_nfb_reg_addr_wr_en(rca_inputs.rca_nfb_cpu_reg_config_instr && issue.new_request),

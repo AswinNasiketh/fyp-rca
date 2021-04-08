@@ -249,12 +249,15 @@ module decode_and_issue (
             rca_inputs.rca_use_fb_instr <= rca_use_fb_instr;
         end
 
+        assign rca_inputs.rca_use_fb_instr_decode = rca_use_fb_instr;
+
         assign rca_inputs.rs1 = rs_data[RS1];
         assign rca_inputs.rs2 = rs_data[RS2];
         assign rca_inputs.rs3 = rs_data[RS3];
         assign rca_inputs.rs4 = rs_data[RS4];
         assign rca_inputs.rs5 = rs_data[RS5];
-
+        
+        assign rca_inputs.rca_sel_decode = (opcode_trim == RCA_T) ? fn3[$clog2(NUM_RCAS)-1:0] : 0;
         always_ff @(posedge clk) rca_inputs.rca_sel <= (opcode_trim == RCA_T) ? fn3[$clog2(NUM_RCAS)-1:0] : 0;
 
         assign rca_inputs.rca_fb_cpu_reg_config_instr <= rca_cpu_reg_config_instr && rs_data[RS1][$clog2(NUM_READ_PORTS) + 1];

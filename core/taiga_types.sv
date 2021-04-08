@@ -279,6 +279,8 @@ package taiga_types;
         //Select between RCA use and RCA config instrs
         logic rca_use_instr;
         logic rca_use_fb_instr; //High if instruction is a use instr specifying feedback destination regs
+
+        logic rca_use_fb_instr_decode; //decode stage version of above
         
         logic rca_fb_cpu_reg_config_instr; //0 for anything else, 1 for cpu reg config
         
@@ -299,6 +301,7 @@ package taiga_types;
         logic [XLEN-1:0] rs4;
         logic [XLEN-1:0] rs5;
         logic [$clog2(NUM_RCAS)-1:0] rca_sel;
+        logic [$clog2(NUM_RCAS)-1:0] rca_sel_decode;//decode stage version of above
 
         //Interface for RCA CPU reg address storage
         logic [$clog2(NUM_READ_PORTS)-1:0] cpu_port_sel;

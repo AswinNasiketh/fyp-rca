@@ -8,12 +8,15 @@ module rca_config_regs (
     input rst,
 
     //Reg file to store which of the CPU regs to read from and write to
-    //Read interface
-    input [$clog2(NUM_RCAS)-1:0] rca_sel,
-    input rca_use_fb_instr,
+    //Read interface for decode stage
+    input [$clog2(NUM_RCAS)-1:0] rca_sel_decode,
+    input rca_use_fb_instr_decode,
     
-    output logic [4:0] [NUM_READ_PORTS-1:0] rca_cpu_src_reg_addrs,
-    output logic [4:0] [NUM_WRITE_PORTS-1:0] rca_cpu_dest_reg_addrs,
+    output logic [4:0] [NUM_READ_PORTS-1:0] rca_cpu_src_reg_addrs_decode,
+    output logic [4:0] [NUM_WRITE_PORTS-1:0] rca_cpu_dest_reg_addrs_decode,
+
+    input [$clog2(NUM_RCAS)-1:0] rca_sel_issue,
+    input [$clog2(NUM_RCAS)-1:0] rca_sel_grid_control,
 
     //Write interface
     input cpu_fb_reg_addr_wr_en,
@@ -24,11 +27,11 @@ module rca_config_regs (
 
     //Reg file to store grid crossbar configurations
     //Read interface
-    input [$clog2(NUM_GRID_MUXES)-1:0] grid_mux_addr,
-    output [$clog2(GRID_MUX_INPUTS)-1:0] curr_grid_mux_sel,
+    output [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel_out [NUM_GRID_MUXES],
     
     //Write interface - uses address from read interface
     input grid_mux_wr_en,
+    input [$clog2(NUM_GRID_MUXES)-1:0] grid_mux_wr_addr,
     input [$clog2(GRID_MUX_INPUTS)-1:0] new_grid_mux_sel,
 
     //Reg file to store IO Unit crossbar configurations
@@ -84,22 +87,22 @@ module rca_config_regs (
             cpu_dest_nfb_reg_addrs = '{default: '0};
         end
         else if (cpu_fb_reg_addr_wr_en) begin
-            if (cpu_src_dest_port == 0) cpu_src_reg_addrs[rca_sel][cpu_port_sel] <= cpu_reg_addr;
-            else cpu_dest_fb_reg_addrs[rca_sel][cpu_port_sel] <= cpu_reg_addr;
+            if (cpu_src_dest_port == 0) cpu_src_reg_addrs[rca_sel_issue][cpu_port_sel] <= cpu_reg_addr;
+            else cpu_dest_fb_reg_addrs[rca_sel_issue][cpu_port_sel] <= cpu_reg_addr;
         end
         else if (cpu_nfb_reg_addr_wr_en) begin
-            cpu_dest_nfb_reg_addrs[rca_sel][cpu_port_sel] <= cpu_reg_addr;
+            cpu_dest_nfb_reg_addrs[rca_sel_issue][cpu_port_sel] <= cpu_reg_addr;
         end
     end
 
     always_comb begin
-        if (rca_use_fb_instr) begin
-            rca_cpu_src_reg_addrs = cpu_src_reg_addrs[rca_sel];
-            rca_cpu_dest_reg_addrs = cpu_dest_fb_reg_addrs[rca_sel];
+        if (rca_use_fb_instr_decode) begin
+            rca_cpu_src_reg_addrs = cpu_src_reg_addrs[rca_sel_decode];
+            rca_cpu_dest_reg_addrs = cpu_dest_fb_reg_addrs[rca_sel_decode];
         end
         else begin
             rca_cpu_src_reg_addrs = 0; //for non feedback use instrs, don't supply source regs
-            rca_cpu_dest_reg_addrs = cpu_dest_nfb_reg_addrs[rca_sel];
+            rca_cpu_dest_reg_addrs = cpu_dest_nfb_reg_addrs[rca_sel_decode];
         end
     end    
 
@@ -108,10 +111,10 @@ module rca_config_regs (
 
     always_ff @(posedge clk) begin
         if (rst) grid_mux_sels <= '{default: '0};        
-        else if (grid_mux_wr_en) grid_mux_sels[grid_mux_addr] <= new_grid_mux_sel;
+        else if (grid_mux_wr_en) grid_mux_sels[grid_mux_wr_addr] <= new_grid_mux_sel;
     end
 
-    assign curr_grid_mux_sel = grid_mux_sels[grid_mux_addr];
+    assign grid_mux_sel_out = grid_mux_sels;
 
     // Reg file to store io unit crossbar configuration (same as above)
     initial io_unit_mux_sels = '{default: '0};
@@ -123,7 +126,7 @@ module rca_config_regs (
 
     assign curr_io_mux_sels = io_unit_mux_sels;
 
-    //Reg file to store rca result crossbar configuration
+    //Reg file to store rca result crossbar configuration for feedback results
     initial begin
         for (int i = 0; i < NUM_RCAS; i++) begin
             for (int j = 0; j < NUM_WRITE_PORTS; j++)
@@ -138,23 +141,23 @@ module rca_config_regs (
                     rca_result_mux_sels[i][j] = 0;
             end
         end     
-        else if (rca_result_mux_wr_en) rca_result_mux_sels[rca_sel][rca_result_mux_addr] <= new_rca_result_mux_sel;
+        else if (rca_result_mux_wr_en) rca_result_mux_sels[rca_sel_issue][rca_result_mux_addr] <= new_rca_result_mux_sel;
     end
 
     always_comb begin
         for (int i = 0; i < NUM_WRITE_PORTS; i++)
-            curr_rca_result_mux_sel[i] = rca_result_mux_sels[rca_sel][i];
+            curr_rca_result_mux_sel[i] = rca_result_mux_sels[rca_sel_grid_control][i];
     end
 
-    //Reg file to store which IO (input) unit is associated with which accelerator
+    //Reg file to store which IO (input) unit is associated with which accelerator - for passing through data valid
     initial rca_io_inp_map = '{default: '0};
 
     always_ff @(posedge clk) begin
         if (rst) rca_io_inp_map = '{default: '0};
-        else if (rca_io_inp_map_wr_en) rca_io_inp_map[rca_sel] <= new_rca_io_inp_map;
+        else if (rca_io_inp_map_wr_en) rca_io_inp_map[rca_sel_issue] <= new_rca_io_inp_map;
     end
 
-    always_comb curr_rca_io_inp_map <= rca_io_inp_map[rca_sel];
+    always_comb curr_rca_io_inp_map = rca_io_inp_map[rca_sel_grid_control];
 
 
     //Assertions 
