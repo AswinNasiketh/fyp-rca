@@ -13,7 +13,8 @@ module rca_unit(
 
     logic [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel_out [NUM_GRID_MUXES];
     logic [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sel [GRID_NUM_ROWS];
-    logic [$clog2(GRID_NUM_ROWS)-1:0] curr_rca_result_mux_sel [NUM_WRITE_PORTS];
+    logic [$clog2(GRID_NUM_ROWS)-1:0] curr_fb_rca_result_mux_sel [NUM_WRITE_PORTS];
+    logic [$clog2(GRID_NUM_ROWS)-1:0] curr_nfb_rca_result_mux_sel [NUM_WRITE_PORTS];
     logic [GRID_NUM_ROWS-1:0] curr_rca_io_inp_use;
 
     rca_config_regs rca_config_regfile(
@@ -43,7 +44,8 @@ module rca_unit(
         .new_io_mux_sel(rca_inputs.new_io_mux_sel),
 
         .rca_result_mux_addr(rca_inputs.rca_result_mux_addr),
-        .rca_result_mux_wr_en(rca_inputs.rca_result_mux_config_instr && issue.new_request),
+        .rca_fb_result_mux_wr_en(rca_inputs.rca_result_mux_config_instr && rca_inputs.rca_result_mux_config_fb && issue.new_request),
+        .rca_nfb_result_mux_wr_en(rca_inputs.rca_result_mux_config_instr && ~rca_inputs.rca_result_mux_config_fb && issue.new_request),
         .new_rca_result_mux_sel(rca_inputs.new_rca_result_mux_sel),
 
         .rca_io_inp_use_wr_en(rca_inputs.rca_io_use_config_instr && issue.new_request),

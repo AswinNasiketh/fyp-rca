@@ -292,6 +292,8 @@ package taiga_types;
 
         logic rca_result_mux_config_instr;
 
+        logic rca_result_mux_config_fb;
+
         logic rca_io_inp_map_config_instr;
 
         //Interface for RCA use

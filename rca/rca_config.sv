@@ -24,6 +24,7 @@ package rca_config;
 
     // RCA Result MUX Config instruction
     // rs1 specifies which MUX sel to change
+    // rs1[3] specifies whether the result MUX config being changed is for feedback or non-feedback
     // rs2 specifies sel value
     // funct7 specifies which RCA is being configured
 
