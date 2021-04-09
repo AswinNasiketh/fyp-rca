@@ -106,6 +106,7 @@ rca/rca_config_regs.sv
 rca/rca_unit.sv
 rca/grid_xbar_mux.sv
 rca/grid_io_block.sv
+rca/grid_pr_slot.sv
 rca/pr_grid.sv
 
 core/taiga.sv
