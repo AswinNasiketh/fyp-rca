@@ -82,7 +82,8 @@ package riscv_types;
         GRID_MUX_CONFIG_fn7 = 7'b0000011,
         IO_MUX_CONFIG_fn7 = 7'b0000100,
         RESULT_MUX_CONFIG_fn7 = 7'b0000101,
-        IO_INP_MAP_CONFIG_fn7 = 7'b0000110        
+        IO_INP_MAP_CONFIG_fn7 = 7'b0000110,   
+        INP_CONSTANT_CONFIG_fn7 = 7'b0000111  
     } rca_fn7_t;
 
     typedef enum logic [2:0] {

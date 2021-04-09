@@ -18,6 +18,7 @@ module rca_pr_grid
     input io_unit_output_mode [GRID_NUM_ROWS],
     input io_units_rst,
     input io_fifo_pop [GRID_NUM_ROWS],
+    input [XLEN-1:0] input_constants [GRID_NUM_ROWS],
 
     //Config & Control - PR slots
     input [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel [NUM_GRID_MUXES]
@@ -41,9 +42,11 @@ always_comb begin
         for (int i = 0; i < NUM_READ_PORTS; i++)
             io_mux_data_in[k][i] = rs_vals[i];
 
-        for (int j = NUM_READ_PORTS; j < IO_UNIT_MUX_INPUTS; j++)
+        for (int j = NUM_READ_PORTS; j < NUM_READ_PORTS + GRID_NUM_COLS; j++)
             if (k == 0) io_mux_data_in[k][j] = 0; //first row doesn't have any preceding outputs
-            else io_mux_data_in[k][j] = row_data[k-1][j - NUM_READ_PORTS];            
+            else io_mux_data_in[k][j] = row_data[k-1][j - NUM_READ_PORTS];  
+
+        io_mux_data_in[k][NUM_READ_PORTS + GRID_NUM_COLS] = input_constants[k];
     end
 end
 
@@ -53,9 +56,11 @@ always_comb begin
         for (int i = 0; i < NUM_READ_PORTS; i++)
             io_mux_data_valid_in[k][i] = rs_data_valid[k];
 
-        for (int j = NUM_READ_PORTS; j < IO_UNIT_MUX_INPUTS; j++)
+        for (int j = NUM_READ_PORTS; j < NUM_READ_PORTS + GRID_NUM_COLS; j++)
             if (k == 0) io_mux_data_valid_in[k][j] = 0; //first row doesn't have any preceding outputs
             else io_mux_data_valid_in[k][j] = row_data_valid[k-1][j - NUM_READ_PORTS];   
+        
+        io_mux_data_valid_in[k][NUM_READ_PORTS + GRID_NUM_COLS] = rs_data_valid[k];
     end
 end
 

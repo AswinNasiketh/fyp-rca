@@ -60,7 +60,14 @@ module rca_config_regs (
     output [GRID_NUM_ROWS-1:0] curr_rca_io_inp_map,
 
     input rca_io_inp_map_wr_en,
-    input [GRID_NUM_ROWS-1:0] new_rca_io_inp_map
+    input [GRID_NUM_ROWS-1:0] new_rca_io_inp_map,
+
+    //Reg file to store custon constant which can be used as input instead of a CPU register
+    output [XLEN-1:0] input_constants_out [GRID_NUM_ROWS],
+
+    input rca_input_constants_wr_en,
+    input [$clog2(GRID_NUM_ROWS)-1:0] io_unit_addr,
+    input [XLEN-1:0] new_input_constant
 );
 
     logic [4:0] [NUM_READ_PORTS-1:0] cpu_src_reg_addrs [NUM_RCAS]; 
@@ -185,6 +192,13 @@ module rca_config_regs (
     end
 
     always_comb curr_rca_io_inp_map = rca_io_inp_map[rca_sel_buf];
+
+    initial input_constants_out = '{default: '0};
+
+    always_ff @(posedge clk) begin
+        if (rst) input_constants_out = '{default: '0};
+        else if(rca_input_constants_wr_en) input_constants_out[io_unit_addr] <= new_input_constant;
+    end
 
 
     //Assertions 

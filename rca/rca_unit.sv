@@ -16,6 +16,7 @@ module rca_unit(
     logic [$clog2(GRID_NUM_ROWS)-1:0] curr_fb_rca_result_mux_sel [NUM_WRITE_PORTS];
     logic [$clog2(GRID_NUM_ROWS)-1:0] curr_nfb_rca_result_mux_sel [NUM_WRITE_PORTS];
     logic [GRID_NUM_ROWS-1:0] curr_rca_io_inp_map;
+    logic [XLEN-1:0] input_constants_out [GRID_NUM_ROWS];
 
     rca_config_regs rca_config_regfile(
         .*,
@@ -50,7 +51,11 @@ module rca_unit(
         .new_rca_result_mux_sel(rca_inputs.new_rca_result_mux_sel),
 
         .rca_io_inp_map_wr_en(rca_inputs.rca_io_use_config_instr && issue.new_request),
-        .new_rca_io_inp_map(rca_inputs.new_rca_io_inp_use)
+        .new_rca_io_inp_map(rca_inputs.new_rca_io_inp_use),
+
+        .rca_input_constants_wr_en(rca_inputs.rca_input_constants_config_instr && issue.new_request),
+        .io_unit_addr(rca_inputs.io_unit_addr),
+        .new_input_constant(rca_inputs.new_input_constant)
     );
 
     id_t wb_id;
@@ -106,7 +111,8 @@ module rca_unit(
         .io_unit_output_mode,
         .io_units_rst(clear_fifos),
         .io_fifo_pop,
-        .grid_mux_sel(grid_mux_sel_out)
+        .grid_mux_sel(grid_mux_sel_out),
+        .input_constants(input_constants_out)
     );
 
     logic wb_committing;

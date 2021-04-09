@@ -296,6 +296,8 @@ package taiga_types;
 
         logic rca_io_inp_map_config_instr;
 
+        logic rca_input_constants_config_instr;
+
         //Interface for RCA use
         logic [XLEN-1:0] rs1;
         logic [XLEN-1:0] rs2;
@@ -324,6 +326,10 @@ package taiga_types;
 
         //Interface for RCA-IO input map storage
         logic [GRID_NUM_ROWS-1:0] new_rca_io_inp_map;
+
+        //Interface for IO literal values storage
+        logic [$clog2(GRID_NUM_ROWS)-1:0] io_unit_addr;
+        logic [XLEN-1:0] new_input_constant;
 
     } rca_inputs_t;
 

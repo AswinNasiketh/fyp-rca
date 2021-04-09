@@ -181,12 +181,13 @@ module decode_and_issue (
     assign rca_use_fb_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == USE_FB_fn7) : 1'b0;
 
 
-    assign rca_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 inside {CPU_REG_CONFIG_fn7, GRID_MUX_CONFIG_fn7, IO_MUX_CONFIG_fn7, RESULT_MUX_CONFIG_fn7, IO_USE_CONFIG_fn7}) : 1'b0;
+    assign rca_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 inside {CPU_REG_CONFIG_fn7, GRID_MUX_CONFIG_fn7, IO_MUX_CONFIG_fn7, RESULT_MUX_CONFIG_fn7, IO_INP_MAP_CONFIG_fn7, INP_CONSTANT_CONFIG_fn7}) : 1'b0;
     assign rca_cpu_reg_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == CPU_REG_CONFIG_fn7) : 1'b0;
     assign rca_grid_mux_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == GRID_MUX_CONFIG_fn7) : 1'b0;
     assign rca_io_mux_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == IO_MUX_CONFIG_fn7) : 1'b0;
     assign rca_result_mux_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == RESULT_MUX_CONFIG_fn7) : 1'b0;
     assign rca_io_inp_map_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == IO_INP_MAP_CONFIG_fn7) : 1'b0;
+    assign rca_input_constants_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == INP_CONSTANT_CONFIG_fn7) : 1'b0;
 
     always_ff @(posedge clk) begin
         if (rst | gc_fetch_flush)
@@ -286,6 +287,10 @@ module decode_and_issue (
         always_ff @(posedge clk) rca_inputs.rca_io_inp_map_config_instr <= rca_io_inp_map_config_instr;
 
         assign rca_inputs.new_rca_io_inp_map = rs_data[RS1][GRID_NUM_ROWS-1:0];
+
+        always_ff @(posedge clk) rca_inputs.rca_input_constants_config_instr <= rca_input_constants_config_instr;
+        assign rca_inputs.io_unit_addr = rs_data[RS1][$clog2(GRID_NUM_ROWS)-1:0];
+        assign rca_inputs.new_input_constant = rs_data[RS2];
     endgenerate
 
     always_ff @(posedge clk) begin
