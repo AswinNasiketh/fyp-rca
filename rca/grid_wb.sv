@@ -14,18 +14,14 @@ module grid_wb
     output wb_committing
 );
 
-    logic port_ready_for_commit [NUM_WRITE_PORTS];
+    logic [NUM_WRITE_PORTS-1:0] port_ready_for_commit;
 
     always_comb begin
         for (int i = 0; i < NUM_WRITE_PORTS; i++)
             port_ready_for_commit[i] = io_unit_sels_valid && io_unit_output_data_valid[io_unit_sels[i]];
     end
 
-    always_comb begin
-        wb_committing = 1;
-        for (int i = 0; i < NUM_WRITE_PORTS; i++)
-            wb_committing = wb_committing && port_ready_for_commit[i]; 
-    end
+    assign wb_committing = &port_ready_for_commit;
 
     always_comb begin
         for (int i = 0; i < NUM_WRITE_PORTS; i++)
