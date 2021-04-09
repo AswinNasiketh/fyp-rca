@@ -19,7 +19,8 @@ module grid_control
     output clear_fifos, //if 1, means we are switching from one accelerator to another => fifos and load store counters should be cleared
     output [$clog2(NUM_RCAS)-1:0] currently_running_rca,
 
-    output [XLEN-1:0] buf_rs_data [NUM_READ_PORTS];
+    output [XLEN-1:0] buf_rs_data [NUM_READ_PORTS],
+    output [$clog2(NUM_RCAS)-1:0] rca_sel_buf
 );
 
     localparam ACCEPTING_ISSUE_STATE = 1'b0;
@@ -87,6 +88,6 @@ module grid_control
     assign buf_rs_data[3] = rca_inputs_buf.rs4;
     assign buf_rs_data[4] = rca_inputs_buf.rs5;
 
-    /////////////////WB Side Control////////////////////
+    assign rca_sel_buf = rca_inputs_buf.rca_sel;
 
 endmodule

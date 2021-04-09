@@ -16,7 +16,8 @@ module rca_config_regs (
     output logic [4:0] [NUM_WRITE_PORTS-1:0] rca_cpu_dest_reg_addrs_decode,
 
     input [$clog2(NUM_RCAS)-1:0] rca_sel_issue,
-    input [$clog2(NUM_RCAS)-1:0] rca_sel_grid_control,
+    input [$clog2(NUM_RCAS)-1:0] rca_sel_grid_wb,
+    input [$clog2(NUM_RCAS)-1:0] rca_sel_buf,
 
     //Write interface
     input cpu_fb_reg_addr_wr_en,
@@ -43,7 +44,7 @@ module rca_config_regs (
     input io_mux_wr_en,
     input [$clog2(IO_UNIT_MUX_INPUTS)-1:0] new_io_mux_sel,
 
-    //Reg file to store RCA Result Unit crossbar configurations - uses rca_sel_grid_control for reading
+    //Reg file to store RCA Result Unit crossbar configurations - uses rca_sel_grid_wb for reading
     //Read interface  
     input [$clog2(NUM_WRITE_PORTS)-1:0] rca_result_mux_addr,
     output [$clog2(GRID_NUM_ROWS)-1:0] curr_fb_rca_result_mux_sel [NUM_WRITE_PORTS],
@@ -149,7 +150,7 @@ module rca_config_regs (
 
     always_comb begin
         for (int i = 0; i < NUM_WRITE_PORTS; i++)
-            curr_fb_rca_result_mux_sel[i] = rca_result_mux_sels_fb[rca_sel_grid_control][i];
+            curr_fb_rca_result_mux_sel[i] = rca_result_mux_sels_fb[rca_sel_grid_wb][i];
     end
 
     //Reg file to store rca result crossbar configuration for non-feedback results
@@ -172,7 +173,7 @@ module rca_config_regs (
 
     always_comb begin
         for (int i = 0; i < NUM_WRITE_PORTS; i++)
-            curr_nfb_rca_result_mux_sel[i] = rca_result_mux_sels_nfb[rca_sel_grid_control][i];
+            curr_nfb_rca_result_mux_sel[i] = rca_result_mux_sels_nfb[rca_sel_grid_wb][i];
     end
 
     //Reg file to store which IO (input) unit is associated with which accelerator - for passing through data valid
@@ -183,7 +184,7 @@ module rca_config_regs (
         else if (rca_io_inp_map_wr_en) rca_io_inp_map[rca_sel_issue] <= new_rca_io_inp_map;
     end
 
-    always_comb curr_rca_io_inp_map = rca_io_inp_map[rca_sel_grid_control];
+    always_comb curr_rca_io_inp_map = rca_io_inp_map[rca_sel_buf];
 
 
     //Assertions 

@@ -23,7 +23,8 @@ module rca_unit(
         .rst(rst),
         .rca_sel_issue(rca_inputs.rca_sel), //for config writes
         .rca_sel_decode(rca_inputs.rca_sel_decode), //for CPU to read and write to correct registers when issuing use instrs
-        .rca_sel_grid_control(currently_running_rca), //for grid control to retrieve config information
+        .rca_sel_grid_wb(currently_running_rca), //for grid control to retrieve config information
+        .rca_sel_buf(rca_sel_buf),
 
         .rca_cpu_src_reg_addrs_decode(rca_config_regs_op.rca_cpu_src_reg_addrs),
         .rca_cpu_dest_reg_addrs_decode(rca_config_regs_op.rca_cpu_dest_reg_addrs),
@@ -59,6 +60,7 @@ module rca_unit(
     logic clear_fifos;
     logic [$clog2(NUM_RCAS)-1:0] currently_running_rca;
     logic [XLEN-1:0] buf_rs_data [NUM_READ_PORTS];
+    logic [$clog2(NUM_RCAS)-1:0] rca_sel_buf;
 
     grid_control rca_grid_control(.*);
 
@@ -76,7 +78,7 @@ module rca_unit(
         for(int i = 0; i < GRID_NUM_ROWS; i++) begin
             for(int j = 0; j < NUM_WRITE_PORTS; i++) begin
                 io_unit_addr_match_fb_wb[i][j] = curr_fb_rca_result_mux_sel[j] == ($clog2(GRID_NUM_ROWS))'(i);
-                io_unit_addr_match_fb_wb[i][j] =                (curr_nfb_rca_result_mux_sel[j] == ($clog2(GRID_NUM_ROWS))'(i))
+                io_unit_addr_match_nfb_wb[i][j] = curr_nfb_rca_result_mux_sel[j] == ($clog2(GRID_NUM_ROWS))'(i);
             end
         end
     end
