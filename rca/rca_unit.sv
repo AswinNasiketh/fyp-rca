@@ -11,7 +11,7 @@ module rca_unit(
     rca_writeback_interface.unit rca_wb
 );
 
-    logic [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel_out [NUM_GRID_MUXES];
+    logic [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel_out [NUM_GRID_MUXES*2];
     logic [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sel [GRID_NUM_ROWS];
     logic [$clog2(GRID_NUM_ROWS)-1:0] curr_fb_rca_result_mux_sel [NUM_WRITE_PORTS];
     logic [$clog2(GRID_NUM_ROWS)-1:0] curr_nfb_rca_result_mux_sel [NUM_WRITE_PORTS];

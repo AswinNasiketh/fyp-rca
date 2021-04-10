@@ -45,7 +45,7 @@ package rca_config;
     localparam GRID_NUM_ROWS = 12;
     localparam GRID_NUM_COLS = 6;
 
-    localparam NUM_GRID_MUXES = GRID_NUM_COLS * GRID_NUM_ROWS;
+    localparam NUM_GRID_MUXES = GRID_NUM_COLS * GRID_NUM_ROWS; //per PR slot input
 
     localparam GRID_MUX_INPUTS = GRID_NUM_COLS + 2; //1 extra input to take data from module on left, 1 extra input to take data from IO unit of column above
 

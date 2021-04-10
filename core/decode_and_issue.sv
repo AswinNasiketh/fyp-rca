@@ -270,7 +270,7 @@ module decode_and_issue (
 
         always_ff @(posedge clk) rca_inputs.rca_grid_mux_config_instr <= rca_grid_mux_config_instr;
 
-        assign rca_inputs.grid_mux_addr = rs_data[RS1][$clog2(NUM_GRID_MUXES)-1:0];
+        assign rca_inputs.grid_mux_addr = rs_data[RS1][$clog2(NUM_GRID_MUXES*2)-1:0];
         assign rca_inputs.new_grid_mux_sel = rs_data[RS2][$clog2(GRID_MUX_INPUTS)-1:0];
 
         always_ff @(posedge clk) rca_inputs.rca_io_mux_config_instr <= rca_io_mux_config_instr;

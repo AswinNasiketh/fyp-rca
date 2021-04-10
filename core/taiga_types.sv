@@ -313,7 +313,7 @@ package taiga_types;
         logic [4:0] cpu_reg_addr;
 
         //Interface for PR grid MUX sel storage
-        logic [$clog2(NUM_GRID_MUXES)-1:0] grid_mux_addr;
+        logic [$clog2(NUM_GRID_MUXES*2)-1:0] grid_mux_addr;
         logic [$clog2(GRID_MUX_INPUTS)-1:0] new_grid_mux_sel;
 
         //Interface for PR grid IO unit MUX sel storage

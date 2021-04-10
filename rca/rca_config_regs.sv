@@ -28,11 +28,11 @@ module rca_config_regs (
 
     //Reg file to store grid crossbar configurations
     //Read interface
-    output [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel_out [NUM_GRID_MUXES],
+    output [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel_out [NUM_GRID_MUXES*2],
     
     //Write interface - uses address from read interface
     input grid_mux_wr_en,
-    input [$clog2(NUM_GRID_MUXES)-1:0] grid_mux_wr_addr,
+    input [$clog2(NUM_GRID_MUXES*2)-1:0] grid_mux_wr_addr,
     input [$clog2(GRID_MUX_INPUTS)-1:0] new_grid_mux_sel,
 
     //Reg file to store IO Unit crossbar configurations
@@ -74,7 +74,7 @@ module rca_config_regs (
     logic [4:0] [NUM_WRITE_PORTS-1:0] cpu_dest_fb_reg_addrs [NUM_RCAS];    
     logic [4:0] [NUM_WRITE_PORTS-1:0] cpu_dest_nfb_reg_addrs [NUM_RCAS];    
 
-    logic [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sels [NUM_GRID_MUXES];
+    logic [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sels [NUM_GRID_MUXES*2];
 
     logic [$clog2(IO_UNIT_MUX_INPUTS)-1:0] io_unit_mux_sels [GRID_NUM_ROWS];
 
