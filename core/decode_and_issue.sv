@@ -275,21 +275,21 @@ module decode_and_issue (
 
         always_ff @(posedge clk) rca_inputs.rca_io_mux_config_instr <= rca_io_mux_config_instr;
 
-        assign rca_inputs.io_mux_addr = rs_data[RS1][$clog2(GRID_NUM_ROWS)-1:0];
+        assign rca_inputs.io_mux_addr = rs_data[RS1][$clog2(NUM_IO_UNITS)-1:0];
         assign rca_inputs.new_io_mux_sel = rs_data[RS2][$clog2(IO_UNIT_MUX_INPUTS)-1:0];
 
         always_ff @(posedge clk) rca_inputs.rca_result_mux_config_instr <= rca_result_mux_config_instr;
         assign rca_inputs.rca_result_mux_config_fb = rs_data[RS1][$clog2(NUM_WRITE_PORTS)];
 
         assign rca_inputs.rca_result_mux_addr = rs_data[RS1][$clog2(NUM_WRITE_PORTS)-1:0];
-        assign rca_inputs.new_rca_result_mux_sel = rs_data[RS2][$clog2(GRID_NUM_ROWS)-1:0];
+        assign rca_inputs.new_rca_result_mux_sel = rs_data[RS2][$clog2(NUM_IO_UNITS)-1:0];
 
         always_ff @(posedge clk) rca_inputs.rca_io_inp_map_config_instr <= rca_io_inp_map_config_instr;
 
-        assign rca_inputs.new_rca_io_inp_map = rs_data[RS1][GRID_NUM_ROWS-1:0];
+        assign rca_inputs.new_rca_io_inp_map = rs_data[RS1][NUM_IO_UNITS-1:0];
 
         always_ff @(posedge clk) rca_inputs.rca_input_constants_config_instr <= rca_input_constants_config_instr;
-        assign rca_inputs.io_unit_addr = rs_data[RS1][$clog2(GRID_NUM_ROWS)-1:0];
+        assign rca_inputs.io_unit_addr = rs_data[RS1][$clog2(NUM_IO_UNITS)-1:0];
         assign rca_inputs.new_input_constant = rs_data[RS2];
     endgenerate
 

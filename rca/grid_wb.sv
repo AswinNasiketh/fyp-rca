@@ -4,10 +4,10 @@ module grid_wb
     import taiga_types::*;
     import rca_config::*;
 (
-    input [XLEN-1:0] io_unit_output_data [GRID_NUM_ROWS],
-    input io_unit_output_data_valid [GRID_NUM_ROWS],
+    input [XLEN-1:0] io_unit_output_data [NUM_IO_UNITS],
+    input io_unit_output_data_valid [NUM_IO_UNITS],
 
-    input [$clog2(GRID_NUM_ROWS)-1:0] io_unit_sels [NUM_WRITE_PORTS],
+    input [$clog2(NUM_IO_UNITS)-1:0] io_unit_sels [NUM_WRITE_PORTS],
     input io_unit_sels_valid,
 
     output [XLEN-1:0] output_data [NUM_WRITE_PORTS],

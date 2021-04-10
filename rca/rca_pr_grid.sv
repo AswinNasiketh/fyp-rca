@@ -9,16 +9,16 @@ module rca_pr_grid
 
     //Data
     input [XLEN-1:0] rs_vals [NUM_READ_PORTS],
-    input [GRID_NUM_ROWS-1:0] rs_data_valid,
-    output [XLEN-1:0] io_unit_data_out [GRID_NUM_ROWS],
-    output io_unit_data_valid_out [GRID_NUM_ROWS],
+    input [NUM_IO_UNITS-1:0] rs_data_valid,
+    output [XLEN-1:0] io_unit_data_out [NUM_IO_UNITS],
+    output io_unit_data_valid_out [NUM_IO_UNITS],
 
     //Config & Control - IO units
-    input [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sel [GRID_NUM_ROWS],
-    input io_unit_output_mode [GRID_NUM_ROWS],
+    input [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sel [NUM_IO_UNITS],
+    input io_unit_output_mode [NUM_IO_UNITS],
     input io_units_rst,
-    input io_fifo_pop [GRID_NUM_ROWS],
-    input [XLEN-1:0] input_constants [GRID_NUM_ROWS],
+    input io_fifo_pop [NUM_IO_UNITS],
+    input [XLEN-1:0] input_constants [NUM_IO_UNITS],
 
     //Config & Control - PR slots
     input [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel [NUM_GRID_MUXES*2]
@@ -31,40 +31,40 @@ logic [XLEN-1:0] row_data [GRID_NUM_COLS][GRID_NUM_ROWS];
 
 
 //Implementation - IO Units
-logic [XLEN-1:0] io_mux_data_in [IO_UNIT_MUX_INPUTS][GRID_NUM_ROWS];
-logic io_mux_data_valid_in [IO_UNIT_MUX_INPUTS][GRID_NUM_ROWS];
-logic [XLEN-1:0] io_mux_data_out [GRID_NUM_ROWS];
-logic io_mux_data_valid_out [GRID_NUM_ROWS];
+logic [XLEN-1:0] io_mux_data_in [IO_UNIT_MUX_INPUTS][NUM_IO_UNITS];
+logic io_mux_data_valid_in [IO_UNIT_MUX_INPUTS][NUM_IO_UNITS];
+logic [XLEN-1:0] io_mux_data_out [NUM_IO_UNITS];
+logic io_mux_data_valid_out [NUM_IO_UNITS];
 
 always_comb begin
-    for (int k = 0; k < GRID_NUM_ROWS; k++) begin
+    for (int k = 0; k < NUM_IO_UNITS; k++) begin
 
         for (int i = 0; i < NUM_READ_PORTS; i++)
             io_mux_data_in[k][i] = rs_vals[i];
 
         for (int j = NUM_READ_PORTS; j < NUM_READ_PORTS + GRID_NUM_COLS; j++)
-            if (k == 0) io_mux_data_in[k][j] = 0; //first row doesn't have any preceding outputs
-            else io_mux_data_in[k][j] = row_data[k-1][j - NUM_READ_PORTS];  
+            if (k <= 1) io_mux_data_in[k][j] = 0; //first 2 rows don't have any preceding outputs
+            else io_mux_data_in[k][j] = row_data[k-2][j - NUM_READ_PORTS];  
 
         io_mux_data_in[k][NUM_READ_PORTS + GRID_NUM_COLS] = input_constants[k];
     end
 end
 
 always_comb begin
-    for (int k = 0; k < GRID_NUM_ROWS; k++) begin
+    for (int k = 0; k < NUM_IO_UNITS; k++) begin
 
         for (int i = 0; i < NUM_READ_PORTS; i++)
             io_mux_data_valid_in[k][i] = rs_data_valid[k];
 
         for (int j = NUM_READ_PORTS; j < NUM_READ_PORTS + GRID_NUM_COLS; j++)
-            if (k == 0) io_mux_data_valid_in[k][j] = 0; //first row doesn't have any preceding outputs
-            else io_mux_data_valid_in[k][j] = row_data_valid[k-1][j - NUM_READ_PORTS];   
+            if (k <= 1) io_mux_data_valid_in[k][j] = 0; //first 2 rows don't have any preceding outputs
+            else io_mux_data_valid_in[k][j] = row_data_valid[k-2][j - NUM_READ_PORTS];   
         
         io_mux_data_valid_in[k][NUM_READ_PORTS + GRID_NUM_COLS] = rs_data_valid[k];
     end
 end
 
-generate for (i = 0; i < GRID_NUM_ROWS; i++) begin : io_unit_muxes
+generate for (i = 0; i < NUM_IO_UNITS; i++) begin : io_unit_muxes
     grid_xbar_mux #(.NUM_INPUTS(IO_UNIT_MUX_INPUTS)) io_mux(
         .data_in(io_mux_data_in[i]),
         .data_valid_in(io_mux_data_valid_in[i]),
@@ -74,7 +74,7 @@ generate for (i = 0; i < GRID_NUM_ROWS; i++) begin : io_unit_muxes
     );
 end endgenerate
 
-generate for (i = 0; i < GRID_NUM_ROWS; i++) begin : io_units
+generate for (i = 0; i < NUM_IO_UNITS; i++) begin : io_units
     grid_io_block io_unit(
         .clk, .rst,
         .data_valid_in(io_mux_data_valid_out[i]),
@@ -117,14 +117,8 @@ always_comb begin
                 end
             end
             //mux input for data from io unit above
-            if (i == 0) begin
-                pr_slot_mux_data_in1[i][j][GRID_MUX_INPUTS-2] = 0;
-                pr_slot_mux_data_valid_in1[i][j][GRID_MUX_INPUTS-2] = 0;
-            end
-            else begin
-                pr_slot_mux_data_in1[i][j][GRID_MUX_INPUTS-2] = io_unit_data_out[i-1];
-                pr_slot_mux_data_valid_in1[i][j][GRID_MUX_INPUTS-2] = io_unit_data_valid_out[i-1];
-            end
+            pr_slot_mux_data_in1[i][j][GRID_MUX_INPUTS-2] = io_unit_data_out[i];
+            pr_slot_mux_data_valid_in1[i][j][GRID_MUX_INPUTS-2] = io_unit_data_valid_out[i];
 
             //mux input for data from pr slot on left
             if (j == 0) begin 
@@ -137,7 +131,6 @@ always_comb begin
             end
 
         end
-
     end
 end
 
@@ -156,14 +149,8 @@ always_comb begin
                 end
             end
             //mux input for data from io unit above
-            if (i == 0) begin
-                pr_slot_mux_data_in2[i][j][GRID_MUX_INPUTS-2] = 0;
-                pr_slot_mux_data_valid_in2[i][j][GRID_MUX_INPUTS-2] = 0;
-            end
-            else begin
-                pr_slot_mux_data_in2[i][j][GRID_MUX_INPUTS-2] = io_unit_data_out[i-1];
-                pr_slot_mux_data_valid_in2[i][j][GRID_MUX_INPUTS-2] = io_unit_data_valid_out[i-1];
-            end
+            pr_slot_mux_data_in2[i][j][GRID_MUX_INPUTS-2] = io_unit_data_out[i];
+            pr_slot_mux_data_valid_in2[i][j][GRID_MUX_INPUTS-2] = io_unit_data_valid_out[i];
 
             //mux input for data from pr slot on left
             if (j == 0) begin 
@@ -223,10 +210,5 @@ generate
 end endgenerate
 
 //LSUs
-//IO units for top and bottom rows
-
-
-//N Write Ports *2 (feedback and normal) MUXes/Xbars per RCA?
-//Need to modify destination registers and add more custom instrs?no
     
 endmodule

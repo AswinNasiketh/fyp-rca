@@ -50,6 +50,7 @@ package rca_config;
     localparam GRID_MUX_INPUTS = GRID_NUM_COLS + 2; //1 extra input to take data from module on left, 1 extra input to take data from IO unit of column above
 
     localparam IO_UNIT_MUX_INPUTS = GRID_NUM_COLS + NUM_READ_PORTS + 1; //+1 for input constant
+    localparam NUM_IO_UNITS = GRID_NUM_ROWS + 2; //one extra IO unit on top and below grid
 
 
 

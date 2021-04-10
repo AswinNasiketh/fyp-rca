@@ -12,11 +12,11 @@ module rca_unit(
 );
 
     logic [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel_out [NUM_GRID_MUXES*2];
-    logic [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sel [GRID_NUM_ROWS];
-    logic [$clog2(GRID_NUM_ROWS)-1:0] curr_fb_rca_result_mux_sel [NUM_WRITE_PORTS];
-    logic [$clog2(GRID_NUM_ROWS)-1:0] curr_nfb_rca_result_mux_sel [NUM_WRITE_PORTS];
-    logic [GRID_NUM_ROWS-1:0] curr_rca_io_inp_map;
-    logic [XLEN-1:0] input_constants_out [GRID_NUM_ROWS];
+    logic [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sel [NUM_IO_UNITS];
+    logic [$clog2(NUM_IO_UNITS)-1:0] curr_fb_rca_result_mux_sel [NUM_WRITE_PORTS];
+    logic [$clog2(NUM_IO_UNITS)-1:0] curr_nfb_rca_result_mux_sel [NUM_WRITE_PORTS];
+    logic [NUM_IO_UNITS-1:0] curr_rca_io_inp_map;
+    logic [XLEN-1:0] input_constants_out [NUM_IO_UNITS];
 
     rca_config_regs rca_config_regfile(
         .*,
@@ -69,33 +69,33 @@ module rca_unit(
 
     grid_control rca_grid_control(.*);
 
-    logic [GRID_NUM_ROWS-1:0] rs_data_valid;
-    logic [XLEN-1:0] io_unit_data_out [GRID_NUM_ROWS];
-    logic io_unit_data_valid_out [GRID_NUM_ROWS];
-    logic [NUM_WRITE_PORTS-1:0] io_unit_addr_match_fb_wb [GRID_NUM_ROWS];
-    logic [NUM_WRITE_PORTS-1:0] io_unit_addr_match_nfb_wb [GRID_NUM_ROWS];
-    logic io_unit_output_mode [GRID_NUM_ROWS];
-    logic io_fifo_pop [GRID_NUM_ROWS];
+    logic [NUM_IO_UNITS-1:0] rs_data_valid;
+    logic [XLEN-1:0] io_unit_data_out [NUM_IO_UNITS];
+    logic io_unit_data_valid_out [NUM_IO_UNITS];
+    logic [NUM_WRITE_PORTS-1:0] io_unit_addr_match_fb_wb [NUM_IO_UNITS];
+    logic [NUM_WRITE_PORTS-1:0] io_unit_addr_match_nfb_wb [NUM_IO_UNITS];
+    logic io_unit_output_mode [NUM_IO_UNITS];
+    logic io_fifo_pop [NUM_IO_UNITS];
 
-    assign rs_data_valid = curr_rca_io_inp_map & {GRID_NUM_ROWS{buf_data_valid}};
+    assign rs_data_valid = curr_rca_io_inp_map & {NUM_IO_UNITS{buf_data_valid}};
 
     always_comb begin
-        for(int i = 0; i < GRID_NUM_ROWS; i++) begin
+        for(int i = 0; i < NUM_IO_UNITS; i++) begin
             for(int j = 0; j < NUM_WRITE_PORTS; i++) begin
-                io_unit_addr_match_fb_wb[i][j] = curr_fb_rca_result_mux_sel[j] == ($clog2(GRID_NUM_ROWS))'(i);
-                io_unit_addr_match_nfb_wb[i][j] = curr_nfb_rca_result_mux_sel[j] == ($clog2(GRID_NUM_ROWS))'(i);
+                io_unit_addr_match_fb_wb[i][j] = curr_fb_rca_result_mux_sel[j] == ($clog2(NUM_IO_UNITS))'(i);
+                io_unit_addr_match_nfb_wb[i][j] = curr_nfb_rca_result_mux_sel[j] == ($clog2(NUM_IO_UNITS))'(i);
             end
         end
     end
 
     always_comb begin
-        for(int i = 0; i < GRID_NUM_ROWS; i++) begin
+        for(int i = 0; i < NUM_IO_UNITS; i++) begin
             io_unit_output_mode[i] = (|io_unit_addr_match_fb_wb[i]) || (|io_unit_addr_match_nfb_wb[i]);
         end
     end
 
     always_comb begin
-        for (int i = 0; i < GRID_NUM_ROWS; i++) begin
+        for (int i = 0; i < NUM_IO_UNITS; i++) begin
             io_fifo_pop[i] = wb_committing && (wb_fb_instr ? io_unit_addr_match_fb_wb[i]: io_unit_addr_match_nfb_wb[i]);
         end
     end
@@ -116,7 +116,7 @@ module rca_unit(
     );
 
     logic wb_committing;
-    logic [$clog2(GRID_NUM_ROWS)-1:0] io_unit_sels [NUM_WRITE_PORTS];
+    logic [$clog2(NUM_IO_UNITS)-1:0] io_unit_sels [NUM_WRITE_PORTS];
     logic [XLEN-1:0] grid_output_data [NUM_WRITE_PORTS];
 
     always_comb begin

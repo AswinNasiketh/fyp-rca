@@ -30,15 +30,15 @@ module rca_config_regs (
     //Read interface
     output [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel_out [NUM_GRID_MUXES*2],
     
-    //Write interface - uses address from read interface
+    //Write interface
     input grid_mux_wr_en,
     input [$clog2(NUM_GRID_MUXES*2)-1:0] grid_mux_wr_addr,
     input [$clog2(GRID_MUX_INPUTS)-1:0] new_grid_mux_sel,
 
     //Reg file to store IO Unit crossbar configurations
     //Read interface
-    input [$clog2(GRID_NUM_ROWS)-1:0] io_mux_addr,
-    output [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sels [GRID_NUM_ROWS],
+    input [$clog2(NUM_IO_UNITS)-1:0] io_mux_addr,
+    output [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sels [NUM_IO_UNITS],
     
     //Write interface - uses address from read interface
     input io_mux_wr_en,
@@ -47,26 +47,26 @@ module rca_config_regs (
     //Reg file to store RCA Result Unit crossbar configurations - uses rca_sel_grid_wb for reading
     //Read interface  
     input [$clog2(NUM_WRITE_PORTS)-1:0] rca_result_mux_addr,
-    output [$clog2(GRID_NUM_ROWS)-1:0] curr_fb_rca_result_mux_sel [NUM_WRITE_PORTS],
-    output [$clog2(GRID_NUM_ROWS)-1:0] curr_nfb_rca_result_mux_sel [NUM_WRITE_PORTS],
+    output [$clog2(NUM_IO_UNITS)-1:0] curr_fb_rca_result_mux_sel [NUM_WRITE_PORTS],
+    output [$clog2(NUM_IO_UNITS)-1:0] curr_nfb_rca_result_mux_sel [NUM_WRITE_PORTS],
     
     //Write interface - uses address from read interface and rca_sel_issue for writing
     input rca_fb_result_mux_wr_en,
     input rca_nfb_result_mux_wr_en,
-    input [$clog2(GRID_NUM_ROWS)-1:0] new_rca_result_mux_sel,
+    input [$clog2(NUM_IO_UNITS)-1:0] new_rca_result_mux_sel,
 
     //Reg file to store which IO (input) unit is associated with which accelerator - for data_valid signal generation
     //Uses rca_sel signal from above
-    output [GRID_NUM_ROWS-1:0] curr_rca_io_inp_map,
+    output [NUM_IO_UNITS-1:0] curr_rca_io_inp_map,
 
     input rca_io_inp_map_wr_en,
-    input [GRID_NUM_ROWS-1:0] new_rca_io_inp_map,
+    input [NUM_IO_UNITS-1:0] new_rca_io_inp_map,
 
     //Reg file to store custon constant which can be used as input instead of a CPU register
-    output [XLEN-1:0] input_constants_out [GRID_NUM_ROWS],
+    output [XLEN-1:0] input_constants_out [NUM_IO_UNITS],
 
     input rca_input_constants_wr_en,
-    input [$clog2(GRID_NUM_ROWS)-1:0] io_unit_addr,
+    input [$clog2(NUM_IO_UNITS)-1:0] io_unit_addr,
     input [XLEN-1:0] new_input_constant
 );
 
@@ -76,13 +76,13 @@ module rca_config_regs (
 
     logic [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sels [NUM_GRID_MUXES*2];
 
-    logic [$clog2(IO_UNIT_MUX_INPUTS)-1:0] io_unit_mux_sels [GRID_NUM_ROWS];
+    logic [$clog2(IO_UNIT_MUX_INPUTS)-1:0] io_unit_mux_sels [NUM_IO_UNITS];
 
-    typedef logic [$clog2(GRID_NUM_ROWS)-1:0] rca_result_mux_sel_t [NUM_WRITE_PORTS];
+    typedef logic [$clog2(NUM_IO_UNITS)-1:0] rca_result_mux_sel_t [NUM_WRITE_PORTS];
     rca_result_mux_sel_t rca_result_mux_sels_fb [NUM_RCAS];
     rca_result_mux_sel_t rca_result_mux_sels_nfb [NUM_RCAS];
 
-    logic [GRID_NUM_ROWS-1:0] rca_io_inp_map [NUM_RCAS];
+    logic [NUM_IO_UNITS-1:0] rca_io_inp_map [NUM_RCAS];
 
     //Reg file to store which of the CPU regs to read from and write to
     initial begin
