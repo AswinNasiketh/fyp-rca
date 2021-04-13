@@ -7,12 +7,13 @@ module rca_unit(
     input clk,
     input rst,
     input rca_inputs_t rca_inputs,
-    output rca_config_t rca_config_regs_op,
+    input rca_dec_inputs_r_t rca_dec_inputs_r,
+    output rca_cpu_reg_config_t rca_config_regs_op,
     rca_writeback_interface.unit rca_wb
 );
 
     logic [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel_out [NUM_GRID_MUXES*2];
-    logic [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sel [NUM_IO_UNITS];
+    logic [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sels [NUM_IO_UNITS];
     logic [$clog2(NUM_IO_UNITS)-1:0] curr_fb_rca_result_mux_sel [NUM_WRITE_PORTS];
     logic [$clog2(NUM_IO_UNITS)-1:0] curr_nfb_rca_result_mux_sel [NUM_WRITE_PORTS];
     logic [NUM_IO_UNITS-1:0] curr_rca_io_inp_map;
@@ -22,7 +23,7 @@ module rca_unit(
         .*,
         .clk(clk),
         .rst(rst),
-        .rca_sel_issue(rca_inputs.rca_sel), //for config writes
+        .rca_sel_issue(rca_dec_inputs_r.rca_sel), //for config writes
         .rca_sel_decode(rca_inputs.rca_sel_decode), //for CPU to read and write to correct registers when issuing use instrs
         .rca_sel_grid_wb(currently_running_rca), //for grid control to retrieve config information
         .rca_sel_buf(rca_sel_buf),
@@ -37,23 +38,23 @@ module rca_unit(
         .cpu_src_dest_port(rca_inputs.cpu_src_dest_port),
         .cpu_reg_addr(rca_inputs.cpu_reg_addr),
 
-        .grid_mux_addr(rca_inputs.grid_mux_addr),
-        .grid_mux_wr_en(rca_inputs.rca_grid_mux_config_instr && issue.new_request),
+        .grid_mux_wr_addr(rca_inputs.grid_mux_addr),
+        .grid_mux_wr_en(rca_dec_inputs_r.rca_grid_mux_config_instr && issue.new_request),
         .new_grid_mux_sel(rca_inputs.new_grid_mux_sel),
 
         .io_mux_addr(rca_inputs.io_mux_addr),
-        .io_mux_wr_en(rca_inputs.rca_io_mux_config_instr && issue.new_request),
+        .io_mux_wr_en(rca_dec_inputs_r.rca_io_mux_config_instr && issue.new_request),
         .new_io_mux_sel(rca_inputs.new_io_mux_sel),
 
         .rca_result_mux_addr(rca_inputs.rca_result_mux_addr),
-        .rca_fb_result_mux_wr_en(rca_inputs.rca_result_mux_config_instr && rca_inputs.rca_result_mux_config_fb && issue.new_request),
-        .rca_nfb_result_mux_wr_en(rca_inputs.rca_result_mux_config_instr && ~rca_inputs.rca_result_mux_config_fb && issue.new_request),
+        .rca_fb_result_mux_wr_en(rca_dec_inputs_r.rca_result_mux_config_instr && rca_inputs.rca_result_mux_config_fb && issue.new_request),
+        .rca_nfb_result_mux_wr_en(rca_dec_inputs_r.rca_result_mux_config_instr && ~rca_inputs.rca_result_mux_config_fb && issue.new_request),
         .new_rca_result_mux_sel(rca_inputs.new_rca_result_mux_sel),
 
-        .rca_io_inp_map_wr_en(rca_inputs.rca_io_use_config_instr && issue.new_request),
-        .new_rca_io_inp_map(rca_inputs.new_rca_io_inp_use),
+        .rca_io_inp_map_wr_en(rca_dec_inputs_r.rca_io_inp_map_config_instr && issue.new_request),
+        .new_rca_io_inp_map(rca_inputs.new_rca_io_inp_map),
 
-        .rca_input_constants_wr_en(rca_inputs.rca_input_constants_config_instr && issue.new_request),
+        .rca_input_constants_wr_en(rca_dec_inputs_r.rca_input_constants_config_instr && issue.new_request),
         .io_unit_addr(rca_inputs.io_unit_addr),
         .new_input_constant(rca_inputs.new_input_constant)
     );
@@ -96,7 +97,7 @@ module rca_unit(
 
     always_comb begin
         for (int i = 0; i < NUM_IO_UNITS; i++) begin
-            io_fifo_pop[i] = wb_committing && (wb_fb_instr ? io_unit_addr_match_fb_wb[i]: io_unit_addr_match_nfb_wb[i]);
+            io_fifo_pop[i] = wb_committing && (wb_fb_instr ? |io_unit_addr_match_fb_wb[i]: |io_unit_addr_match_nfb_wb[i]);
         end
     end
 
@@ -107,7 +108,7 @@ module rca_unit(
         .rs_data_valid,
         .io_unit_data_out,
         .io_unit_data_valid_out,
-        .curr_io_mux_sel,
+        .curr_io_mux_sels,
         .io_unit_output_mode,
         .io_units_rst(clear_fifos),
         .io_fifo_pop,
@@ -140,14 +141,14 @@ module rca_unit(
     assign issue.ready = 1'b1;
     
     always_ff @(posedge clk) begin
-        if (issue.new_request && ~rca_inputs.rca_use_instr) begin
+        if (issue.new_request && ~rca_dec_inputs_r.rca_use_instr) begin
 
             rca_wb.id <= issue.id;
             rca_wb.done <= 1;
             for(int i = 0; i < NUM_WRITE_PORTS; i++)
                 rca_wb.rd[i] <= 0;
         end
-        else if (rca_inputs.rca_use_instr && issue.new_request) begin
+        else if (rca_dec_inputs_r.rca_use_instr && issue.new_request) begin
             rca_wb.done <= 1;
             rca_wb.id <= issue.id;
             //Reverse input register order - just for testing

@@ -4,8 +4,8 @@ module rca_pr_grid
     import taiga_types::*;
     import rca_config::*;
 (
-    .clk,
-    .rst,
+    input clk,
+    input rst,
 
     //Data
     input [XLEN-1:0] rs_vals [NUM_READ_PORTS],
@@ -14,7 +14,7 @@ module rca_pr_grid
     output io_unit_data_valid_out [NUM_IO_UNITS],
 
     //Config & Control - IO units
-    input [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sel [NUM_IO_UNITS],
+    input [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sels [NUM_IO_UNITS],
     input io_unit_output_mode [NUM_IO_UNITS],
     input io_units_rst,
     input io_fifo_pop [NUM_IO_UNITS],
@@ -31,8 +31,12 @@ logic [XLEN-1:0] row_data [GRID_NUM_COLS][GRID_NUM_ROWS];
 
 
 //Implementation - IO Units
-logic [XLEN-1:0] io_mux_data_in [IO_UNIT_MUX_INPUTS][NUM_IO_UNITS];
-logic io_mux_data_valid_in [IO_UNIT_MUX_INPUTS][NUM_IO_UNITS];
+typedef logic [XLEN-1:0] io_mux_data_t [IO_UNIT_MUX_INPUTS];
+io_mux_data_t  io_mux_data_in [NUM_IO_UNITS];
+
+typedef logic io_mux_data_valid_t [IO_UNIT_MUX_INPUTS];
+io_mux_data_valid_t io_mux_data_valid_in [NUM_IO_UNITS];
+
 logic [XLEN-1:0] io_mux_data_out [NUM_IO_UNITS];
 logic io_mux_data_valid_out [NUM_IO_UNITS];
 
@@ -68,7 +72,7 @@ generate for (i = 0; i < NUM_IO_UNITS; i++) begin : io_unit_muxes
     grid_xbar_mux #(.NUM_INPUTS(IO_UNIT_MUX_INPUTS)) io_mux(
         .data_in(io_mux_data_in[i]),
         .data_valid_in(io_mux_data_valid_in[i]),
-        .data_sel(curr_io_mux_sel[i]),
+        .data_sel(curr_io_mux_sels[i]),
         .data_out(io_mux_data_out[i]),
         .data_valid_out(io_mux_data_valid_out[i])
     );
@@ -80,27 +84,39 @@ generate for (i = 0; i < NUM_IO_UNITS; i++) begin : io_units
         .data_valid_in(io_mux_data_valid_out[i]),
         .data_in(io_mux_data_out[i]),
         .data_valid_out(io_unit_data_valid_out[i]),
-        .data_out(io_unit_data_out[i])
+        .data_out(io_unit_data_out[i]),
         .output_mode(io_unit_output_mode[i]),
         .fifo_rst(io_units_rst),
         .fifo_pop(io_fifo_pop[i])
     );
 end endgenerate
 
-logic [XLEN-1:0] pr_slot_mux_data_in1 [GRID_MUX_INPUTS][GRID_NUM_COLS][GRID_NUM_ROWS]; //first data input to pr units
-logic pr_slot_mux_data_valid_in1 [GRID_MUX_INPUTS][GRID_NUM_COLS][GRID_NUM_ROWS];
+typedef logic [XLEN-1:0] pr_slot_mux_data_t [GRID_MUX_INPUTS];
+typedef pr_slot_mux_data_t pr_row_mux_data_t [GRID_NUM_COLS];
 
-logic [XLEN-1:0] pr_mux_data_out1 [GRID_NUM_COLS][GRID_NUM_ROWS];
-logic pr_mux_data_valid_out1 [GRID_NUM_COLS][GRID_NUM_ROWS];
 
-logic [XLEN-1:0] pr_slot_mux_data_in2 [GRID_MUX_INPUTS][GRID_NUM_COLS][GRID_NUM_ROWS];// second data input to pr units
-logic pr_slot_mux_data_valid_in2 [GRID_MUX_INPUTS][GRID_NUM_COLS][GRID_NUM_ROWS];
+typedef logic pr_slot_mux_data_valid_t [GRID_MUX_INPUTS];
+typedef pr_slot_mux_data_valid_t pr_row_mux_data_valid_t [GRID_NUM_COLS];
 
-logic [XLEN-1:0] pr_mux_data_out2 [GRID_NUM_COLS][GRID_NUM_ROWS];
-logic pr_mux_data_valid_out2 [GRID_NUM_COLS][GRID_NUM_ROWS];
+pr_row_mux_data_t pr_slot_mux_data_in1 [GRID_NUM_ROWS];
+pr_row_mux_data_valid_t pr_slot_mux_data_valid_in1 [GRID_NUM_ROWS];
 
-logic [XLEN-1:0] pr_unit_data_out [GRID_NUM_COLS][GRID_NUM_ROWS];
-logic pr_unit_data_valid_out [GRID_NUM_COLS][GRID_NUM_ROWS];
+typedef logic [XLEN-1:0] pr_mux_data_out_t [GRID_NUM_COLS];
+typedef logic pr_mux_data_valid_out_t [GRID_NUM_COLS];
+
+pr_mux_data_out_t pr_mux_data_out1 [GRID_NUM_ROWS];
+pr_mux_data_valid_out_t pr_mux_data_valid_out1 [GRID_NUM_ROWS];
+
+pr_row_mux_data_t pr_slot_mux_data_in2 [GRID_NUM_ROWS];// second data input to pr units
+pr_row_mux_data_valid_t pr_slot_mux_data_valid_in2 [GRID_NUM_ROWS];
+
+pr_mux_data_out_t pr_mux_data_out2 [GRID_NUM_ROWS];
+pr_mux_data_valid_out_t pr_mux_data_valid_out2 [GRID_NUM_ROWS];
+
+typedef logic [XLEN-1:0] pr_unit_data_out_t [GRID_NUM_COLS];
+typedef logic pr_unit_data_valid_out_t [GRID_NUM_COLS];
+pr_unit_data_out_t pr_unit_data_out [GRID_NUM_ROWS];
+pr_unit_data_valid_out_t pr_unit_data_valid_out [GRID_NUM_ROWS];
 
 always_comb begin
     for(int i = 0; i < GRID_NUM_ROWS; i++) begin

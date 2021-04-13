@@ -108,12 +108,12 @@ module rca_config_regs (
 
     always_comb begin
         if (rca_use_fb_instr_decode) begin
-            rca_cpu_src_reg_addrs = cpu_src_reg_addrs[rca_sel_decode];
-            rca_cpu_dest_reg_addrs = cpu_dest_fb_reg_addrs[rca_sel_decode];
+            rca_cpu_src_reg_addrs_decode = cpu_src_reg_addrs[rca_sel_decode];
+            rca_cpu_dest_reg_addrs_decode = cpu_dest_fb_reg_addrs[rca_sel_decode];
         end
         else begin
-            rca_cpu_src_reg_addrs = 0; //for non feedback use instrs, don't supply source regs
-            rca_cpu_dest_reg_addrs = cpu_dest_nfb_reg_addrs[rca_sel_decode];
+            rca_cpu_src_reg_addrs_decode = 0; //for non feedback use instrs, don't supply source regs
+            rca_cpu_dest_reg_addrs_decode = cpu_dest_nfb_reg_addrs[rca_sel_decode];
         end
     end    
 

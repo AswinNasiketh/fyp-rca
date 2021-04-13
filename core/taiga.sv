@@ -68,7 +68,8 @@ module taiga (
     div_inputs_t div_inputs;
     gc_inputs_t gc_inputs;
     rca_inputs_t rca_inputs;
-    rca_config_t rca_config_regs_op;
+    rca_dec_inputs_r_t rca_dec_inputs_r;
+    rca_cpu_reg_config_t rca_config_regs_op;
 
     unit_issue_interface unit_issue [NUM_UNITS-1:0]();
     logic alu_issued;

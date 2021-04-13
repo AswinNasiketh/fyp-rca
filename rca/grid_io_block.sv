@@ -18,7 +18,7 @@ module grid_io_block
 );
 
     //FIFO to store accelerator output data when in output mode
-    fifo_interface #(.DATA_WIDTH(XLEN) oldest_data ();
+    fifo_interface #(.DATA_WIDTH(XLEN)) oldest_data ();
 
     taiga_fifo #(.DATA_WIDTH(XLEN), .FIFO_DEPTH(MAX_IDS)) data_fifo (
         .clk, .rst(fifo_rst | rst),

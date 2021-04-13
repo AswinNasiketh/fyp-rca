@@ -4,7 +4,7 @@ module grid_xbar_mux
     import taiga_types::*;
     import rca_config::*;
 #(
-    parameter NUM_INPUTS = GRID_MUX_INPUTS;
+    parameter NUM_INPUTS = GRID_MUX_INPUTS
 ) (
     input [XLEN-1:0] data_in [NUM_INPUTS],
     input data_valid_in [NUM_INPUTS],

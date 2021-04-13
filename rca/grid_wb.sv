@@ -23,9 +23,12 @@ module grid_wb
 
     assign wb_committing = &port_ready_for_commit;
 
-    always_comb begin
-        for (int i = 0; i < NUM_WRITE_PORTS; i++)
-            output_data[i] = io_unit_output_data[io_unit_sels[i]];
-    end
+    genvar i;
+
+    generate 
+        for(i = 0; i < NUM_WRITE_PORTS; i++)
+            assign output_data[i] = io_unit_output_data[io_unit_sels[i]];
+    endgenerate
+
     
 endmodule

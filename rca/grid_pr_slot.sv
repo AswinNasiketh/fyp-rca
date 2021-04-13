@@ -24,7 +24,7 @@ logic input1_fifo_populated;
 logic input2_fifo_populated;
 
 //FIFO to queue data from input 1
-    fifo_interface #(.DATA_WIDTH(XLEN) input1_fifo_if ();
+    fifo_interface #(.DATA_WIDTH(XLEN)) input1_fifo_if ();
 
     taiga_fifo #(.DATA_WIDTH(XLEN), .FIFO_DEPTH(MAX_IDS)) input1_fifo (
         .clk, .rst,
@@ -40,7 +40,7 @@ logic input2_fifo_populated;
     assign input1_fifo_populated = input1_fifo_if.valid;
 
     //FIFO to queue data from input 2
-    fifo_interface #(.DATA_WIDTH(XLEN) input2_fifo_if ();
+    fifo_interface #(.DATA_WIDTH(XLEN)) input2_fifo_if ();
 
     taiga_fifo #(.DATA_WIDTH(XLEN), .FIFO_DEPTH(MAX_IDS)) input2_fifo (
         .clk, .rst,
@@ -48,8 +48,8 @@ logic input2_fifo_populated;
     );
 
     assign input2_fifo_if.pop = ou_data_in_ack;
-    assign input2_fifo_if.data_in = data_in;
-    assign input2_fifo_if.potential_push = data_valid_in;
+    assign input2_fifo_if.data_in = data_in2;
+    assign input2_fifo_if.potential_push = data_valid_in2;
     always_ff @(posedge clk) if (rst) input2_fifo_if.push <= 0;
         else input2_fifo_if.push <= input2_fifo_if.potential_push;
 
@@ -67,6 +67,6 @@ logic input2_fifo_populated;
         .data_out,
         .data_valid_out,
         .data_in_ack(ou_data_in_ack)
-    )
+    );
     
 endmodule

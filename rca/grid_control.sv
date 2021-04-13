@@ -9,6 +9,7 @@ module grid_control
 
     unit_issue_interface.unit issue,
     input rca_inputs_t rca_inputs,
+    input rca_dec_inputs_r_t rca_dec_inputs_r,
 
     input wb_committing,
     output id_t wb_id,
@@ -30,13 +31,15 @@ module grid_control
 
     //Buffer stage to determine whether instruction targets new RCA to one that is running
     rca_inputs_t rca_inputs_buf;
+    rca_dec_inputs_r_t rca_dec_inputs_r_buf;
     id_t id_buf;
 
     always_ff @(posedge clk) if (issue.new_request) rca_inputs_buf <= rca_inputs;
+    always_ff @(posedge clk) if (issue.new_request) rca_dec_inputs_r_buf <= rca_dec_inputs_r;
     always_ff @(posedge clk) if (issue.new_request) id_buf <= issue.id;
-    always_ff @(posedge clk) if (buf_data_valid) currently_running_rca <= rca_inputs_buf.rca_sel;
+    always_ff @(posedge clk) if (buf_data_valid) currently_running_rca <= rca_dec_inputs_r_buf.rca_sel;
 
-    logic rca_match = fifo_populated ? (currently_running_rca == rca_inputs.rca_sel) : 1'b1; //Note: rca_sel is aligned with new_request    
+    logic rca_match = fifo_populated ? (currently_running_rca == rca_dec_inputs_r.rca_sel) : 1'b1; //Note: rca_sel is aligned with new_request    
 
     logic current_state;
     logic next_state;
@@ -44,21 +47,22 @@ module grid_control
     
     //next state logic
     always_comb begin
-        case (current_state):
+        case (current_state)
             ACCEPTING_ISSUE_STATE: begin
-                next_state = issue.new_request && rca_inputs.rca_use_instr && fifo_populated && ~rca_match;
+                next_state = issue.new_request && rca_dec_inputs_r.rca_use_instr && fifo_populated && ~rca_match;
             end
             WAIT_FOR_FIFO_EMPTY_STATE: begin
                 next_state = fifo_populated;
             end
+        endcase
     end
 
     //state machine output signals
     assign issue.ready = (next_state == ACCEPTING_ISSUE_STATE && current_state == ACCEPTING_ISSUE_STATE); //only in ACCEPTING_ISSUE_STATE because the checks on whether the current request (if any) is using the RCA which is active (if any are active) only happen in ACCEPTING_ISSUE_STATE
 
-    assign buf_data_valid = ((next_state == ACCEPTING_ISSUE_STATE) && (current_state == WAIT_FOR_FIFO_EMPTY_STATE)) || (current_state == ACCEPTING_ISSUE_STATE && issue.new_request_r && rca_inputs_buf.rca_use_instr); //Buffer data is valid for issue to grid when we are moving out of WAIT_FOR_FIFO_EMPTY state since this data has been waiting in the buffer for the FIFO to empty. It is also valid when we have had a new request and haven't moved into WAIT_FOR_FIFO_EMPTY state (i.e. there was a new request on the previous cycle and we are still in ACCEPTING_ISSUE_STATE)
+    assign buf_data_valid = ((next_state == ACCEPTING_ISSUE_STATE) && (current_state == WAIT_FOR_FIFO_EMPTY_STATE)) || (current_state == ACCEPTING_ISSUE_STATE && issue.new_request_r && rca_dec_inputs_r_buf.rca_use_instr); //Buffer data is valid for issue to grid when we are moving out of WAIT_FOR_FIFO_EMPTY state since this data has been waiting in the buffer for the FIFO to empty. It is also valid when we have had a new request and haven't moved into WAIT_FOR_FIFO_EMPTY state (i.e. there was a new request on the previous cycle and we are still in ACCEPTING_ISSUE_STATE)
 
-    assign clear_fifos = ((next_state == ACCEPTING_ISSUE_STATE) && (current_state == WAIT_FOR_FIFO_EMPTY_STATE)) || (current_state == ACCEPTING_ISSUE_STATE && issue.new_request_r && rca_inputs_buf.rca_use_instr && ~fifo_populated) //We must clear IO unit FIFOs whenever we move to using a new accelerator since the IO FIFOs for those accelerators may have erratic values accumulated over time. This cleary happens when we move out of WAIT_FOR_FIFO_EMPTY state and it also happens whenever we're in ACCEPTING_ISSUE_STATE and a request has been buffered (therefore we haven't moved into WAIT_FOR_FIFO_EMPTY), and the reason for not moving into WAIT_FOR_FIFO_EMPTY is because the ID FIFO was empty
+    assign clear_fifos = ((next_state == ACCEPTING_ISSUE_STATE) && (current_state == WAIT_FOR_FIFO_EMPTY_STATE)) || (current_state == ACCEPTING_ISSUE_STATE && issue.new_request_r && rca_dec_inputs_r_buf.rca_use_instr && ~fifo_populated); //We must clear IO unit FIFOs whenever we move to using a new accelerator since the IO FIFOs for those accelerators may have erratic values accumulated over time. This cleary happens when we move out of WAIT_FOR_FIFO_EMPTY state and it also happens whenever we're in ACCEPTING_ISSUE_STATE and a request has been buffered (therefore we haven't moved into WAIT_FOR_FIFO_EMPTY), and the reason for not moving into WAIT_FOR_FIFO_EMPTY is because the ID FIFO was empty
 
     //FIFO to keep track of IDs of each RCA instruction in pipeline
     fifo_interface #(.DATA_WIDTH($bits(id_t))) rca_ids_fifo_if ();
@@ -78,7 +82,7 @@ module grid_control
 
     //Registers to store whether its a feedback or non-feedback use instruction
     logic is_fb_instr [MAX_IDS];
-    always_ff @(posedge clk) if (buf_data_valid) is_fb_instr[id_buf] <= rca_inputs_buf.rca_use_fb_instr;
+    always_ff @(posedge clk) if (buf_data_valid) is_fb_instr[id_buf] <= rca_dec_inputs_r_buf.rca_use_fb_instr;
     assign wb_fb_instr = is_fb_instr[wb_id];
 
     //RS data to buffered read data output
@@ -88,6 +92,6 @@ module grid_control
     assign buf_rs_data[3] = rca_inputs_buf.rs4;
     assign buf_rs_data[4] = rca_inputs_buf.rs5;
 
-    assign rca_sel_buf = rca_inputs_buf.rca_sel;
+    assign rca_sel_buf = rca_dec_inputs_r_buf.rca_sel;
 
 endmodule

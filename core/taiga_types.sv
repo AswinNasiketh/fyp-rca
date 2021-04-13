@@ -275,28 +275,15 @@ package taiga_types;
         logic [XLEN-1:0] rs2;
     } adder_inputs_t;
 
-    typedef struct packed{
-        //Select between RCA use and RCA config instrs
-        logic rca_use_instr;
-        logic rca_use_fb_instr; //High if instruction is a use instr specifying feedback destination regs
+    typedef struct packed{        
 
-        logic rca_use_fb_instr_decode; //decode stage version of above
+        logic rca_use_fb_instr_decode; //decode stage version of above (not delayed)
         
         logic rca_fb_cpu_reg_config_instr; //0 for anything else, 1 for cpu reg config
         
         logic rca_nfb_cpu_reg_config_instr; //0 for anything else, 1 for cpu reg config
 
-        logic rca_grid_mux_config_instr; //0 for anything else, 1 for grid mux config
-        
-        logic rca_io_mux_config_instr; 
-
-        logic rca_result_mux_config_instr;
-
-        logic rca_result_mux_config_fb;
-
-        logic rca_io_inp_map_config_instr;
-
-        logic rca_input_constants_config_instr;
+        logic rca_result_mux_config_fb;        
 
         //Interface for RCA use
         logic [XLEN-1:0] rs1;
@@ -304,7 +291,7 @@ package taiga_types;
         logic [XLEN-1:0] rs3;
         logic [XLEN-1:0] rs4;
         logic [XLEN-1:0] rs5;
-        logic [$clog2(NUM_RCAS)-1:0] rca_sel;
+        
         logic [$clog2(NUM_RCAS)-1:0] rca_sel_decode;//decode stage version of above
 
         //Interface for RCA CPU reg address storage
@@ -331,12 +318,33 @@ package taiga_types;
         logic [$clog2(NUM_IO_UNITS)-1:0] io_unit_addr;
         logic [XLEN-1:0] new_input_constant;
 
+
     } rca_inputs_t;
+
+    //inputs to RCA unit which are decode signals delayed by 1 cycle so that they are aligned with issue new request
+    typedef struct packed{
+        //Select between RCA use and RCA config instrs
+        logic rca_use_instr;
+        logic rca_use_fb_instr; //High if instruction is a use instr specifying feedback destination regs
+
+        logic [$clog2(NUM_RCAS)-1:0] rca_sel;
+
+        logic rca_grid_mux_config_instr; //0 for anything else, 1 for grid mux config
+
+        logic rca_io_mux_config_instr;
+
+        logic rca_result_mux_config_instr;
+
+        logic rca_io_inp_map_config_instr;
+
+        logic rca_input_constants_config_instr;
+
+    } rca_dec_inputs_r_t;
 
     //RCA Config Outputs
     typedef struct packed{        
         logic [4:0] [NUM_READ_PORTS-1:0] rca_cpu_src_reg_addrs ;
         logic [4:0] [NUM_WRITE_PORTS-1:0] rca_cpu_dest_reg_addrs; 
-    } rca_config_t;
+    } rca_cpu_reg_config_t;
 
 endpackage

@@ -1,4 +1,4 @@
-pr_module
+module pr_module
     import taiga_config::*;
     import riscv_types::*;
     import taiga_types::*;
