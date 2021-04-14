@@ -8,7 +8,7 @@ static void bad_config_trap(){
     while(1);
 }
 
-static char rca_to_opcode_ext(rca_t rca){
+char rca_to_opcode_ext(rca_t rca){
     switch (rca){
         case RCA_A:
             return 'a';

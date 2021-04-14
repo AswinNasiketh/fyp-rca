@@ -36,7 +36,7 @@ typedef enum {
     RCA_D = 3
 } rca_t;
 
-static char rca_to_opcode_ext(rca_t rca);
+char rca_to_opcode_ext(rca_t rca);
 
 //Static Region Configuration
 void rca_config_cpu_reg(rca_t rca, reg_port_t reg_port, reg_port_type_t reg_port_type, uint8_t reg_addr);
@@ -57,7 +57,5 @@ inline void rca_a_use_nfb();
 inline void rca_b_use_nfb();
 inline void rca_c_use_nfb();
 inline void rca_d_use_nfb();
-
-
 
 #endif //RCA_H
