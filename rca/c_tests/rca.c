@@ -8,6 +8,26 @@ static void bad_config_trap(){
     while(1);
 }
 
+reg_port_t int_to_reg_port(uint32_t i){
+    if (i > NUM_REG_PORTS || i < 1){
+        bad_config_trap();
+    } 
+
+    switch (i)
+    {
+    case 1:
+        return RX1;
+    case 2:
+        return RX2;
+    case 3:
+        return RX3;
+    case 4:
+        return RX4;
+    case 5:
+        return RX5;
+    }
+}
+
 char rca_to_opcode_ext(rca_t rca){
     switch (rca){
         case RCA_A:
@@ -57,7 +77,7 @@ static inline void rca_d_config_cpu_reg(uint32_t rs1_val, uint32_t rs2_val){
     );
 }
 
-void rca_config_cpu_reg(rca_t rca, reg_port_t reg_port, reg_port_type_t reg_port_type, uint8_t reg_addr){
+void rca_config_cpu_reg(rca_t rca, reg_port_t reg_port, reg_port_type_t reg_port_type, uint32_t reg_addr){
 
     if(reg_addr > NUM_CPU_REGS-1){
         bad_config_trap();
