@@ -15,7 +15,13 @@ module pr_module
 
     output [XLEN-1:0] data_out,
     output data_valid_out,
-    output data_in_ack //just output high when the number of data valid signal for the input(s) this module requires is asserted
+    output data_in_ack1,
+    output data_in_ack2
 );
-    
+
+    assign data_out = data_in1;
+    assign data_valid_out = data_valid_in1;
+
+    assign data_in_ack1 = data_valid_in1;
+    assign data_in_ack2 = 0;    
 endmodule

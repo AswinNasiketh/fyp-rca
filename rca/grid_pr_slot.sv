@@ -31,7 +31,7 @@ logic input2_fifo_populated;
         .fifo(input1_fifo_if)
     );
 
-    assign input1_fifo_if.pop = ou_data_in_ack;
+    assign input1_fifo_if.pop = ou_data_in_ack1;
     assign input1_fifo_if.data_in = data_in1;
     assign input1_fifo_if.potential_push = data_valid_in1;
     always_ff @(posedge clk) if (rst) input1_fifo_if.push <= 0;
@@ -47,7 +47,7 @@ logic input2_fifo_populated;
         .fifo(input2_fifo_if)
     );
 
-    assign input2_fifo_if.pop = ou_data_in_ack;
+    assign input2_fifo_if.pop = ou_data_in_ack2;
     assign input2_fifo_if.data_in = data_in2;
     assign input2_fifo_if.potential_push = data_valid_in2;
     always_ff @(posedge clk) if (rst) input2_fifo_if.push <= 0;
@@ -55,7 +55,8 @@ logic input2_fifo_populated;
 
     assign input2_fifo_populated = input2_fifo_if.valid;
 
-    logic ou_data_in_ack;
+    logic ou_data_in_ack1;
+    logic ou_data_in_ack2;
 
     pr_module ou(
         .clk,
@@ -66,7 +67,8 @@ logic input2_fifo_populated;
         .data_valid_in2(input2_fifo_populated),
         .data_out,
         .data_valid_out,
-        .data_in_ack(ou_data_in_ack)
+        .data_in_ack1(ou_data_in_ack1),
+        .data_in_ack2(ou_data_in_ack2)
     );
     
 endmodule
