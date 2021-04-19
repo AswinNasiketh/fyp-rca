@@ -18,7 +18,7 @@ module grid_control
 
     output buf_data_valid, //if 1, on next cycle, data can be taken from buffer
     output clear_fifos, //if 1, means we are switching from one accelerator to another => fifos and load store counters should be cleared
-    output [$clog2(NUM_RCAS)-1:0] currently_running_rca,
+    output logic [$clog2(NUM_RCAS)-1:0] currently_running_rca,
 
     output [XLEN-1:0] buf_rs_data [NUM_READ_PORTS],
     output [$clog2(NUM_RCAS)-1:0] rca_sel_buf
@@ -58,7 +58,7 @@ module grid_control
     end
 
     //state machine output signals
-    assign issue.ready = (next_state == ACCEPTING_ISSUE_STATE && current_state == ACCEPTING_ISSUE_STATE); //only in ACCEPTING_ISSUE_STATE because the checks on whether the current request (if any) is using the RCA which is active (if any are active) only happen in ACCEPTING_ISSUE_STATE
+    assign issue.ready =  (current_state == ACCEPTING_ISSUE_STATE); //only in ACCEPTING_ISSUE_STATE because the checks on whether the current request (if any) is using the RCA which is active (if any are active) only happen in ACCEPTING_ISSUE_STATE
 
     assign buf_data_valid = ((next_state == ACCEPTING_ISSUE_STATE) && (current_state == WAIT_FOR_FIFO_EMPTY_STATE)) || (current_state == ACCEPTING_ISSUE_STATE && issue.new_request_r && rca_dec_inputs_r_buf.rca_use_instr); //Buffer data is valid for issue to grid when we are moving out of WAIT_FOR_FIFO_EMPTY state since this data has been waiting in the buffer for the FIFO to empty. It is also valid when we have had a new request and haven't moved into WAIT_FOR_FIFO_EMPTY state (i.e. there was a new request on the previous cycle and we are still in ACCEPTING_ISSUE_STATE)
 
