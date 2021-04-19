@@ -121,6 +121,7 @@ import_files -norecurse $origin_dir/../../core/xilinx/taiga_wrapper_xilinx.sv -f
 import_files -norecurse $origin_dir/../../l2_arbiter/l2_external_interfaces.sv -force
 import_files -norecurse $origin_dir/../../local_memory/local_memory_interface.sv -force
 import_files -norecurse $origin_dir/../../core/external_interfaces.sv -force
+import_files -norecurse $origin_dir/../../rca/rca_config.sv -force
 import_files -norecurse $origin_dir/../../core/taiga_config.sv -force
 import_files -norecurse $origin_dir/../../l2_arbiter/l2_config_and_types.sv -force
 
@@ -240,7 +241,7 @@ set_property physical_name m_axi_awburst [ipx::get_port_maps AWBURST -of_objects
 #current_project $_xil_proj_name_
 #update_ip_catalog
 #import_files -norecurse $origin_dir/l2_arbiter/l2_interfaces.sv -force
-#import_files -norecurse $origin_dir/core/interfaces.sv -force
+#import_files -norecurse $origin_dir/../../core/interfaces.sv -force
 
 #####Re-Adding of project files
 set_property  ip_repo_paths  $origin_dir/../../${_xil_proj_name_} [current_project]
@@ -249,6 +250,7 @@ update_ip_catalog
 import_files -fileset [get_filesets sources_1] $origin_dir/../../core
 import_files -fileset [get_filesets sources_1] $origin_dir/../../l2_arbiter
 import_files -fileset [get_filesets sources_1] $origin_dir/../../local_memory
+import_files -fileset [get_filesets sources_1] $origin_dir/../../rca
 
 ############## Re-packaging of core
 update_compile_order -fileset sources_1
