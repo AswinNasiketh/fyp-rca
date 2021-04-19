@@ -113,6 +113,7 @@ if {[string equal [get_filesets -quiet sources_1] ""]} {
 import_files -fileset [get_filesets sources_1] $origin_dir/../../local_memory
 import_files -norecurse $origin_dir/../../core/byte_en_BRAM.sv -force
 import_files -norecurse $origin_dir/../../core/xilinx/xilinx_byte_enable_ram.sv -force
+import_files -norecurse $origin_dir/../../rca/rca_config.sv -force
 import_files -norecurse $origin_dir/../../core/taiga_config.sv -force
 import_files -norecurse $origin_dir/../../core/taiga_types.sv -force
 import_files -norecurse $origin_dir/../../core/riscv_types.sv -force
