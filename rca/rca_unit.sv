@@ -82,7 +82,7 @@ module rca_unit(
 
     always_comb begin
         for(int i = 0; i < NUM_IO_UNITS; i++) begin
-            for(int j = 0; j < NUM_WRITE_PORTS; i++) begin
+            for(int j = 0; j < NUM_WRITE_PORTS; j++) begin
                 io_unit_addr_match_fb_wb[i][j] = curr_fb_rca_result_mux_sel[j] == ($clog2(NUM_IO_UNITS))'(i);
                 io_unit_addr_match_nfb_wb[i][j] = curr_nfb_rca_result_mux_sel[j] == ($clog2(NUM_IO_UNITS))'(i);
             end
