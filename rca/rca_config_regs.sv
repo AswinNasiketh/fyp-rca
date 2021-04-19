@@ -47,8 +47,8 @@ module rca_config_regs (
     //Reg file to store RCA Result Unit crossbar configurations - uses rca_sel_grid_wb for reading
     //Read interface  
     input [$clog2(NUM_WRITE_PORTS)-1:0] rca_result_mux_addr,
-    output [$clog2(NUM_IO_UNITS)-1:0] curr_fb_rca_result_mux_sel [NUM_WRITE_PORTS],
-    output [$clog2(NUM_IO_UNITS)-1:0] curr_nfb_rca_result_mux_sel [NUM_WRITE_PORTS],
+    output logic [$clog2(NUM_IO_UNITS)-1:0] curr_fb_rca_result_mux_sel [NUM_WRITE_PORTS],
+    output logic [$clog2(NUM_IO_UNITS)-1:0] curr_nfb_rca_result_mux_sel [NUM_WRITE_PORTS],
     
     //Write interface - uses address from read interface and rca_sel_issue for writing
     input rca_fb_result_mux_wr_en,
@@ -57,13 +57,13 @@ module rca_config_regs (
 
     //Reg file to store which IO (input) unit is associated with which accelerator - for data_valid signal generation
     //Uses rca_sel signal from above
-    output [NUM_IO_UNITS-1:0] curr_rca_io_inp_map,
+    output logic [NUM_IO_UNITS-1:0] curr_rca_io_inp_map,
 
     input rca_io_inp_map_wr_en,
     input [NUM_IO_UNITS-1:0] new_rca_io_inp_map,
 
     //Reg file to store custon constant which can be used as input instead of a CPU register
-    output [XLEN-1:0] input_constants_out [NUM_IO_UNITS],
+    output logic [XLEN-1:0] input_constants_out [NUM_IO_UNITS],
 
     input rca_input_constants_wr_en,
     input [$clog2(NUM_IO_UNITS)-1:0] io_unit_addr,
