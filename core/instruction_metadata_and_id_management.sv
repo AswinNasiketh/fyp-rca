@@ -340,7 +340,7 @@ module instruction_metadata_and_id_management
     
     generate
         for (j = 0; j < REGFILE_READ_PORTS; j++) begin
-            toggle_memory retired_toggle_mem_rs (
+            toggle_memory rca_retired_toggle_mem_rs (
                 .clk, .rst,
                 .toggle(rca_retired),
                 .toggle_id(rca_id_retiring),
