@@ -157,7 +157,7 @@ module taiga (
     logic [4:0] rca_retired_rd_addrs [NUM_WRITE_PORTS];
     id_t rca_id_for_rds [NUM_WRITE_PORTS];
 
-    rca_writeback_interface rca_wb;
+    rca_writeback_interface rca_wb();
 
     //Trace Interface Signals
     logic tr_operand_stall;
