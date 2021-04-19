@@ -313,8 +313,8 @@ module decode_and_issue (
     assign rs1_conflict = rs_inuse[RS1] & rs_id_inuse[RS1] & issue.uses_rs1;
     assign rs2_conflict = rs_inuse[RS2] & rs_id_inuse[RS2] & issue.uses_rs2;
     assign rs3_conflict = rs_inuse[RS3] & rs_id_inuse[RS3] & issue.rca_use_instr;
-    assign rs3_conflict = rs_inuse[RS4] & rs_id_inuse[RS4] & issue.rca_use_instr;
-    assign rs3_conflict = rs_inuse[RS5] & rs_id_inuse[RS5] & issue.rca_use_instr;
+    assign rs4_conflict = rs_inuse[RS4] & rs_id_inuse[RS4] & issue.rca_use_instr;
+    assign rs5_conflict = rs_inuse[RS5] & rs_id_inuse[RS5] & issue.rca_use_instr;
 
     assign operands_ready = ~rs1_conflict & ~rs2_conflict & ~rs3_conflict & ~rs4_conflict & ~rs5_conflict;
 
