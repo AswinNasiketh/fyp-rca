@@ -26,10 +26,6 @@ module rca_pr_grid
 
 genvar i, j;
 
-logic row_data_valid [GRID_NUM_COLS][GRID_NUM_ROWS];
-logic [XLEN-1:0] row_data [GRID_NUM_COLS][GRID_NUM_ROWS];
-
-
 //Implementation - IO Units
 typedef logic [XLEN-1:0] io_mux_data_t [IO_UNIT_MUX_INPUTS];
 io_mux_data_t  io_mux_data_in [NUM_IO_UNITS];
@@ -48,7 +44,7 @@ always_comb begin
 
         for (int j = NUM_READ_PORTS; j < NUM_READ_PORTS + GRID_NUM_COLS; j++)
             if (k <= 1) io_mux_data_in[k][j] = 0; //first 2 rows don't have any preceding outputs
-            else io_mux_data_in[k][j] = row_data[k-2][j - NUM_READ_PORTS];  
+            else io_mux_data_in[k][j] = pr_unit_data_out[k-2][j - NUM_READ_PORTS];  
 
         io_mux_data_in[k][NUM_READ_PORTS + GRID_NUM_COLS] = input_constants[k];
     end
@@ -62,7 +58,7 @@ always_comb begin
 
         for (int j = NUM_READ_PORTS; j < NUM_READ_PORTS + GRID_NUM_COLS; j++)
             if (k <= 1) io_mux_data_valid_in[k][j] = 0; //first 2 rows don't have any preceding outputs
-            else io_mux_data_valid_in[k][j] = row_data_valid[k-2][j - NUM_READ_PORTS];   
+            else io_mux_data_valid_in[k][j] = pr_unit_data_valid_out[k-2][j - NUM_READ_PORTS];   
         
         io_mux_data_valid_in[k][NUM_READ_PORTS + GRID_NUM_COLS] = rs_data_valid[k];
     end
@@ -120,7 +116,7 @@ pr_unit_data_valid_out_t pr_unit_data_valid_out [GRID_NUM_ROWS];
 
 always_comb begin
     for(int i = 0; i < GRID_NUM_ROWS; i++) begin
-        for(int j = 0; j < GRID_NUM_COLS; i++) begin
+        for(int j = 0; j < GRID_NUM_COLS; j++) begin
             //crossbars between PR slots from row above into current row
             for(int k = 0; k < GRID_NUM_COLS; k++) begin
                 if (i == 0) begin
@@ -152,7 +148,7 @@ end
 
 always_comb begin
     for(int i = 0; i < GRID_NUM_ROWS; i++) begin
-        for(int j = 0; j < GRID_NUM_COLS; i++) begin
+        for(int j = 0; j < GRID_NUM_COLS; j++) begin
             //crossbars between PR slots from row above into current row
             for(int k = 0; k < GRID_NUM_COLS; k++) begin
                 if (i == 0) begin
