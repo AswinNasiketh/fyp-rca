@@ -8,6 +8,7 @@ void write_config(static_region_t* pstatic_config, uint32_t row_start, uint32_t 
 
     //source regs
     for(int i = 0; i < NUM_READ_PORTS; i++){
+        // printf("Configuring SRC regs for RCA %u, read port %u, reg_addr %u \n", rca, i, static_region.cpu_src_regs[rca][i]);
         rca_config_cpu_reg(rca, int_to_reg_port(i+1), SRC_PORT, static_region.cpu_src_regs[rca][i]);
     }
 
@@ -26,8 +27,12 @@ void write_config(static_region_t* pstatic_config, uint32_t row_start, uint32_t 
     uint32_t mux_addr;
     for(int i = row_start; i <= row_end; i++){
         for(int j = 0; j < NUM_GRID_COLS; j++){
+            //input 1
             mux_addr = (i * NUM_GRID_COLS) + j;
-            rca_config_grid_mux(mux_addr, static_region.grid_mux_sel[i][j]);
+            rca_config_grid_mux(mux_addr, static_region.grid_mux_sel[0][i][j]);
+            //input 2 
+            mux_addr += NUM_GRID_ROWS*NUM_GRID_COLS;
+            rca_config_grid_mux(mux_addr, static_region.grid_mux_sel[1][i][j]);
         }
     }
 

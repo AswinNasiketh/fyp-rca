@@ -1,6 +1,9 @@
 #ifndef RCA_H
 #define RCA_H
 
+#include "board_support.h"
+#include <stdio.h>
+
 #include "stdbool.h"
 #include "stdint.h"
 #include "string.h"
@@ -13,10 +16,12 @@
 #define NUM_GRID_ROWS           12
 #define NUM_GRID_COLS           6
 #define NUM_GRID_MUXES          144 //(NUM_GRID_ROWS * NUM_GRID_COLS * 2)
-#define NUM_GRID_MUX_INPUTS     8
+#define NUM_GRID_MUX_INPUTS     8 //(NUM_GRID_COLS + 1 (IO) + 1 (LSI))
+#define LSI_GRID_MUX_ADDR       7 //LSI - Left side input
 
-#define NUM_IO_UNITS            14
-#define NUM_IO_MUX_INPUTS       12
+#define NUM_IO_UNITS            14 //(NUM_GRID_ROWS + 2)
+#define NUM_IO_MUX_INPUTS       12 //(NUM_READ_PORTS + NUM_GRID_COLS + 1)
+#define IO_UNIT_GRID_MUX_ADDR   6
 
 #define NUM_RCAS                4
 #define NUM_READ_PORTS          5

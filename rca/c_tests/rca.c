@@ -5,7 +5,8 @@
 #include "rca.h"
 
 static void bad_config_trap(){
-    while(1);
+    printf("bad config");
+    // while(1);
 }
 
 reg_port_t int_to_reg_port(uint32_t i){
@@ -88,6 +89,7 @@ void rca_config_cpu_reg(rca_t rca, reg_port_t reg_port, reg_port_type_t reg_port
         ((reg_port_type << 3) & REG_PORT_TYPE_MASK);
     
     uint32_t rs2_val = reg_addr;
+    // printf("RS2: %u", rs2_val);
 
     switch (rca) {
         case RCA_A:
