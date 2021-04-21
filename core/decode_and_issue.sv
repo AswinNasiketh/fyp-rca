@@ -103,6 +103,7 @@ module decode_and_issue (
     logic rca_use_fb_instr;
     logic rca_config_instr;
     logic rca_cpu_reg_config_instr;
+    logic rca_cpu_reg_config_instr_r;
     logic rca_grid_mux_config_instr;
     logic rca_io_mux_config_instr;
     logic rca_result_mux_config_instr;
@@ -191,6 +192,10 @@ module decode_and_issue (
     assign rca_io_inp_map_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == IO_INP_MAP_CONFIG_fn7) : 1'b0;
     assign rca_input_constants_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == INP_CONSTANT_CONFIG_fn7) : 1'b0;
 
+    //Delayed version required to AND with source register value to produce instruction signal
+
+    always_ff @(posedge clk) rca_cpu_reg_config_instr_r <= rca_cpu_reg_config_instr;
+
     always_ff @(posedge clk) begin
         if (rst | gc_fetch_flush)
             issue.stage_valid <= 0;
@@ -263,8 +268,8 @@ module decode_and_issue (
         assign rca_inputs.rca_sel_decode = (opcode_trim == RCA_T) ? fn3[$clog2(NUM_RCAS)-1:0] : 0;
         always_ff @(posedge clk) rca_dec_inputs_r.rca_sel <= (opcode_trim == RCA_T) ? fn3[$clog2(NUM_RCAS)-1:0] : 0;
 
-        assign rca_inputs.rca_fb_cpu_reg_config_instr = rca_cpu_reg_config_instr && rs_data[RS1][$clog2(NUM_READ_PORTS) + 1];
-        assign rca_inputs.rca_nfb_cpu_reg_config_instr = rca_cpu_reg_config_instr && ~rs_data[RS1][$clog2(NUM_READ_PORTS) + 1];
+        assign rca_inputs.rca_fb_cpu_reg_config_instr = rca_cpu_reg_config_instr_r && rs_data[RS1][$clog2(NUM_READ_PORTS) + 1];
+        assign rca_inputs.rca_nfb_cpu_reg_config_instr = rca_cpu_reg_config_instr_r && ~rs_data[RS1][$clog2(NUM_READ_PORTS) + 1];
 
         assign rca_inputs.cpu_port_sel = rs_data[RS1][$clog2(NUM_READ_PORTS)-1:0];
         assign rca_inputs.cpu_src_dest_port = rs_data[RS1][$clog2(NUM_READ_PORTS)];
