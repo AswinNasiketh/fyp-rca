@@ -31,7 +31,7 @@ typedef enum {
 } reg_port_t;
 
 typedef enum {
-    SRC_PORT = 0b00,
+    SRC_PORT = 0b10,
     NFB_DEST_PORT = 0b01,
     FB_DEST_PORT = 0b11
 } reg_port_type_t;
