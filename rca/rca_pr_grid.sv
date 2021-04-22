@@ -43,8 +43,8 @@ always_comb begin
             io_mux_data_in[k][i] = rs_vals[i];
 
         for (int j = NUM_READ_PORTS; j < NUM_READ_PORTS + GRID_NUM_COLS; j++)
-            if (k <= 1) io_mux_data_in[k][j] = 0; //first 2 rows don't have any preceding outputs
-            else io_mux_data_in[k][j] = pr_unit_data_out[k-2][j - NUM_READ_PORTS];  
+            if (k < 1) io_mux_data_in[k][j] = 0; //first row doesn't have any preceding outputs
+            else io_mux_data_in[k][j] = pr_unit_data_out[k-1][j - NUM_READ_PORTS];  
 
         io_mux_data_in[k][NUM_READ_PORTS + GRID_NUM_COLS] = input_constants[k];
     end
@@ -57,8 +57,8 @@ always_comb begin
             io_mux_data_valid_in[k][i] = rs_data_valid[k];
 
         for (int j = NUM_READ_PORTS; j < NUM_READ_PORTS + GRID_NUM_COLS; j++)
-            if (k <= 1) io_mux_data_valid_in[k][j] = 0; //first 2 rows don't have any preceding outputs
-            else io_mux_data_valid_in[k][j] = pr_unit_data_valid_out[k-2][j - NUM_READ_PORTS];   
+            if (k < 1) io_mux_data_valid_in[k][j] = 0; //first row doesn't have any preceding outputs
+            else io_mux_data_valid_in[k][j] = pr_unit_data_valid_out[k-1][j - NUM_READ_PORTS];   
         
         io_mux_data_valid_in[k][NUM_READ_PORTS + GRID_NUM_COLS] = rs_data_valid[k];
     end
