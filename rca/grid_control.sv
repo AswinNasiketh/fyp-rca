@@ -63,7 +63,7 @@ module grid_control
 
     assign buf_data_valid = ((next_state == ACCEPTING_ISSUE_STATE) && (current_state == WAIT_FOR_FIFO_EMPTY_STATE)) || (current_state == ACCEPTING_ISSUE_STATE && issue.new_request_r && rca_dec_inputs_r_buf.rca_use_instr); //Buffer data is valid for issue to grid when we are moving out of WAIT_FOR_FIFO_EMPTY state since this data has been waiting in the buffer for the FIFO to empty. It is also valid when we have had a new request and haven't moved into WAIT_FOR_FIFO_EMPTY state (i.e. there was a new request on the previous cycle and we are still in ACCEPTING_ISSUE_STATE)
 
-    assign buf_rs_data_valid = buf_data_valid && rca_dec_inputs_r.rca_use_fb_instr;
+    assign buf_rs_data_valid = buf_data_valid && rca_dec_inputs_r_buf.rca_use_fb_instr;
 
     assign clear_fifos = ((next_state == ACCEPTING_ISSUE_STATE) && (current_state == WAIT_FOR_FIFO_EMPTY_STATE)) || (current_state == ACCEPTING_ISSUE_STATE && issue.new_request_r && rca_dec_inputs_r_buf.rca_use_instr && ~fifo_populated); //We must clear IO unit FIFOs whenever we move to using a new accelerator since the IO FIFOs for those accelerators may have erratic values accumulated over time. This cleary happens when we move out of WAIT_FOR_FIFO_EMPTY state and it also happens whenever we're in ACCEPTING_ISSUE_STATE and a request has been buffered (therefore we haven't moved into WAIT_FOR_FIFO_EMPTY), and the reason for not moving into WAIT_FOR_FIFO_EMPTY is because the ID FIFO was empty
 
