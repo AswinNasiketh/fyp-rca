@@ -14,13 +14,13 @@ module grid_wb
     output wb_committing
 );
 
-    logic [XLEN-1:0] output_data [NUM_IO_UNITS + 1];
-    logic output_data_valid [NUM_IO_UNITS + 1];
+    logic [XLEN-1:0] unit_output_data [NUM_IO_UNITS + 1];
+    logic unit_output_data_valid [NUM_IO_UNITS + 1];
 
     always_comb begin
         for(int i = 0; i < NUM_IO_UNITS; i++) begin
-            output_data[i] = io_unit_output_data[i];
-            output_data_valid[i] = io_unit_output_data_valid[i];
+            unit_output_data[i] = io_unit_output_data[i];
+            unit_output_data_valid[i] = io_unit_output_data_valid[i];
         end
     end
 
@@ -32,7 +32,7 @@ module grid_wb
 
     always_comb begin
         for (int i = 0; i < NUM_WRITE_PORTS; i++)
-            port_ready_for_commit[i] = io_unit_sels_valid && io_unit_output_data_valid[io_unit_sels[i]];
+            port_ready_for_commit[i] = io_unit_sels_valid && unit_output_data_valid[io_unit_sels[i]];
     end
 
     assign wb_committing = &port_ready_for_commit;
@@ -41,7 +41,7 @@ module grid_wb
 
     generate 
         for(i = 0; i < NUM_WRITE_PORTS; i++)
-            assign output_data[i] = io_unit_output_data[io_unit_sels[i]];
+            assign output_data[i] = unit_output_data[io_unit_sels[i]];
     endgenerate
 
     
