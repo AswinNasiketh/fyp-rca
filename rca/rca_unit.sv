@@ -135,10 +135,7 @@ module rca_unit(
     );
 
     //TODO: assign grid_output_data to rca_wb.rd
-    
 
-    //stub module 
-    assign issue.ready = 1'b1;
     
     always_ff @(posedge clk) begin
         if (issue.new_request && ~rca_dec_inputs_r.rca_use_instr) begin
