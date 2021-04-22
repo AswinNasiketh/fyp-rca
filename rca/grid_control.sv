@@ -76,7 +76,7 @@ module grid_control
     assign rca_ids_fifo_if.pop = wb_committing;
     assign rca_ids_fifo_if.data_in = id_buf;
     assign rca_ids_fifo_if.potential_push = buf_data_valid;
-    always_ff @(posedge clk) rca_ids_fifo_if.push <= rca_ids_fifo_if.potential_push;
+    assign rca_ids_fifo_if.push = buf_data_valid;
     assign wb_id = rca_ids_fifo_if.data_out;
     assign fifo_populated = rca_ids_fifo_if.valid;
 

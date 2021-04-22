@@ -34,8 +34,7 @@ logic input2_fifo_populated;
     assign input1_fifo_if.pop = ou_data_in_ack1;
     assign input1_fifo_if.data_in = data_in1;
     assign input1_fifo_if.potential_push = data_valid_in1;
-    always_ff @(posedge clk) if (rst) input1_fifo_if.push <= 0;
-        else input1_fifo_if.push <= input1_fifo_if.potential_push;
+    assign input1_fifo_if.push =  data_valid_in1;
 
     assign input1_fifo_populated = input1_fifo_if.valid;
 
@@ -50,8 +49,7 @@ logic input2_fifo_populated;
     assign input2_fifo_if.pop = ou_data_in_ack2;
     assign input2_fifo_if.data_in = data_in2;
     assign input2_fifo_if.potential_push = data_valid_in2;
-    always_ff @(posedge clk) if (rst) input2_fifo_if.push <= 0;
-        else input2_fifo_if.push <= input2_fifo_if.potential_push;
+    assign input2_fifo_if.push = data_valid_in2;
 
     assign input2_fifo_populated = input2_fifo_if.valid;
 

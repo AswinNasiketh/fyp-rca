@@ -28,8 +28,7 @@ module grid_io_block
     assign oldest_data.pop = fifo_pop;
     assign oldest_data.data_in = data_in;
     assign oldest_data.potential_push = data_valid_in && output_mode;
-    always_ff @(posedge clk) if (rst) oldest_data.push <= 0;
-    else oldest_data.push <= oldest_data.potential_push;
+    assign oldest_data.push = data_valid_in && output_mode;
 
     //if not in output mode, IO unit just acts as passthrough, otherwise IO unit acts as FIFO
     assign data_valid_out = output_mode ? oldest_data.valid : data_valid_in;
