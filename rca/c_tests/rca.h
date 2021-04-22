@@ -61,18 +61,6 @@ void rca_config_result_mux(rca_t rca, reg_port_t write_port, uint32_t io_unit_ad
 void rca_config_inp_io_unit_map(rca_t rca, bool* io_unit_is_input);
 void rca_config_input_constant(uint32_t io_unit_addr, uint32_t c);
 
-//RCA Use with feedback regs
-void rca_a_use_fb();
-void rca_b_use_fb();
-void rca_c_use_fb();
-void rca_d_use_fb();
-
-//RCA Use with non feedback regs
-void rca_a_use_nfb();
-void rca_b_use_nfb();
-void rca_c_use_nfb();
-void rca_d_use_nfb();
-
 //RCA Use wrappers with FB instr followed by NFB instr
 void rca_a_use();
 void rca_b_use();

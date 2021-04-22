@@ -305,89 +305,6 @@ void rca_config_input_constant(uint32_t io_unit_addr, uint32_t c){
     );
 }
 
-//RCA Usage
-
-void rca_a_use_fb(){
-    uint32_t dummy;
-
-    asm volatile("rcaufb.a %0, %0, %0"
-        :"+r"(dummy)
-        :
-        :
-    );
-}
-
-void rca_b_use_fb(){
-    uint32_t dummy;
-
-    asm volatile("rcaufb.b %0, %0, %0"
-        :"+r"(dummy)
-        :
-        :
-    );
-}
-
-void rca_c_use_fb(){
-    uint32_t dummy;
-
-    asm volatile("rcaufb.c %0, %0, %0"
-        :"+r"(dummy)
-        :
-        :
-    );
-}
-
-void rca_d_use_fb(){
-    uint32_t dummy;
-
-    asm volatile("rcaufb.d %0, %0, %0"
-        :"+r"(dummy)
-        :
-        :
-    );
-}
-
-void rca_a_use_nfb(){
-    uint32_t dummy;
-
-    asm volatile("rcaunfb.a %0, %0, %0"
-        :"+r"(dummy)
-        :
-        :
-    );
-}
-
-void rca_b_use_nfb(){
-    uint32_t dummy;
-
-    asm volatile("rcaunfb.b %0, %0, %0"
-        :"+r"(dummy)
-        :
-        :
-    );
-}
-
-void rca_c_use_nfb(){
-    uint32_t dummy;
-
-    asm volatile("rcaunfb.c %0, %0, %0"
-        :"+r"(dummy)
-        :
-        :
-    );
-}
-
-void rca_d_use_nfb(){
-    uint32_t dummy;
-
-    asm volatile("rcaunfb.d %0, %0, %0"
-        :"+r"(dummy)
-        :
-        :
-    );
-}
-
-
 void rca_a_use(){
     uint32_t dummy;
 
@@ -400,12 +317,22 @@ void rca_a_use(){
 
 void rca_b_use(){
     uint32_t dummy;
+    // uint32_t rs1_val = (1 & REG_PORT_MASK) | 
+    //     ((SRC_PORT << 3) & REG_PORT_TYPE_MASK);
+    // uint32_t rs2_val = 5;
 
-    asm volatile("rcaufb.b %0, %0, %0; rcaunfb.b %0, %0, %0"
+    asm volatile("rcaufb.b %0, %0, %0; rcaunfb.b %0, %0, %0;"
         :"+r"(dummy)
         :
         :
-    );
+    );    
+
+    //test config lock
+    // asm volatile("rcaccr.b %0, %1, %2;"
+    //     : "=r"(dummy) //dummy output - instr does not write to rd
+    //     : "r"(rs1_val), "r"(rs2_val) //inputs
+    //     : // noclobbered registers
+    // );
 }
 
 void rca_c_use(){
