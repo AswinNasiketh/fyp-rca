@@ -141,7 +141,7 @@ module rca_config_regs (
     initial begin
         for (int i = 0; i < NUM_RCAS; i++) begin
             for (int j = 0; j < NUM_WRITE_PORTS; j++)
-                rca_result_mux_sels_fb[i][j] = 0;
+                rca_result_mux_sels_fb[i][j] = UNUSED_WRITE_PORT_ADDR;
         end
     end
 
@@ -149,7 +149,7 @@ module rca_config_regs (
         if (rst) begin
             for (int i = 0; i < NUM_RCAS; i++) begin
                 for (int j = 0; j < NUM_WRITE_PORTS; j++)
-                    rca_result_mux_sels_fb[i][j] = 0;
+                    rca_result_mux_sels_fb[i][j] = UNUSED_WRITE_PORT_ADDR;
             end
         end     
         else if (rca_fb_result_mux_wr_en) rca_result_mux_sels_fb[rca_sel_issue][rca_result_mux_addr] <= new_rca_result_mux_sel;
@@ -164,7 +164,7 @@ module rca_config_regs (
     initial begin
         for (int i = 0; i < NUM_RCAS; i++) begin
             for (int j = 0; j < NUM_WRITE_PORTS; j++)
-                rca_result_mux_sels_nfb[i][j] = 0;
+                rca_result_mux_sels_nfb[i][j] = UNUSED_WRITE_PORT_ADDR;
         end
     end
 
@@ -172,7 +172,7 @@ module rca_config_regs (
         if (rst) begin
             for (int i = 0; i < NUM_RCAS; i++) begin
                 for (int j = 0; j < NUM_WRITE_PORTS; j++)
-                    rca_result_mux_sels_nfb[i][j] = 0;
+                    rca_result_mux_sels_nfb[i][j] = UNUSED_WRITE_PORT_ADDR;
             end
         end     
         else if (rca_nfb_result_mux_wr_en) rca_result_mux_sels_nfb[rca_sel_issue][rca_result_mux_addr] <= new_rca_result_mux_sel;

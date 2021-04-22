@@ -52,6 +52,6 @@ package rca_config;
     localparam IO_UNIT_MUX_INPUTS = GRID_NUM_COLS + NUM_READ_PORTS + 1; //+1 for input constant
     localparam NUM_IO_UNITS = GRID_NUM_ROWS + 2; //one extra IO unit on top and below grid
 
-
+    localparam UNUSED_WRITE_PORT_ADDR = NUM_IO_UNITS;
 
 endpackage
