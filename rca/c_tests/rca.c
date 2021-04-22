@@ -190,7 +190,7 @@ static void inline rca_d_config_result_mux(uint32_t rs1_val, uint32_t rs2_val){
 }
 
 void rca_config_result_mux(rca_t rca, reg_port_t write_port, uint32_t io_unit_addr, bool fb_addr){
-    if(io_unit_addr > NUM_IO_UNITS-1){
+    if(io_unit_addr > NUM_IO_UNITS){
         bad_config_trap();
     }
 
@@ -307,7 +307,7 @@ void rca_config_input_constant(uint32_t io_unit_addr, uint32_t c){
 
 //RCA Usage
 
-inline void rca_a_use_fb(){
+void rca_a_use_fb(){
     uint32_t dummy;
 
     asm volatile("rcaufb.a %0, %0, %0"
@@ -317,7 +317,7 @@ inline void rca_a_use_fb(){
     );
 }
 
-inline void rca_b_use_fb(){
+void rca_b_use_fb(){
     uint32_t dummy;
 
     asm volatile("rcaufb.b %0, %0, %0"
@@ -327,7 +327,7 @@ inline void rca_b_use_fb(){
     );
 }
 
-inline void rca_c_use_fb(){
+void rca_c_use_fb(){
     uint32_t dummy;
 
     asm volatile("rcaufb.c %0, %0, %0"
@@ -337,7 +337,7 @@ inline void rca_c_use_fb(){
     );
 }
 
-inline void rca_d_use_fb(){
+void rca_d_use_fb(){
     uint32_t dummy;
 
     asm volatile("rcaufb.d %0, %0, %0"
@@ -347,7 +347,7 @@ inline void rca_d_use_fb(){
     );
 }
 
-inline void rca_a_use_nfb(){
+void rca_a_use_nfb(){
     uint32_t dummy;
 
     asm volatile("rcaunfb.a %0, %0, %0"
@@ -357,7 +357,7 @@ inline void rca_a_use_nfb(){
     );
 }
 
-inline void rca_b_use_nfb(){
+void rca_b_use_nfb(){
     uint32_t dummy;
 
     asm volatile("rcaunfb.b %0, %0, %0"
@@ -367,7 +367,7 @@ inline void rca_b_use_nfb(){
     );
 }
 
-inline void rca_c_use_nfb(){
+void rca_c_use_nfb(){
     uint32_t dummy;
 
     asm volatile("rcaunfb.c %0, %0, %0"
@@ -377,10 +377,51 @@ inline void rca_c_use_nfb(){
     );
 }
 
-inline void rca_d_use_nfb(){
+void rca_d_use_nfb(){
     uint32_t dummy;
 
     asm volatile("rcaunfb.d %0, %0, %0"
+        :"+r"(dummy)
+        :
+        :
+    );
+}
+
+
+void rca_a_use(){
+    uint32_t dummy;
+
+    asm volatile("rcaufb.a %0, %0, %0; rcaunfb.a %0, %0, %0"
+        :"+r"(dummy)
+        :
+        :
+    );
+}
+
+void rca_b_use(){
+    uint32_t dummy;
+
+    asm volatile("rcaufb.b %0, %0, %0; rcaunfb.b %0, %0, %0"
+        :"+r"(dummy)
+        :
+        :
+    );
+}
+
+void rca_c_use(){
+    uint32_t dummy;
+
+    asm volatile("rcaufb.c %0, %0, %0; rcaunfb.c %0, %0, %0"
+        :"+r"(dummy)
+        :
+        :
+    );
+}
+
+void rca_d_use(){
+    uint32_t dummy;
+
+    asm volatile("rcaufb.d %0, %0, %0; rcaunfb.d %0, %0, %0"
         :"+r"(dummy)
         :
         :

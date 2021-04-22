@@ -19,13 +19,15 @@
 #define NUM_GRID_MUX_INPUTS     8 //(NUM_GRID_COLS + 1 (IO) + 1 (LSI))
 #define LSI_GRID_MUX_ADDR       7 //LSI - Left side input
 
-#define NUM_IO_UNITS            14 //(NUM_GRID_ROWS + 2)
+#define NUM_IO_UNITS            13 //(NUM_GRID_ROWS + 1)
 #define NUM_IO_MUX_INPUTS       12 //(NUM_READ_PORTS + NUM_GRID_COLS + 1)
 #define IO_UNIT_GRID_MUX_ADDR   6
 
 #define NUM_RCAS                4
 #define NUM_READ_PORTS          5
 #define NUM_WRITE_PORTS         5
+
+#define UNUSED_WRITE_PORT_ADDR  13 //(NUM_IO_UNITS)
 
 typedef enum {
     RX1 = 0,
@@ -60,15 +62,21 @@ void rca_config_inp_io_unit_map(rca_t rca, bool* io_unit_is_input);
 void rca_config_input_constant(uint32_t io_unit_addr, uint32_t c);
 
 //RCA Use with feedback regs
-inline void rca_a_use_fb();
-inline void rca_b_use_fb();
-inline void rca_c_use_fb();
-inline void rca_d_use_fb();
+void rca_a_use_fb();
+void rca_b_use_fb();
+void rca_c_use_fb();
+void rca_d_use_fb();
 
 //RCA Use with non feedback regs
-inline void rca_a_use_nfb();
-inline void rca_b_use_nfb();
-inline void rca_c_use_nfb();
-inline void rca_d_use_nfb();
+void rca_a_use_nfb();
+void rca_b_use_nfb();
+void rca_c_use_nfb();
+void rca_d_use_nfb();
+
+//RCA Use wrappers with FB instr followed by NFB instr
+void rca_a_use();
+void rca_b_use();
+void rca_c_use();
+void rca_d_use();
 
 #endif //RCA_H
