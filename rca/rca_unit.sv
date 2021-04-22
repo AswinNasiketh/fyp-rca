@@ -146,40 +146,21 @@ module rca_unit(
     end
 
     //rca_wb.id
+    id_t id_prev;
+    always_ff @(posedge clk) id_prev <= issue.id;
 
-
+    always_comb begin
+        if (wb_committing)
+            rca_wb.id = wb_id; //from grid control fifo
+        else
+            rca_wb.id = id_prev;
+    end
 
     //rca_wb.done
+    logic config_instr_issued;
+    always_ff @(posedge clk) config_instr_issued <= issue.new_request && ~rca_dec_inputs_r.rca_use_instr;
 
-
-    logic 
-    
-    always_ff @(posedge clk) begin
-        if (issue.new_request && ~rca_dec_inputs_r.rca_use_instr) begin
-
-            rca_wb.id <= issue.id;
-            rca_wb.done <= 1;
-            for(int i = 0; i < NUM_WRITE_PORTS; i++)
-                rca_wb.rd[i] <= 0;
-        end
-        else if (rca_dec_inputs_r.rca_use_instr && issue.new_request) begin
-            rca_wb.done <= 1;
-            rca_wb.id <= issue.id;
-            //Reverse input register order - just for testing
-            rca_wb.rd[0] <= rca_inputs.rs5;
-            rca_wb.rd[1] <= rca_inputs.rs4;
-            rca_wb.rd[2] <= rca_inputs.rs3;
-            rca_wb.rd[3] <= rca_inputs.rs2;
-            rca_wb.rd[4] <= rca_inputs.rs1;
-        end
-        else begin 
-
-            rca_wb.done <= 0;
-            rca_wb.id <= 0;
-            for(int i = 0; i < NUM_WRITE_PORTS; i++)
-                rca_wb.rd[i] <= 0;
-        end
-    end
+    assign rca_wb.done = wb_committing || config_instr_issued;
 
     assign rca_config_locked = fifo_populated; // lock any reconfiguration if there are any RCAs being used
     
