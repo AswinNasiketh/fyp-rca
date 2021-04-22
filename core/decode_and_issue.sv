@@ -46,6 +46,7 @@ module decode_and_issue (
         output rca_dec_inputs_r_t rca_dec_inputs_r,
 
         input rca_cpu_reg_config_t rca_config_regs_op,
+        input rca_config_locked,
 
         unit_issue_interface.decode unit_issue [NUM_UNITS-1:0],
         input logic potential_branch_exception,
@@ -308,8 +309,12 @@ module decode_and_issue (
     ////////////////////////////////////////////////////
     //Unit ready
     generate for (i=0; i<NUM_UNITS; i++) begin
-        assign unit_ready[i] = unit_issue[i].ready;
+        if (i != RCA_UNIT_WB_ID)
+            assign unit_ready[i] = unit_issue[i].ready;
     end endgenerate
+
+    //special case for RCA to lock configuration whenever an RCA is running
+    assign unit_ready[RCA_UNIT_WB_ID] = unit_issue[RCA_UNIT_WB_ID].ready && (~rca_config_locked && issue.rca_config_instr); 
 
     ////////////////////////////////////////////////////
     //Issue Determination

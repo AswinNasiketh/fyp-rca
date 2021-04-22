@@ -9,7 +9,8 @@ module rca_unit(
     input rca_inputs_t rca_inputs,
     input rca_dec_inputs_r_t rca_dec_inputs_r,
     output rca_cpu_reg_config_t rca_config_regs_op,
-    rca_writeback_interface.unit rca_wb
+    rca_writeback_interface.unit rca_wb,
+    output rca_config_locked
 );
 
     logic [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel_out [NUM_GRID_MUXES*2];
@@ -134,8 +135,24 @@ module rca_unit(
         .wb_committing
     );
 
-    //TODO: assign grid_output_data to rca_wb.rd
+    //rca_wb.rd 
+    always_comb begin
+        for(int i = 0; i < NUM_WRITE_PORTS; i++) begin
+            if (wb_committing)
+                rca_wb.rd[i] = grid_output_data[i];
+            else
+                rca_wb.rd[i] = 0; //only show grid outputs when using rca
+        end
+    end
 
+    //rca_wb.id
+
+
+
+    //rca_wb.done
+
+
+    logic 
     
     always_ff @(posedge clk) begin
         if (issue.new_request && ~rca_dec_inputs_r.rca_use_instr) begin
@@ -163,5 +180,7 @@ module rca_unit(
                 rca_wb.rd[i] <= 0;
         end
     end
+
+    assign rca_config_locked = fifo_populated; // lock any reconfiguration if there are any RCAs being used
     
 endmodule
