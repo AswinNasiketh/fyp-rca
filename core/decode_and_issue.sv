@@ -314,7 +314,7 @@ module decode_and_issue (
     end endgenerate
 
     //special case for RCA to lock configuration whenever an RCA is running
-    assign unit_ready[RCA_UNIT_WB_ID] = unit_issue[RCA_UNIT_WB_ID].ready && (~rca_config_locked && issue.rca_config_instr); 
+    assign unit_ready[RCA_UNIT_WB_ID] = unit_issue[RCA_UNIT_WB_ID].ready && !(rca_config_locked && issue.rca_config_instr);    
 
     ////////////////////////////////////////////////////
     //Issue Determination
