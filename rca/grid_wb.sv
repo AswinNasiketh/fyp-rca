@@ -24,8 +24,8 @@ module grid_wb
         end
     end
 
-    assign output_data[NUM_IO_UNITS] = 0;
-    assign output_data_valid[NUM_IO_UNITS] = 1; //always 1 to prevent port_ready_for_commit from being blocked by unused write ports
+    assign unit_output_data[NUM_IO_UNITS] = 0;
+    assign unit_output_data_valid[NUM_IO_UNITS] = 1; //always 1 to prevent port_ready_for_commit from being blocked by unused write ports
     
 
     logic [NUM_WRITE_PORTS-1:0] port_ready_for_commit;
