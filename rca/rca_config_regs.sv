@@ -47,13 +47,13 @@ module rca_config_regs (
     //Reg file to store RCA Result Unit crossbar configurations - uses rca_sel_grid_wb for reading
     //Read interface  
     input [$clog2(NUM_WRITE_PORTS)-1:0] rca_result_mux_addr,
-    output logic [$clog2(NUM_IO_UNITS)-1:0] curr_fb_rca_result_mux_sel [NUM_WRITE_PORTS],
-    output logic [$clog2(NUM_IO_UNITS)-1:0] curr_nfb_rca_result_mux_sel [NUM_WRITE_PORTS],
+    output logic [$clog2(NUM_IO_UNITS+1)-1:0] curr_fb_rca_result_mux_sel [NUM_WRITE_PORTS],
+    output logic [$clog2(NUM_IO_UNITS+1)-1:0] curr_nfb_rca_result_mux_sel [NUM_WRITE_PORTS],
     
     //Write interface - uses address from read interface and rca_sel_issue for writing
     input rca_fb_result_mux_wr_en,
     input rca_nfb_result_mux_wr_en,
-    input [$clog2(NUM_IO_UNITS)-1:0] new_rca_result_mux_sel,
+    input [$clog2(NUM_IO_UNITS+1)-1:0] new_rca_result_mux_sel,
 
     //Reg file to store which IO (input) unit is associated with which accelerator - for data_valid signal generation
     //Uses rca_sel signal from above
@@ -78,7 +78,7 @@ module rca_config_regs (
 
     logic [$clog2(IO_UNIT_MUX_INPUTS)-1:0] io_unit_mux_sels [NUM_IO_UNITS];
 
-    typedef logic [$clog2(NUM_IO_UNITS)-1:0] rca_result_mux_sel_t [NUM_WRITE_PORTS];
+    typedef logic [$clog2(NUM_IO_UNITS+1)-1:0] rca_result_mux_sel_t [NUM_WRITE_PORTS];
     rca_result_mux_sel_t rca_result_mux_sels_fb [NUM_RCAS];
     rca_result_mux_sel_t rca_result_mux_sels_nfb [NUM_RCAS];
 

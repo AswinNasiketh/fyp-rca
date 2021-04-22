@@ -15,8 +15,8 @@ module rca_unit(
 
     logic [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel_out [NUM_GRID_MUXES*2];
     logic [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sels [NUM_IO_UNITS];
-    logic [$clog2(NUM_IO_UNITS)-1:0] curr_fb_rca_result_mux_sel [NUM_WRITE_PORTS];
-    logic [$clog2(NUM_IO_UNITS)-1:0] curr_nfb_rca_result_mux_sel [NUM_WRITE_PORTS];
+    logic [$clog2(NUM_IO_UNITS+1)-1:0] curr_fb_rca_result_mux_sel [NUM_WRITE_PORTS];
+    logic [$clog2(NUM_IO_UNITS+1)-1:0] curr_nfb_rca_result_mux_sel [NUM_WRITE_PORTS];
     logic [NUM_IO_UNITS-1:0] curr_rca_io_inp_map;
     logic [XLEN-1:0] input_constants_out [NUM_IO_UNITS];
 
@@ -84,8 +84,8 @@ module rca_unit(
     always_comb begin
         for(int i = 0; i < NUM_IO_UNITS; i++) begin
             for(int j = 0; j < NUM_WRITE_PORTS; j++) begin
-                io_unit_addr_match_fb_wb[i][j] = curr_fb_rca_result_mux_sel[j] == ($clog2(NUM_IO_UNITS))'(i);
-                io_unit_addr_match_nfb_wb[i][j] = curr_nfb_rca_result_mux_sel[j] == ($clog2(NUM_IO_UNITS))'(i);
+                io_unit_addr_match_fb_wb[i][j] = curr_fb_rca_result_mux_sel[j] == ($clog2(NUM_IO_UNITS+1))'(i);
+                io_unit_addr_match_nfb_wb[i][j] = curr_nfb_rca_result_mux_sel[j] == ($clog2(NUM_IO_UNITS+1))'(i);
             end
         end
     end
@@ -118,7 +118,7 @@ module rca_unit(
     );
 
     logic wb_committing;
-    logic [$clog2(NUM_IO_UNITS)-1:0] io_unit_sels [NUM_WRITE_PORTS];
+    logic [$clog2(NUM_IO_UNITS+1)-1:0] io_unit_sels [NUM_WRITE_PORTS];
     logic [XLEN-1:0] grid_output_data [NUM_WRITE_PORTS];
 
     always_comb begin

@@ -309,7 +309,7 @@ package taiga_types;
 
         //Interface for PR Grid Result MUX sel storage
         logic [$clog2(NUM_WRITE_PORTS)-1:0] rca_result_mux_addr;
-        logic [$clog2(NUM_IO_UNITS)-1:0] new_rca_result_mux_sel;
+        logic [$clog2(NUM_IO_UNITS+1)-1:0] new_rca_result_mux_sel;
 
         //Interface for RCA-IO input map storage
         logic [NUM_IO_UNITS-1:0] new_rca_io_inp_map;

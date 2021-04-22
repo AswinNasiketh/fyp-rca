@@ -290,7 +290,7 @@ module decode_and_issue (
         assign rca_inputs.rca_result_mux_config_fb = rs_data[RS1][$clog2(NUM_WRITE_PORTS)];
 
         assign rca_inputs.rca_result_mux_addr = rs_data[RS1][$clog2(NUM_WRITE_PORTS)-1:0];
-        assign rca_inputs.new_rca_result_mux_sel = rs_data[RS2][$clog2(NUM_IO_UNITS)-1:0];
+        assign rca_inputs.new_rca_result_mux_sel = rs_data[RS2][$clog2(NUM_IO_UNITS+1)-1:0];
 
         always_ff @(posedge clk) rca_dec_inputs_r.rca_io_inp_map_config_instr <= rca_io_inp_map_config_instr;
 
