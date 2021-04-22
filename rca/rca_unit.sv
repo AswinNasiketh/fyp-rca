@@ -64,6 +64,7 @@ module rca_unit(
     logic wb_fb_instr;
     logic fifo_populated;
     logic buf_data_valid;
+    logic buf_rs_data_valid;
     logic clear_fifos;
     logic [$clog2(NUM_RCAS)-1:0] currently_running_rca;
     logic [XLEN-1:0] buf_rs_data [NUM_READ_PORTS];
@@ -79,7 +80,7 @@ module rca_unit(
     logic io_unit_output_mode [NUM_IO_UNITS];
     logic io_fifo_pop [NUM_IO_UNITS];
 
-    assign rs_data_valid = curr_rca_io_inp_map & {NUM_IO_UNITS{buf_data_valid}};
+    assign rs_data_valid = curr_rca_io_inp_map & {NUM_IO_UNITS{buf_rs_data_valid}};
 
     always_comb begin
         for(int i = 0; i < NUM_IO_UNITS; i++) begin
