@@ -160,6 +160,9 @@ module taiga (
     rca_writeback_interface rca_wb();
     logic rca_config_locked;
 
+    //RCA-LSU interface 
+    rca_lsu_interface rca_ls();
+
     //Trace Interface Signals
     logic tr_operand_stall;
     logic tr_unit_stall;
@@ -236,7 +239,7 @@ module taiga (
     //Execution Units
     branch_unit branch_unit_block (.*, .issue(unit_issue[BRANCH_UNIT_ID]));
     alu_unit alu_unit_block (.*, .issue(unit_issue[ALU_UNIT_WB_ID]), .wb(unit_wb[ALU_UNIT_WB_ID]));
-    load_store_unit load_store_unit_block (.*, .dcache_on(1'b1), .clear_reservation(1'b0), .tlb(dtlb), .issue(unit_issue[LS_UNIT_WB_ID]), .wb(unit_wb[LS_UNIT_WB_ID]), .l1_request(l1_request[L1_DCACHE_ID]), .l1_response(l1_response[L1_DCACHE_ID]));
+    load_store_unit load_store_unit_block (.*, .dcache_on(1'b1), .clear_reservation(1'b0), .tlb(dtlb), .issue(unit_issue[LS_UNIT_WB_ID]), .wb(unit_wb[LS_UNIT_WB_ID]), .l1_request(l1_request[L1_DCACHE_ID]), .l1_response(l1_response[L1_DCACHE_ID]), .rca_lsq(rca_ls));
     generate if (ENABLE_S_MODE) begin
             tlb_lut_ram #(DTLB_WAYS, DTLB_DEPTH) d_tlb (.*, .tlb(dtlb), .mmu(dmmu));
             mmu d_mmu (.*, .mmu(dmmu), .l1_request(l1_request[L1_DMMU_ID]), .l1_response(l1_response[L1_DMMU_ID]), .mmu_exception());
@@ -256,7 +259,7 @@ module taiga (
     endgenerate
 
     generate if (USE_RCA)
-        rca_unit rca (.*, .issue(unit_issue[RCA_UNIT_WB_ID]));
+        rca_unit rca (.*, .issue(unit_issue[RCA_UNIT_WB_ID]), .lsu(rca_ls));
     endgenerate
 
 

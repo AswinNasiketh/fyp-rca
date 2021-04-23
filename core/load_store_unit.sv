@@ -30,6 +30,8 @@ module load_store_unit (
         input load_store_inputs_t ls_inputs,
         unit_issue_interface.unit issue,
 
+        rca_lsu_interface.lsu rca_lsq,
+
         input logic dcache_on,
         input logic clear_reservation,
         tlb_interface.mem tlb,
@@ -126,22 +128,59 @@ module load_store_unit (
     //Implementation
     ////////////////////////////////////////////////////
 
+    //RCA LSQ FSM
+    localparam NORMAL_OPERATION = 1'b0;
+    localparam SERVICING_RCA = 1'b1;
+
+    logic operation_state;
+    logic next_state;
+    initial operation_state = 1'b0;
+    always_ff begin
+        if(rst) operation_state <= 1'b0;
+        else operation_state <= next_state;
+    end
+
+    always_comb begin
+        case(operation_state)
+            NORMAL_OPERATION: begin
+                next_state = rca_lsq.rca_lsu_lock;
+            end 
+            SERVICING_RCA: begin
+                next_state = !(lsq.empty && !rca_lsq.rca_lsu_lock);
+            end
+    end
+
+    assign rca_lsq.lsu_ready = (operation_state == SERVICING_RCA) ? lsq.ready : 1'b0;
+    
+    logic load_store_inputs_t muxed_inputs;
+    assign muxed_inputs.rs1 = (operation_state == NORMAL_OPERATION) ? ls_inputs.rs1 : rca_lsq.rs1;
+    assign muxed_inputs.rs2 = (operation_state == NORMAL_OPERATION) ? ls_inputs.rs2 : rca_lsq.rs2;
+    assign muxed_inputs.offset = (operation_state == NORMAL_OPERATION) ?
+    ls_inputs.offset : 0;
+    assign muxed_inputs.fn3 = (operation_state == NORMAL_OPERATION) ? ls_inputs.fn3 : rca_lsq.fn3;
+    assign muxed_inputs.load = (operation_state == NORMAL_OPERATION) ? ls_inputs.load : rca_lsq.load;
+    assign muxed_inputs.store = (operation_state == NORMAL_OPERATION) ? ls_inputs.store : rca_lsq.store;
+    assign muxed_inputs.forwarded_store = (operation_state == NORMAL_OPERATION) ? ls_inputs.forwarded_store : 1'b0;
+    assign muxed_inputs.store_forward_id = (operation_state == NORMAL_OPERATION) ? ls_inputs.store_forward_id : 0;
+    assign muxed_inputs.amo_details_t = (operation_state == NORMAL_OPERATION) ? ls_inputs.amo_details_t : 0;
+    //TODO: switch between rca lsq inputs and normal ls inputs based on state.
+    //TODO: issue side ready signal needs to be switched off in servicing RCA state
 
     ////////////////////////////////////////////////////
     //Alignment Exception
 generate if (ENABLE_M_MODE) begin
 
     always_comb begin
-        case(ls_inputs.fn3)
+        case(muxed_inputs.fn3)
             LS_H_fn3 : unaligned_addr = virtual_address[0];
             L_HU_fn3 : unaligned_addr = virtual_address[0];
             LS_W_fn3 : unaligned_addr = |virtual_address[1:0];
             default : unaligned_addr = 0;
         endcase
     end
-    assign ls_exception_is_store = ls_inputs.store;
+    assign ls_exception_is_store = muxed_inputs.store;
    assign ls_exception.valid = unaligned_addr & issue.new_request;
-   assign ls_exception.code = ls_inputs.store ? STORE_AMO_ADDR_MISSALIGNED : LOAD_ADDR_MISSALIGNED;
+   assign ls_exception.code = muxed_inputs.store ? STORE_AMO_ADDR_MISSALIGNED : LOAD_ADDR_MISSALIGNED;
    assign ls_exception.tval = virtual_address;
    assign ls_exception.id = issue.id;
 
@@ -149,12 +188,12 @@ end
 endgenerate
     ////////////////////////////////////////////////////
     //TLB interface
-    assign virtual_address = ls_inputs.rs1 + 32'(signed'(ls_inputs.offset));
+    assign virtual_address = muxed_inputs.rs1 + 32'(signed'(muxed_inputs.offset));
 
     assign tlb.virtual_address = virtual_address;
     assign tlb.new_request = issue_request;
     assign tlb.execute = 0;
-    assign tlb.rnw = ls_inputs.load & ~ls_inputs.store;
+    assign tlb.rnw = muxed_inputs.load & ~muxed_inputs.store;
 
     ////////////////////////////////////////////////////
     //Byte enable generation
@@ -164,7 +203,7 @@ endgenerate
     //  SB: specific byte
     always_comb begin
         be = 0;
-        case(ls_inputs.fn3[1:0])
+        case(muxed_inputs.fn3[1:0])
             LS_B_fn3[1:0] : be[virtual_address[1:0]] = 1;
             LS_H_fn3[1:0] : begin
                 be[virtual_address[1:0]] = 1;
@@ -172,20 +211,20 @@ endgenerate
             end
             default : be = '1;
         endcase
-        be &= {4{~ls_inputs.load}};
+        be &= {4{~muxed_inputs.load}};
     end
 
     ////////////////////////////////////////////////////
     //Load Store Queue
     assign lsq.addr = virtual_address;
-    assign lsq.fn3 = ls_inputs.fn3;
+    assign lsq.fn3 = muxed_inputs.fn3;
     assign lsq.be = be;
-    assign lsq.data_in = ls_inputs.rs2;
-    assign lsq.load = ls_inputs.load;
-    assign lsq.store = ls_inputs.store;
+    assign lsq.data_in = muxed_inputs.rs2;
+    assign lsq.load = muxed_inputs.load;
+    assign lsq.store = muxed_inputs.store;
     assign lsq.id = issue.id;
-    assign lsq.forwarded_store = ls_inputs.forwarded_store;
-    assign lsq.data_id = ls_inputs.store_forward_id;
+    assign lsq.forwarded_store = muxed_inputs.forwarded_store;
+    assign lsq.data_id = muxed_inputs.store_forward_id;
 
     assign lsq.possible_issue = issue.possible_issue;
     assign lsq.new_issue = issue.new_request & ~unaligned_addr;
@@ -229,7 +268,7 @@ endgenerate
 
     assign ready_for_issue = units_ready & (~unit_switch_stall);
 
-    assign issue.ready = ls_inputs.forwarded_store ? lsq.ready & ready_for_forwarded_store : lsq.ready;
+    assign issue.ready = (operation_state == SERVICING_RCA) ? 1'b0 : (muxed_inputs.forwarded_store ? lsq.ready & ready_for_forwarded_store : lsq.ready); //rightmost expression is the normal lsq expression. disable requests from CPU when RCA is being serviced
     assign issue_request = lsq.transaction_ready & ready_for_issue;
 
     ////////////////////////////////////////////////////
