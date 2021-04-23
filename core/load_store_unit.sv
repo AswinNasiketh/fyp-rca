@@ -143,10 +143,10 @@ module load_store_unit (
     always_comb begin
         case(operation_state)
             NORMAL_OPERATION: begin
-                next_state = rca_lsq.rca_lsu_lock;
+                next_state = rca_lsq.rca_lsu_lock ? SERVICING_RCA : NORMAL_OPERATION;
             end 
             SERVICING_RCA: begin
-                next_state = !(lsq.empty && !rca_lsq.rca_lsu_lock);
+                next_state = (lsq.empty && !rca_lsq.rca_lsu_lock) ? NORMAL_OPERATION : SERVICING_RCA;
             end
     end
 
