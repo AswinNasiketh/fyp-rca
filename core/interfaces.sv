@@ -305,15 +305,19 @@ interface rca_lsu_interface;
     logic load;
     logic store;
 
+    //Writeback interface
+    logic load_complete;
+    logic [XLEN-1:0] load_data;
+
     //control signals
     logic rca_lsu_lock;
     logic new_request;
     logic lsu_ready;
 
     modport lsq (output rs1, rs2, fn3, load, store, rca_lsu_lock,
-    input lsu_ready);
+    input lsu_ready, load_complete, load_data);
 
     modport lsu (input rs1, rs2, fn3, load, store, rca_lsu_lock,
-    output lsu_ready);
+    output lsu_ready, load_complete, load_data);
 
 endinterface

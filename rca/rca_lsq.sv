@@ -135,4 +135,44 @@ module rca_lsq
     assign lsu.new_request = lsu.lsu_ready && next_request_valid;
 
     assign lsu.rca_lsu_lock = packet_id_fifo_valid || rca_fifo_populated; //lock lsu as long as the packet id fifo contains elements or an RCA is running
+
+    //Load tracking FIFO
+    logic [$clog2(GRID_NUM_ROWS-1):0] next_load_destination;
+    logic next_load_destination_valid;
+
+    fifo_interface #(.DATA_WIDTH($clog2(GRID_NUM_ROWS-1))) load_tracking_fifo_if ();
+
+    taiga_fifo #(.DATA_WIDTH($clog2(GRID_NUM_ROWS-1)), .FIFO_DEPTH(MAX_IDS)) load_tracking_fifo(
+        .clk,
+        .rst,
+        .fifo(load_tracking_fifo_if)
+    );
+
+    assign load_tracking_fifo_if.push = lsu.new_request && lsu.load && ~lsu.store;
+    assign load_tracking_fifo_if.potential_push = lsu.new_request && lsu.load && ~lsu.store;
+    assign load_tracking_fifo_if.pop = // grid slot ready needed here
+    
+    assign load_tracking_fifo_if.data_in = next_request;
+    assign next_load_destination = load_tracking_fifo_if.data_out;
+    assign next_load_destination_valid = load_tracking_fifo_if.valid;
+
+    //Load result storage FIFO
+    logic [XLEN-1:0] next_load_data;
+    logic next_load_data_valid;
+
+    fifo_interface #(.DATA_WIDTH(XLEN)) load_result_fifo_if ();
+
+    taiga_fifo #(.DATA_WIDTH(XLEN), .FIFO_DEPTH(MAX_IDS)) load_result_fifo(
+        .clk,
+        .rst,
+        .fifo(load_result_fifo_if)
+    );
+
+    assign load_result_fifo_if.push = lsu.load_complete;
+    assign load_result_fifo_if.potential_push = lsu.load_complete;
+    assign load_result_fifo_if.pop = // grid_slot_ready
+    assign load_result_fifo_if.data_in = lsu.load_data;
+    assign next_load_data = load_result_fifo_if.data_out;
+    assign next_load_data_valid = load_result_fifo_if.valid;
+
 endmodule

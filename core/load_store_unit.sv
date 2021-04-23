@@ -360,6 +360,9 @@ endgenerate
     assign wb.done = csr_done | load_complete;
     assign wb.id = csr_done ? csr_id : stage2_attr.id;
 
+    assign rca_lsq.load_complete = (operation_state == SERVICING_RCA) ? load_complete : 1'b0;
+    assign rca_lsq.load_data = final_load_data;
+
     ////////////////////////////////////////////////////
     //End of Implementation
     ////////////////////////////////////////////////////
