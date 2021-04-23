@@ -15,7 +15,16 @@ module grid_pr_slot
     input data_valid_in2,
 
     output [XLEN-1:0] data_out,
-    output data_valid_out
+    output data_valid_out,
+
+    //LSQ interface
+    output [XLEN-1:0] addr, 
+    output [XLEN-1:0] data,
+    output [2:0] fn3,
+    output load,
+    output store,
+    output new_request,
+    input lsq_full
 );
 
 //It is anticipated that data at input 1 and input 2 will arrive at different rates => FIFOs are needed
@@ -66,7 +75,8 @@ logic input2_fifo_populated;
         .data_out,
         .data_valid_out,
         .data_in_ack1(ou_data_in_ack1),
-        .data_in_ack2(ou_data_in_ack2)
+        .data_in_ack2(ou_data_in_ack2),
+        .*
     );
     
 endmodule

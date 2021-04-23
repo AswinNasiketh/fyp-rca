@@ -16,7 +16,16 @@ module pr_module
     output [XLEN-1:0] data_out,
     output data_valid_out,
     output data_in_ack1,
-    output data_in_ack2
+    output data_in_ack2,
+
+    //LSQ interface
+    output [XLEN-1:0] addr, 
+    output [XLEN-1:0] data,
+    output [2:0] fn3,
+    output load,
+    output store,
+    output new_request,
+    input lsq_full
 );
 
     assign data_out = data_in1;

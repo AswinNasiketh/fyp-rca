@@ -10,7 +10,9 @@ module rca_unit(
     input rca_dec_inputs_r_t rca_dec_inputs_r,
     output rca_cpu_reg_config_t rca_config_regs_op,
     rca_writeback_interface.unit rca_wb,
-    output rca_config_locked
+    output rca_config_locked,
+
+    rca_lsu_interface.lsq lsu
 );
 
     logic [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel_out [NUM_GRID_MUXES*2];
@@ -116,6 +118,13 @@ module rca_unit(
         .io_fifo_pop,
         .grid_mux_sel(grid_mux_sel_out),
         .input_constants(input_constants_out)
+    );
+
+    rca_lsq_grid_interface rca_lsq_grid_if();
+    rca_lsq lsq(
+        .clk, .rst,
+        .lsu,
+        .grid(rca_lsq_grid_interface)
     );
 
     logic wb_committing;

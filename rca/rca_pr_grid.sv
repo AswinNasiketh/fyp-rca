@@ -21,7 +21,10 @@ module rca_pr_grid
     input [XLEN-1:0] input_constants [NUM_IO_UNITS],
 
     //Config & Control - PR slots
-    input [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel [NUM_GRID_MUXES*2]
+    input [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel [NUM_GRID_MUXES*2],
+
+    //LSQ
+    rca_lsq_grid_interface.grid lsq
 );
 
 genvar i, j;
@@ -208,19 +211,39 @@ end endgenerate
 generate 
     for (i = 0; i < GRID_NUM_ROWS; i++) begin : pr_slots_row
         for (j = 0; j < GRID_NUM_COLS; j++) begin : pr_slots_col
-            grid_pr_slot grid_slot(
-                .clk,
-                .rst,
-                .data_in1(pr_mux_data_out1[i][j]),
-                .data_valid_in1(pr_mux_data_valid_out1[i][j]),
-                .data_in2(pr_mux_data_out2[i][j]),
-                .data_valid_in2(pr_mux_data_valid_out2[i][j]),
-                .data_out(pr_unit_data_out[i][j]),
-                .data_valid_out(pr_unit_data_valid_out[i][j])
-            );
+            if(j == 0) begin //LSQ interface only on leftmost slot
+                grid_pr_slot grid_slot(
+                    .clk,
+                    .rst,
+                    .data_in1(pr_mux_data_out1[i][j]),
+                    .data_valid_in1(pr_mux_data_valid_out1[i][j]),
+                    .data_in2(pr_mux_data_out2[i][j]),
+                    .data_valid_in2(pr_mux_data_valid_out2[i][j]),
+                    .data_out(pr_unit_data_out[i][j]),
+                    .data_valid_out(pr_unit_data_valid_out[i][j]),
+                    .addr(lsq.addr[i]),
+                    .data(lsq.data[i]),
+                    .fn3(lsq.fn3[i]),
+                    .load(lsq.load[i]),
+                    .store(lsq.store[i]),
+                    .new_request(lsq.new_request[i]),
+                    .lsq_full(lsq.fifo_full)
+                );
+            end
+            else begin
+                grid_pr_slot grid_slot(
+                    .clk,
+                    .rst,
+                    .data_in1(pr_mux_data_out1[i][j]),
+                    .data_valid_in1(pr_mux_data_valid_out1[i][j]),
+                    .data_in2(pr_mux_data_out2[i][j]),
+                    .data_valid_in2(pr_mux_data_valid_out2[i][j]),
+                    .data_out(pr_unit_data_out[i][j]),
+                    .data_valid_out(pr_unit_data_valid_out[i][j]),
+                    .lsq_full(1) //block all lsq requests for these columns
+                );
+            end
         end
 end endgenerate
-
-//LSUs
     
 endmodule

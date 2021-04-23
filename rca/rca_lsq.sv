@@ -73,7 +73,7 @@ module rca_lsq
     typedef struct {
         logic [XLEN-1:0] addr [GRID_NUM_ROWS];
         logic [XLEN-1:0] data [GRID_NUM_ROWS];
-        logic [XLEN-1:0] fn3 [GRID_NUM_ROWS];
+        logic [2:0] fn3 [GRID_NUM_ROWS];
         logic load [GRID_NUM_ROWS];
         logic store [GRID_NUM_ROWS];
         logic new_request [GRID_NUM_ROWS];
