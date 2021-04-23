@@ -281,3 +281,39 @@ interface unsigned_division_interface #(parameter DATA_WIDTH = 32);
     modport divider (output remainder, quotient, done, divisor_is_zero, input dividend, divisor, start);
 endinterface
 
+interface rca_lsq_grid_interface;
+    //mimic load_store_inputs_t
+    logic [XLEN-1:0] addr [GRID_NUM_ROWS]; //with offset - sequence analysis algorithm will need to add extra step for this
+    logic [XLEN-1:0] data [GRID_NUM_ROWS];
+    logic [XLEN-1:0] fn3 [GRID_NUM_ROWS];
+    logic load [GRID_NUM_ROWS];
+    logic store [GRID_NUM_ROWS];
+    logic new_request [GRID_NUM_ROWS];
+    logic fifo_full;
+    
+    modport grid (output addr, data, fn3, load, store, new_request,
+    input fifo_full);
+    modport lsq (input addr, data, fn3, load, store, new_request,
+    output fifo_full);
+endinterface
+
+interface rca_lsu_interface;
+    //mimic load_store_inputs_t
+    logic [XLEN-1:0] rs1;
+    logic [XLEN-1:0] rs2;
+    logic [2:0] fn3;
+    logic load;
+    logic store;
+
+    //control signals
+    logic rca_lsu_lock;
+    logic new_request;
+    logic lsu_ready;
+
+    modport lsq (output rs1, rs2, fn3, load, store, rca_lsu_lock,
+    input lsu_ready);
+
+    modport lsu (input rs1, rs2, fn3, load, store, rca_lsu_lock,
+    output lsu_ready);
+
+endinterface
