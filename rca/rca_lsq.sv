@@ -6,6 +6,7 @@ module rca_lsq
 (
     input clk,
     input rst,
+    input rca_fifo_populated,
 
     rca_lsq_grid_interface.lsq grid,
     rca_lsu_interface.lsq lsu
@@ -133,5 +134,5 @@ module rca_lsq
     assign lsu.store = curr_packet.store[next_request];
     assign lsu.new_request = lsu.lsu_ready && next_request_valid;
 
-    assign lsu.rca_lsu_lock = packet_id_fifo_valid; //lock lsu as long as the packet id fifo contains elements    
+    assign lsu.rca_lsu_lock = packet_id_fifo_valid || rca_fifo_populated; //lock lsu as long as the packet id fifo contains elements or an RCA is running
 endmodule

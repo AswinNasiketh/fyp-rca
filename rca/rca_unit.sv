@@ -124,7 +124,8 @@ module rca_unit(
     rca_lsq lsq(
         .clk, .rst,
         .lsu,
-        .grid(rca_lsq_grid_interface)
+        .grid(rca_lsq_grid_interface),
+        .rca_fifo_populated(fifo_populated)
     );
 
     logic wb_committing;
