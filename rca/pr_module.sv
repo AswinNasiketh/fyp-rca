@@ -18,6 +18,9 @@ module pr_module
     output data_in_ack1,
     output data_in_ack2,
 
+    output uses_data_in1,
+    output uses_data_in2,
+
     //LSQ interface
     output [XLEN-1:0] addr, 
     output [XLEN-1:0] data,
@@ -30,6 +33,9 @@ module pr_module
     input [XLEN-1:0] load_data,
     input load_complete
 );
+
+    assign uses_data_in1 = 1'b1;
+    assign uses_data_in2 = 1'b0;
 
     assign data_out = data_in1;
     assign data_valid_out = data_valid_in1;

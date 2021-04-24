@@ -46,7 +46,7 @@ logic input2_fifo_populated;
     assign input1_fifo_if.pop = ou_data_in_ack1;
     assign input1_fifo_if.data_in = data_in1;
     assign input1_fifo_if.potential_push = data_valid_in1;
-    assign input1_fifo_if.push =  data_valid_in1;
+    assign input1_fifo_if.push =  data_valid_in1 && uses_data_in1;
 
     assign input1_fifo_populated = input1_fifo_if.valid;
 
@@ -61,12 +61,14 @@ logic input2_fifo_populated;
     assign input2_fifo_if.pop = ou_data_in_ack2;
     assign input2_fifo_if.data_in = data_in2;
     assign input2_fifo_if.potential_push = data_valid_in2;
-    assign input2_fifo_if.push = data_valid_in2;
+    assign input2_fifo_if.push = data_valid_in2 && uses_data_in2;
 
     assign input2_fifo_populated = input2_fifo_if.valid;
 
     logic ou_data_in_ack1;
     logic ou_data_in_ack2;
+    logic uses_data_in1;
+    logic uses_data_in2;
 
     pr_module ou(
         .clk,
@@ -79,6 +81,8 @@ logic input2_fifo_populated;
         .data_valid_out,
         .data_in_ack1(ou_data_in_ack1),
         .data_in_ack2(ou_data_in_ack2),
+        .uses_data_in1,
+        .uses_data_in2
         .* //LS interface
     );
     
