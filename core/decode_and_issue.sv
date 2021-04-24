@@ -328,7 +328,7 @@ module decode_and_issue (
             if(issue_stage_ready)
                 rca_dec_inputs_r.rca_io_ls_mask_config_instr <= rca_io_ls_mask_config_instr;
 
-        assign rca_inputs.io_ls_mask_config_fb = rs_data[RS1][$clog2(NUM_IO_UNITS)];
+        assign rca_inputs.io_ls_mask_config_fb = rs_data[RS1][0];
         assign rca_inputs.new_io_ls_mask = rs_data[RS2][NUM_IO_UNITS-1:0];
     endgenerate
 

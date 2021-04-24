@@ -69,7 +69,7 @@ module rca_config_regs (
     input [$clog2(NUM_IO_UNITS)-1:0] io_unit_addr,
     input [XLEN-1:0] new_input_constant,
 
-    //Reg file to store IO unit LS masks - uses rca_sel and io_unit_addr already defined
+    //Reg file to store IO unit LS masks - uses rca_sel already defined
     input rca_io_ls_mask_wr_en,
     input rca_io_ls_mask_fb_wr_en,
     input [NUM_IO_UNITS-1:0] new_io_ls_mask,
