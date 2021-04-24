@@ -305,6 +305,75 @@ void rca_config_input_constant(uint32_t io_unit_addr, uint32_t c){
     );
 }
 
+static void inline rca_a_config_io_ls_mask(uint32_t rs1_val, uint32_t rs2_val){
+    uint32_t dummy;
+
+    asm volatile("rcacilm.a %0, %1, %2;"
+        :"=r"(dummy)
+        :"r"(rs1_val), "r"(rs2_val)
+        :
+    );
+}
+
+static void inline rca_b_config_io_ls_mask(uint32_t rs1_val, uint32_t rs2_val){
+    uint32_t dummy;
+
+    asm volatile("rcacilm.b %0, %1, %2;"
+        :"=r"(dummy)
+        :"r"(rs1_val), "r"(rs2_val)
+        :
+    );
+}
+
+static void inline rca_c_config_io_ls_mask(uint32_t rs1_val, uint32_t rs2_val){
+    uint32_t dummy;
+
+    asm volatile("rcacilm.c %0, %1, %2;"
+        :"=r"(dummy)
+        :"r"(rs1_val), "r"(rs2_val)
+        :
+    );
+}
+
+static void inline rca_d_config_io_ls_mask(uint32_t rs1_val, uint32_t rs2_val){
+    uint32_t dummy;
+
+    asm volatile("rcacilm.d %0, %1, %2;"
+        :"=r"(dummy)
+        :"r"(rs1_val), "r"(rs2_val)
+        :
+    );
+}
+
+//boolean array must be of size NUM_IO_UNITS
+void rca_config_io_ls_mask(rca_t rca, bool* wait_for_ls_request, bool fb){
+    uint32_t set_bit = 0x1;
+    uint32_t io_ls_mask = 0;
+    uint32_t rs1_val = (fb == true) ? 0x1 : 0x0;
+
+    for(int i = 0; i < NUM_IO_UNITS; i++){
+        if(wait_for_ls_request[i]){
+            io_ls_mask |= set_bit;
+        }
+        set_bit = set_bit << 1;
+    }
+
+    switch (rca)
+    {
+    case RCA_A:
+        rca_a_config_io_ls_mask(rs1_val, io_ls_mask);
+        break;
+    case RCA_B:
+        rca_b_config_io_ls_mask(rs1_val, io_ls_mask);
+        break;
+    case RCA_C:
+        rca_c_config_io_ls_mask(rs1_val, io_ls_mask);
+        break;
+    case RCA_D:
+        rca_d_config_io_ls_mask(rs1_val, io_ls_mask);
+    }
+}
+
 void rca_a_use(){
     uint32_t dummy;
 

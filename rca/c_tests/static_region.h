@@ -15,6 +15,9 @@ typedef struct {
     bool io_unit_is_input [NUM_RCAS][NUM_IO_UNITS];
     
     uint32_t input_constants [NUM_IO_UNITS];
+
+    bool ls_mask_fb [NUM_RCAS][NUM_IO_UNITS];
+    bool ls_mask_nfb [NUM_RCAS][NUM_IO_UNITS];
 } static_region_t;
 
 void write_config(static_region_t* pstatic_config, uint32_t row_start, uint32_t row_end, rca_t rca);

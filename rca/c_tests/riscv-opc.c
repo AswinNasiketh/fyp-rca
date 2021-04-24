@@ -229,6 +229,11 @@ const struct riscv_opcode riscv_opcodes[] =
 
 {"rcacic",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCA_INP_CONSTANTS_CONFIG_MATCH, TAIGA_RCA_INP_CONSTANTS_CONFIG_MASK, match_opcode, 0},
 
+{"rcacilm.a",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAA_IO_LS_MASK_CONFIG_MATCH, TAIGA_RCAA_IO_LS_MASK_CONFIG_MASK, match_opcode, 0},
+{"rcacilm.b",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAB_IO_LS_MASK_CONFIG_MATCH, TAIGA_RCAB_IO_LS_MASK_CONFIG_MASK, match_opcode, 0},
+{"rcacilm.c",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAC_IO_LS_MASK_CONFIG_MATCH, TAIGA_RCAC_IO_LS_MASK_CONFIG_MASK, match_opcode, 0},
+{"rcacilm.d",        0, INSN_CLASS_I, "d,s,t", TAIGA_RCAD_IO_LS_MASK_CONFIG_MATCH, TAIGA_RCAD_IO_LS_MASK_CONFIG_MASK, match_opcode, 0},
+
 // {"tadd",        0, {"I", 0}, "d,s,t", TAIGA_TESTADDER_MATCH, TAIGA_TESTADDER_MASK, match_opcode, 0},
 {"unimp",       0, INSN_CLASS_C,   "",  0, 0xffffU,  match_opcode, INSN_ALIAS },
 {"unimp",       0, INSN_CLASS_I,   "",  MATCH_CSRRW | (CSR_CYCLE << OP_SH_CSR), 0xffffffffU,  match_opcode, 0 }, /* csrw cycle, x0 */

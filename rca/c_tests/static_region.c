@@ -58,5 +58,9 @@ void write_config(static_region_t* pstatic_config, uint32_t row_start, uint32_t 
     for(int i = 0; i < NUM_IO_UNITS; i++){
         rca_config_input_constant(i, static_region.input_constants[i]);
     }
+
+    //io unit ls masks
+    rca_config_io_ls_mask(rca, static_region.ls_mask_fb[rca], true);
+    rca_config_io_ls_mask(rca, static_region.ls_mask_nfb[rca], false);
 }
 

@@ -60,6 +60,7 @@ void rca_config_io_mux(uint32_t io_unit_addr, uint32_t io_mux_sel);
 void rca_config_result_mux(rca_t rca, reg_port_t write_port, uint32_t io_unit_addr, bool fb_addr);
 void rca_config_inp_io_unit_map(rca_t rca, bool* io_unit_is_input);
 void rca_config_input_constant(uint32_t io_unit_addr, uint32_t c);
+void rca_config_io_ls_mask(rca_t rca, bool* wait_for_ls_request, bool fb);
 
 //RCA Use wrappers with FB instr followed by NFB instr
 void rca_a_use();
