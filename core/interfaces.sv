@@ -292,7 +292,7 @@ interface rca_lsq_grid_interface;
 
     //loaded data interface
     logic load_complete [GRID_NUM_ROWS];
-    logic [XLEN-1:0] load_data [GRID_NUM_ROWS];
+    logic [XLEN-1:0] load_data;
 
     //Control Interface
     logic fifo_full;

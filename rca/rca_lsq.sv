@@ -176,16 +176,12 @@ module rca_lsq
     assign next_load_data_valid = load_result_fifo_if.valid;
 
     //Returning loaded data to grid
+    assign grid.load_data = next_load_data;
     always_comb begin
         //Default
         for(int i = 0; i < NUM_GRID_ROWS; i++) begin
             grid.load_complete[i] = 0;
-            grid.load_data[i] = 0;
-        end        
-
+        end
         grid.load_complete[next_load_destination] = next_load_data_valid && next_load_destination_valid;
-
-        grid.load_data[next_load_destination] = next_load_data;
     end
-
 endmodule

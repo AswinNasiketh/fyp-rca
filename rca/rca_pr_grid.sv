@@ -228,7 +228,7 @@ generate
                     .store(lsq.store[i]),
                     .new_request(lsq.new_request[i]),
                     .lsq_full(lsq.fifo_full),
-                    .load_data(lsq.load_data[i]),
+                    .load_data(lsq.load_data),
                     .load_complete(lsq.load_complete[i])
                 );
             end
