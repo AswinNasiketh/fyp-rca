@@ -227,7 +227,9 @@ generate
                     .load(lsq.load[i]),
                     .store(lsq.store[i]),
                     .new_request(lsq.new_request[i]),
-                    .lsq_full(lsq.fifo_full)
+                    .lsq_full(lsq.fifo_full),
+                    .load_data(lsq.load_data[i]),
+                    .load_complete(lsq.load_complete[i])
                 );
             end
             else begin
@@ -240,7 +242,9 @@ generate
                     .data_valid_in2(pr_mux_data_valid_out2[i][j]),
                     .data_out(pr_unit_data_out[i][j]),
                     .data_valid_out(pr_unit_data_valid_out[i][j]),
-                    .lsq_full(1) //block all lsq requests for these columns
+                    .lsq_full(1), //block all lsq requests for these columns
+                    .load_data(0),
+                    .load_complete(0) //never return any load data for these columns
                 );
             end
         end

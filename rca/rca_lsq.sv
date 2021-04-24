@@ -126,7 +126,7 @@ module rca_lsq
         next_request_valid = curr_packet.new_request[next_request] && ~request_completed[next_request] && packet_id_fifo_valid;
     end
 
-    // Next Request Inputs
+    // Next LSU Request Inputs
     assign lsu.rs1 = curr_packet.addr[next_request];
     assign lsu.rs2 = curr_packet.data[next_request];
     assign lsu.fn3 = curr_packet.fn3[next_request];
@@ -136,7 +136,8 @@ module rca_lsq
 
     assign lsu.rca_lsu_lock = packet_id_fifo_valid || rca_fifo_populated; //lock lsu as long as the packet id fifo contains elements or an RCA is running
 
-    //Load tracking FIFO
+    //Load tracking FIFOs - for returning load results to grid
+    //Both FIFOs will be popped at the simultaneously
     logic [$clog2(GRID_NUM_ROWS-1):0] next_load_destination;
     logic next_load_destination_valid;
 
@@ -148,11 +149,10 @@ module rca_lsq
         .fifo(load_tracking_fifo_if)
     );
 
-    assign load_tracking_fifo_if.push = lsu.new_request && lsu.load && ~lsu.store;
-    assign load_tracking_fifo_if.potential_push = lsu.new_request && lsu.load && ~lsu.store;
-    assign load_tracking_fifo_if.pop = // grid slot ready needed here
-    
+    assign load_tracking_fifo_if.push = lsu.new_request && lsu.load && ~lsu.store; //only push loads
+    assign load_tracking_fifo_if.potential_push = lsu.new_request && lsu.load && ~lsu.store;   
     assign load_tracking_fifo_if.data_in = next_request;
+    assign load_tracking_fifo_if.pop = next_load_data_valid && next_load_destination_valid;//always pop when both FIFOs have data valid - load OUs should be able to output a new result every cycle (due to waiting for Loads and Stores to be at least submitted to queue before committing iteration) 
     assign next_load_destination = load_tracking_fifo_if.data_out;
     assign next_load_destination_valid = load_tracking_fifo_if.valid;
 
@@ -170,9 +170,22 @@ module rca_lsq
 
     assign load_result_fifo_if.push = lsu.load_complete;
     assign load_result_fifo_if.potential_push = lsu.load_complete;
-    assign load_result_fifo_if.pop = // grid_slot_ready
     assign load_result_fifo_if.data_in = lsu.load_data;
+    assign load_result_fifo_if.pop = next_load_data_valid && next_load_destination_valid;
     assign next_load_data = load_result_fifo_if.data_out;
     assign next_load_data_valid = load_result_fifo_if.valid;
+
+    //Returning loaded data to grid
+    always_comb begin
+        //Default
+        for(int i = 0; i < NUM_GRID_ROWS; i++) begin
+            grid.load_complete[i] = 0;
+            grid.load_data[i] = 0;
+        end        
+
+        grid.load_complete[next_load_destination] = next_load_data_valid && next_load_destination_valid;
+
+        grid.load_data[next_load_destination] = next_load_data;
+    end
 
 endmodule

@@ -289,12 +289,18 @@ interface rca_lsq_grid_interface;
     logic load [GRID_NUM_ROWS];
     logic store [GRID_NUM_ROWS];
     logic new_request [GRID_NUM_ROWS];
+
+    //loaded data interface
+    logic load_complete [GRID_NUM_ROWS];
+    logic [XLEN-1:0] load_data [GRID_NUM_ROWS];
+
+    //Control Interface
     logic fifo_full;
     
     modport grid (output addr, data, fn3, load, store, new_request,
-    input fifo_full);
+    input fifo_full, load_complete, load_data);
     modport lsq (input addr, data, fn3, load, store, new_request,
-    output fifo_full);
+    output fifo_full, load_complete, load_data);
 endinterface
 
 interface rca_lsu_interface;

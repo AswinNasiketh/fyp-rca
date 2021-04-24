@@ -25,7 +25,10 @@ module pr_module
     output load,
     output store,
     output new_request,
-    input lsq_full
+    input lsq_full,
+
+    input [XLEN-1:0] load_data,
+    input load_complete
 );
 
     assign data_out = data_in1;

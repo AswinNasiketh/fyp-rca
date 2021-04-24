@@ -24,7 +24,10 @@ module grid_pr_slot
     output load,
     output store,
     output new_request,
-    input lsq_full
+    input lsq_full,
+
+    input [XLEN-1:0] load_data,
+    input load_complete
 );
 
 //It is anticipated that data at input 1 and input 2 will arrive at different rates => FIFOs are needed
@@ -76,7 +79,7 @@ logic input2_fifo_populated;
         .data_valid_out,
         .data_in_ack1(ou_data_in_ack1),
         .data_in_ack2(ou_data_in_ack2),
-        .*
+        .* //LS interface
     );
     
 endmodule
