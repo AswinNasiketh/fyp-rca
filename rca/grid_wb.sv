@@ -6,6 +6,8 @@ module grid_wb
 (
     input [XLEN-1:0] io_unit_output_data [NUM_IO_UNITS],
     input io_unit_output_data_valid [NUM_IO_UNITS],
+    input io_unit_ls_requested [NUM_IO_UNITS],
+    input [NUM_IO_UNITS-1:0] io_unit_ls_mask,
 
     input [$clog2(NUM_IO_UNITS+1)-1:0] io_unit_sels [NUM_WRITE_PORTS],
     input io_unit_sels_valid,
@@ -34,8 +36,18 @@ module grid_wb
         for (int i = 0; i < NUM_WRITE_PORTS; i++)
             port_ready_for_commit[i] = io_unit_sels_valid && unit_output_data_valid[io_unit_sels[i]];
     end
+    
+    logic [NUM_IO_UNITS-1:0] io_unit_ls_requested_p; //packed version
+    logic ls_requests_complete;
 
-    assign wb_committing = &port_ready_for_commit;
+    always_comb begin
+        for(int i = 0; i < NUM_IO_UNITS; i++)
+            io_unit_ls_requested_p[i] = io_unit_ls_requested[i];
+    end
+
+    assign ls_requests_complete = (~io_unit_ls_mask) | io_unit_ls_requested_p;
+
+    assign wb_committing = (&port_ready_for_commit) && (&ls_requests_complete);
 
     genvar i;
 

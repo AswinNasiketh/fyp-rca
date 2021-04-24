@@ -62,12 +62,19 @@ module rca_config_regs (
     input rca_io_inp_map_wr_en,
     input [NUM_IO_UNITS-1:0] new_rca_io_inp_map,
 
-    //Reg file to store custon constant which can be used as input instead of a CPU register
+    //Reg file to store custom constant which can be used as input instead of a CPU register
     output logic [XLEN-1:0] input_constants_out [NUM_IO_UNITS],
 
     input rca_input_constants_wr_en,
     input [$clog2(NUM_IO_UNITS)-1:0] io_unit_addr,
-    input [XLEN-1:0] new_input_constant
+    input [XLEN-1:0] new_input_constant,
+
+    //Reg file to store IO unit LS masks - uses rca_sel and io_unit_addr already defined
+    input rca_io_ls_mask_wr_en,
+    input rca_io_ls_mask_fb_wr_en,
+    input [NUM_IO_UNITS-1:0] new_io_ls_mask,
+    output [NUM_IO_UNITS-1:0] curr_io_ls_mask_fb,
+    output [NUM_IO_UNITS-1:0] curr_io_ls_mask_nfb
 );
 
     logic [4:0] [NUM_READ_PORTS-1:0] cpu_src_reg_addrs [NUM_RCAS]; 
@@ -83,6 +90,9 @@ module rca_config_regs (
     rca_result_mux_sel_t rca_result_mux_sels_nfb [NUM_RCAS];
 
     logic [NUM_IO_UNITS-1:0] rca_io_inp_map [NUM_RCAS];
+
+    logic [NUM_IO_UNITS-1:0] io_ls_mask_fb [NUM_RCAS];
+    logic [NUM_IO_UNITS-1:0] io_ls_mask_nfb [NUM_RCAS];
 
     //Reg file to store which of the CPU regs to read from and write to
     initial begin
@@ -200,6 +210,25 @@ module rca_config_regs (
         else if(rca_input_constants_wr_en) input_constants_out[io_unit_addr] <= new_input_constant;
     end
 
+    //Reg files to store IO unit LS masks
+    initial io_ls_mask_fb = '{default: '0};
+    initial io_ls_mask_nfb = '{default: '0};
+
+    always_ff @(posedge clk) begin
+        if(rst) begin
+            io_ls_mask_fb <= '{default: '0};
+            io_ls_mask_nfb <= '{default: '0}
+        end
+        else if(rca_io_ls_mask_wr_en) begin
+            if(rca_io_ls_mask_fb_wr_en)
+                io_ls_mask_fb[rca_sel_issue] <= new_io_ls_mask;
+            else
+                io_ls_mask_nfb[rca_sel_issue] <= new_io_ls_mask;
+        end
+    end
+
+    always_comb curr_io_ls_mask_nfb = io_ls_mask_nfb[rca_sel_grid_wb];
+    always_comb curr_io_ls_mask_fb = io_ls_mask_fb[rca_sel_grid_wb];
 
     //Assertions 
     write_nfb_src_reg_addr:

@@ -110,6 +110,7 @@ module decode_and_issue (
     logic rca_result_mux_config_instr;
     logic rca_io_inp_map_config_instr;
     logic rca_input_constants_config_instr;
+    logic rca_io_ls_mask_config_instr;
 
     logic [4:0] rs1_addr;
     logic [4:0] rs2_addr;
@@ -185,16 +186,16 @@ module decode_and_issue (
     assign rca_use_fb_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == USE_FB_fn7) : 1'b0;
 
 
-    assign rca_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 inside {CPU_REG_CONFIG_fn7, GRID_MUX_CONFIG_fn7, IO_MUX_CONFIG_fn7, RESULT_MUX_CONFIG_fn7, IO_INP_MAP_CONFIG_fn7, INP_CONSTANT_CONFIG_fn7}) : 1'b0;
+    assign rca_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 inside {CPU_REG_CONFIG_fn7, GRID_MUX_CONFIG_fn7, IO_MUX_CONFIG_fn7, RESULT_MUX_CONFIG_fn7, IO_INP_MAP_CONFIG_fn7, INP_CONSTANT_CONFIG_fn7, IO_LS_MASK_CONFIG_fn7}) : 1'b0;
     assign rca_cpu_reg_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == CPU_REG_CONFIG_fn7) : 1'b0;
     assign rca_grid_mux_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == GRID_MUX_CONFIG_fn7) : 1'b0;
     assign rca_io_mux_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == IO_MUX_CONFIG_fn7) : 1'b0;
     assign rca_result_mux_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == RESULT_MUX_CONFIG_fn7) : 1'b0;
     assign rca_io_inp_map_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == IO_INP_MAP_CONFIG_fn7) : 1'b0;
     assign rca_input_constants_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == INP_CONSTANT_CONFIG_fn7) : 1'b0;
+    assign rca_io_ls_mask_config_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == IO_LS_MASK_CONFIG_fn7) : 1'b0;
 
     //Delayed version required to AND with source register value to produce instruction signal
-
     always_ff @(posedge clk) 
         if(issue_stage_ready)
             rca_cpu_reg_config_instr_r <= rca_cpu_reg_config_instr;
@@ -322,6 +323,13 @@ module decode_and_issue (
 
         assign rca_inputs.io_unit_addr = rs_data[RS1][$clog2(NUM_IO_UNITS)-1:0];
         assign rca_inputs.new_input_constant = rs_data[RS2];
+
+        always_ff @(posedge clk)
+            if(issue_stage_ready)
+                rca_dec_inputs_r.rca_io_ls_mask_config_instr <= rca_io_ls_mask_config_instr;
+
+        assign rca_inputs.io_ls_mask_config_fb = rs_data[RS1][$clog2(NUM_IO_UNITS)];
+        assign rca_inputs.new_io_ls_mask = rs_data[RS2][NUM_IO_UNITS-1:0];
     endgenerate
 
     always_ff @(posedge clk) begin

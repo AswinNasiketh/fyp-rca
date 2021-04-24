@@ -318,6 +318,9 @@ package taiga_types;
         logic [$clog2(NUM_IO_UNITS)-1:0] io_unit_addr;
         logic [XLEN-1:0] new_input_constant;
 
+        //Interface for IO LS mask storage
+        logic io_ls_mask_config_fb;
+        logic [NUM_IO_UNITS-1:0] new_io_ls_mask;
 
     } rca_inputs_t;
 
@@ -339,6 +342,7 @@ package taiga_types;
 
         logic rca_input_constants_config_instr;
 
+        logic rca_io_ls_mask_config_instr;
     } rca_dec_inputs_r_t;
 
     //RCA Config Outputs

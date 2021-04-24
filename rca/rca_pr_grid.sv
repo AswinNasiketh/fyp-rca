@@ -12,6 +12,8 @@ module rca_pr_grid
     input [NUM_IO_UNITS-1:0] rs_data_valid,
     output [XLEN-1:0] io_unit_data_out [NUM_IO_UNITS],
     output io_unit_data_valid_out [NUM_IO_UNITS],
+    output io_unit_ls_requested [NUM_IO_UNITS],
+    input io_unit_ls_ack [NUM_IO_UNITS],
 
     //Config & Control - IO units
     input [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sels [NUM_IO_UNITS],
@@ -38,6 +40,13 @@ io_mux_data_valid_t io_mux_data_valid_in [NUM_IO_UNITS];
 
 logic [XLEN-1:0] io_mux_data_out [NUM_IO_UNITS];
 logic io_mux_data_valid_out [NUM_IO_UNITS];
+
+logic row_ls_requested [NUM_IO_UNITS];
+assign row_ls_requested[0] = 1'b0; //first IO unit will never be an output
+
+always_comb
+    for(int i = 0; i < GRID_NUM_ROWS; i++)
+        row_ls_requested[i+1] = lsq.new_request[i];
 
 always_comb begin
     for (int k = 0; k < NUM_IO_UNITS; k++) begin
@@ -86,7 +95,10 @@ generate for (i = 0; i < NUM_IO_UNITS; i++) begin : io_units
         .data_out(io_unit_data_out[i]),
         .output_mode(io_unit_output_mode[i]),
         .fifo_rst(io_units_rst),
-        .fifo_pop(io_fifo_pop[i])
+        .fifo_pop(io_fifo_pop[i]),
+        .new_ls_request(row_ls_requested[i]),
+        .ls_request_ack(io_unit_ls_ack[i]),
+        .ls_requested(io_unit_ls_requested[i])
     );
 end endgenerate
 

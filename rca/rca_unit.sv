@@ -21,9 +21,11 @@ module rca_unit(
     logic [$clog2(NUM_IO_UNITS+1)-1:0] curr_nfb_rca_result_mux_sel [NUM_WRITE_PORTS];
     logic [NUM_IO_UNITS-1:0] curr_rca_io_inp_map;
     logic [XLEN-1:0] input_constants_out [NUM_IO_UNITS];
+    logic [NUM_IO_UNITS-1:0] curr_io_ls_mask_fb;
+    logic [NUM_IO_UNITS-1:0] curr_io_ls_mask_nfb;
 
     rca_config_regs rca_config_regfile(
-        .*,
+        .*, //Read ports
         .clk(clk),
         .rst(rst),
         .rca_sel_issue(rca_dec_inputs_r.rca_sel), //for config writes
@@ -60,6 +62,10 @@ module rca_unit(
         .rca_input_constants_wr_en(rca_dec_inputs_r.rca_input_constants_config_instr && issue.new_request),
         .io_unit_addr(rca_inputs.io_unit_addr),
         .new_input_constant(rca_inputs.new_input_constant)
+
+        .rca_io_ls_mask_wr_en(rca_dec_inputs_r.rca_io_ls_mask_config_instr && issue.new_request),
+        .rca_io_ls_mask_fb_wr_en(rca_dec_inputs_r.rca_io_ls_mask_config_instr && rca_inputs.io_ls_mask_config_fb && issue.new_request),
+        .[NUM_IO_UNITS-1:0] new_io_ls_mask(rca_inputs.new_io_ls_mask)
     );
 
     id_t wb_id;
@@ -81,6 +87,9 @@ module rca_unit(
     logic [NUM_WRITE_PORTS-1:0] io_unit_addr_match_nfb_wb [NUM_IO_UNITS];
     logic io_unit_output_mode [NUM_IO_UNITS];
     logic io_fifo_pop [NUM_IO_UNITS];
+    logic io_unit_ls_requested [NUM_IO_UNITS];
+    logic io_unit_ls_ack [NUM_IO_UNITS];
+    logic [NUM_IO_UNITS-1:0] io_unit_ls_mask;
 
     assign rs_data_valid = curr_rca_io_inp_map & {NUM_IO_UNITS{buf_rs_data_valid}};
 
@@ -105,6 +114,14 @@ module rca_unit(
         end
     end
 
+    always_comb begin
+        for (int i = 0; i < NUM_IO_UNITS; i++) begin
+            io_unit_ls_ack[i] = wb_committing && io_unit_ls_mask[i];
+        end
+    end
+
+    always_comb io_unit_ls_mask = wb_fb_instr ? curr_io_ls_mask_fb : curr_io_ls_mask_nfb;
+
     rca_pr_grid pr_grid(
         .clk,
         .rst,
@@ -117,7 +134,9 @@ module rca_unit(
         .io_units_rst(clear_fifos),
         .io_fifo_pop,
         .grid_mux_sel(grid_mux_sel_out),
-        .input_constants(input_constants_out)
+        .input_constants(input_constants_out),
+        .io_unit_ls_requested,
+        .io_unit_ls_ack
     );
 
     rca_lsq_grid_interface rca_lsq_grid_if();
@@ -143,7 +162,9 @@ module rca_unit(
         .io_unit_sels,
         .io_unit_sels_valid(fifo_populated),
         .output_data(grid_output_data),
-        .wb_committing
+        .wb_committing,
+        .io_unit_ls_requested,
+        .io_unit_ls_mask
     );
 
     //rca_wb.rd 
