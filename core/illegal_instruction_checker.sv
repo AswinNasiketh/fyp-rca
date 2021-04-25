@@ -119,6 +119,7 @@ module  illegal_instruction_checker
     localparam [31:0] RCA_RESULT_MUX_CONFIG = 32'b0000101??????????0???????0101011;
     localparam [31:0] RCA_IO_INP_MAP_CONFIG = 32'b0000110??????????0???????0101011;
     localparam [31:0] RCA_INP_CONSTANT_CONFIG = 32'b0000111??????????0???????0101011;
+    localparam [31:0] RCA_LS_MASK_CONFIG = 32'b0001000??????????0???????0101011;
 
 
 
@@ -163,7 +164,7 @@ module  illegal_instruction_checker
     };
 
     assign rca_legal = instruction inside {
-        RCA_USE_FB, RCA_USE_NFB, RCA_CPU_REG_CONFIG, RCA_GRID_MUX_CONFIG, RCA_IO_MUX_CONFIG, RCA_RESULT_MUX_CONFIG, RCA_IO_INP_MAP_CONFIG, RCA_INP_CONSTANT_CONFIG
+        RCA_USE_FB, RCA_USE_NFB, RCA_CPU_REG_CONFIG, RCA_GRID_MUX_CONFIG, RCA_IO_MUX_CONFIG, RCA_RESULT_MUX_CONFIG, RCA_IO_INP_MAP_CONFIG, RCA_INP_CONSTANT_CONFIG, RCA_LS_MASK_CONFIG
     };
 
     assign illegal_instruction = ~(
