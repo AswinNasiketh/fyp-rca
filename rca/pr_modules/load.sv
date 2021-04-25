@@ -15,11 +15,12 @@ module load_ou
 
     output [XLEN-1:0] data_out,
     output data_valid_out,
+
     output data_in_ack1,
     output data_in_ack2,
 
     output uses_data_in1,
-    output uses_data_in2,
+    output uses_data_in2,   
 
     //LSQ interface
     output [XLEN-1:0] addr, 
@@ -42,18 +43,11 @@ module load_ou
     assign load = 1'b1;
     assign store = 1'b0;
 
-    always_ff @(posedge clk) 
-        addr <= data_in1;
+    assign addr = data_in1;
+    assign new_request = data_valid_in1 && !lsq_full;
+    assign data_in_ack1 = data_valid_in1 && !lsq_full;
 
-    always_ff @(posedge clk) begin  
-        new_request <= data_valid_in1 && !lsq_full;
-        data_in_ack1 <= data_valid_in1 && !lsq_full;      
-    end
-
-    //Load Data Outputting
-    always_ff @(posedge clk) begin
-        data_out <= load_data;
-        data_valid_out <= load_complete;
-    end
+    assign data_out = load_data;
+    assign data_valid_out = load_complete;
     
 endmodule
