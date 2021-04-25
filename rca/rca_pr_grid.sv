@@ -220,6 +220,17 @@ generate
         end
 end endgenerate
 
+//dummy signals
+typedef logic [XLEN-1:0] dummy_addr_t [GRID_NUM_COLS];
+dummy_addr_t dummy_addr [GRID_NUM_ROWS];
+dummy_addr_t dummy_data [GRID_NUM_ROWS];
+
+typedef logic [2:0] dummy_fn3_t [GRID_NUM_COLS];
+dummy_fn3_t dummy_fn3 [GRID_NUM_ROWS];
+logic dummy_load [GRID_NUM_COLS][GRID_NUM_ROWS];
+logic dummy_store [GRID_NUM_COLS][GRID_NUM_ROWS];
+logic dummy_new_request [GRID_NUM_COLS][GRID_NUM_ROWS];
+
 generate 
     for (i = 0; i < GRID_NUM_ROWS; i++) begin : pr_slots_row
         for (j = 0; j < GRID_NUM_COLS; j++) begin : pr_slots_col
@@ -256,7 +267,13 @@ generate
                     .data_valid_out(pr_unit_data_valid_out[i][j]),
                     .lsq_full(1), //block all lsq requests for these columns
                     .load_data(0),
-                    .load_complete(0) //never return any load data for these columns
+                    .load_complete(0), //never return any load data for these columns
+                    .addr(dummy_addr[i][j]),
+                    .data(dummy_data[i][j]),
+                    .fn3(dummy_fn3[i][j]),
+                    .load(dummy_load[j][i]),
+                    .store(dummy_store[j][i]),
+                    .new_request(dummy_new_request[j][i])
                 );
             end
         end
