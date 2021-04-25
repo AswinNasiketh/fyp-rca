@@ -34,12 +34,12 @@ module pr_module
     input load_complete
 );
 
-    assign uses_data_in1 = 1'b1;
-    assign uses_data_in2 = 1'b0;
+    assign uses_data_in1 = 1'b0;
+    assign uses_data_in2 = 1'b1;
 
-    assign data_out = data_in1;
-    assign data_valid_out = data_valid_in1;
+    assign data_out = data_in2;
+    assign data_valid_out = data_valid_in2;
 
-    assign data_in_ack1 = data_valid_in1;
-    assign data_in_ack2 = 0;    
+    assign data_in_ack2 = data_valid_in2;
+    assign data_in_ack1 = 0;    
 endmodule
