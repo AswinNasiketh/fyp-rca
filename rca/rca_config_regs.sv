@@ -217,7 +217,7 @@ module rca_config_regs (
     always_ff @(posedge clk) begin
         if(rst) begin
             io_ls_mask_fb <= '{default: '0};
-            io_ls_mask_nfb <= '{default: '0}
+            io_ls_mask_nfb <= '{default: '0};
         end
         else if(rca_io_ls_mask_wr_en) begin
             if(rca_io_ls_mask_fb_wr_en)

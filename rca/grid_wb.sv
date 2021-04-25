@@ -38,7 +38,7 @@ module grid_wb
     end
     
     logic [NUM_IO_UNITS-1:0] io_unit_ls_requested_p; //packed version
-    logic ls_requests_complete;
+    logic [NUM_IO_UNITS-1:0] ls_requests_complete;
 
     always_comb begin
         for(int i = 0; i < NUM_IO_UNITS; i++)

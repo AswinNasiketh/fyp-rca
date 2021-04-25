@@ -61,11 +61,11 @@ module rca_unit(
 
         .rca_input_constants_wr_en(rca_dec_inputs_r.rca_input_constants_config_instr && issue.new_request),
         .io_unit_addr(rca_inputs.io_unit_addr),
-        .new_input_constant(rca_inputs.new_input_constant)
+        .new_input_constant(rca_inputs.new_input_constant),
 
         .rca_io_ls_mask_wr_en(rca_dec_inputs_r.rca_io_ls_mask_config_instr && issue.new_request),
         .rca_io_ls_mask_fb_wr_en(rca_dec_inputs_r.rca_io_ls_mask_config_instr && rca_inputs.io_ls_mask_config_fb && issue.new_request),
-        .[NUM_IO_UNITS-1:0] new_io_ls_mask(rca_inputs.new_io_ls_mask)
+        .new_io_ls_mask(rca_inputs.new_io_ls_mask)
     );
 
     id_t wb_id;
@@ -136,14 +136,15 @@ module rca_unit(
         .grid_mux_sel(grid_mux_sel_out),
         .input_constants(input_constants_out),
         .io_unit_ls_requested,
-        .io_unit_ls_ack
+        .io_unit_ls_ack,
+        .lsq(rca_lsq_grid_if)
     );
 
     rca_lsq_grid_interface rca_lsq_grid_if();
     rca_lsq lsq(
         .clk, .rst,
         .lsu,
-        .grid(rca_lsq_grid_interface),
+        .grid(rca_lsq_grid_if),
         .rca_fifo_populated(fifo_populated)
     );
 

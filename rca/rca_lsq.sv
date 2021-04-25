@@ -42,7 +42,7 @@ module rca_lsq
 
     initial next_packet_id = 0;
     always_ff @(posedge clk)
-        if(increment_packet_id) next_packet_id <= next_packet_id + ($bits(id_t))'d1;
+        if(increment_packet_id) next_packet_id <= next_packet_id + 1;
 
     toggle_memory id_pushed_tm(
         .clk,
@@ -56,7 +56,7 @@ module rca_lsq
     toggle_memory id_popped_tm(
         .clk,
         .rst,
-        .toggle(packet_id_fifo.pop),
+        .toggle(packet_id_fifo_if.pop),
         .toggle_id(curr_lsq_packet_id),
         .read_id(next_packet_id),
         .read_data(id_popped)
@@ -71,45 +71,46 @@ module rca_lsq
     //FIFO Data
 
     //RCA LSQ FIFO Packet structure
-    typedef struct {
-        logic [XLEN-1:0] addr [GRID_NUM_ROWS];
-        logic [XLEN-1:0] data [GRID_NUM_ROWS];
-        logic [2:0] fn3 [GRID_NUM_ROWS];
-        logic load [GRID_NUM_ROWS];
-        logic store [GRID_NUM_ROWS];
-        logic new_request [GRID_NUM_ROWS];
-    } rca_lsq_packet_t;
+    typedef struct packed{
+        logic [XLEN-1:0] addr;
+        logic [XLEN-1:0] data;
+        logic [2:0] fn3;
+        logic load;
+        logic store;
+        logic new_request;
+    } rca_lsq_attributes_t;
 
+    typedef rca_lsq_attributes_t rca_lsq_packet_t [GRID_NUM_ROWS];
     rca_lsq_packet_t lsq_packets [MAX_IDS];
     rca_lsq_packet_t curr_packet;
 
     always_ff @(posedge clk) begin
         if(increment_packet_id) begin
             for(int i = 0; i < GRID_NUM_ROWS; i++) begin
-                lsq_packets[next_packet_id].addr[i] <= grid.addr[i];
-                lsq_packets[next_packet_id].data[i] <= grid.data[i];
-                lsq_packets[next_packet_id].fn3[i] <= grid.fn3[i];
-                lsq_packets[next_packet_id].load[i] <= grid.load[i];
-                lsq_packets[next_packet_id].store[i] <= grid.store[i];
-                lsq_packets[next_packet_id].new_request[i] <= grid.new_request[i];
+                lsq_packets[next_packet_id][i].addr <= grid.addr[i];
+                lsq_packets[next_packet_id][i].data <= grid.data[i];
+                lsq_packets[next_packet_id][i].fn3 <= grid.fn3[i];
+                lsq_packets[next_packet_id][i].load <= grid.load[i];
+                lsq_packets[next_packet_id][i].store <= grid.store[i];
+                lsq_packets[next_packet_id][i].new_request <= grid.new_request[i];
             end
         end
     end
 
     always_comb begin
         for(int i = 0; i < GRID_NUM_ROWS; i++) begin
-            curr_packet.addr[i] = lsq_packets[curr_lsq_packet_id].addr[i];
-            curr_packet.data[i] = lsq_packets[curr_lsq_packet_id].data[i];
-            curr_packet.fn3[i] = lsq_packets[curr_lsq_packet_id].fn3[i];
-            curr_packet.load[i] = lsq_packets[curr_lsq_packet_id].load[i];
-            curr_packet.store[i] = lsq_packets[curr_lsq_packet_id].store[i];
-            curr_packet.new_request[i] = lsq_packets[curr_lsq_packet_id].new_request[i];
+            curr_packet[i].addr = lsq_packets[curr_lsq_packet_id][i].addr;
+            curr_packet[i].data = lsq_packets[curr_lsq_packet_id][i].data;
+            curr_packet[i].fn3 = lsq_packets[curr_lsq_packet_id][i].fn3;
+            curr_packet[i].load = lsq_packets[curr_lsq_packet_id][i].load;
+            curr_packet[i].store = lsq_packets[curr_lsq_packet_id][i].store;
+            curr_packet[i].new_request = lsq_packets[curr_lsq_packet_id][i].new_request;
         end
     end    
 
     //Deqeuing Mechanism (Priority Encoder)
 
-    logic [$clog2(GRID_NUM_ROWS-1):0] next_request;
+    logic [$clog2(GRID_NUM_ROWS)-1:0] next_request;
     logic next_request_valid;
     logic [GRID_NUM_ROWS-1:0] request_completed; 
 
@@ -120,30 +121,30 @@ module rca_lsq
 
     always_comb begin
         next_request = 0;
-        while(!(curr_packet.new_request[next_request] && ~request_completed[next_request]) && next_request < (GRID_NUM_ROWS-1)) begin
+        while(!(curr_packet[next_request].new_request && ~request_completed[next_request]) && next_request < (GRID_NUM_ROWS-1)) begin
             next_request = next_request + 1;
         end
-        next_request_valid = curr_packet.new_request[next_request] && ~request_completed[next_request] && packet_id_fifo_valid;
+        next_request_valid = curr_packet[next_request].new_request && ~request_completed[next_request] && packet_id_fifo_valid;
     end
 
     // Next LSU Request Inputs
-    assign lsu.rs1 = curr_packet.addr[next_request];
-    assign lsu.rs2 = curr_packet.data[next_request];
-    assign lsu.fn3 = curr_packet.fn3[next_request];
-    assign lsu.load = curr_packet.load[next_request];
-    assign lsu.store = curr_packet.store[next_request];
+    assign lsu.rs1 = curr_packet[next_request].addr;
+    assign lsu.rs2 = curr_packet[next_request].data;
+    assign lsu.fn3 = curr_packet[next_request].fn3;
+    assign lsu.load = curr_packet[next_request].load;
+    assign lsu.store = curr_packet[next_request].store;
     assign lsu.new_request = lsu.lsu_ready && next_request_valid;
 
     assign lsu.rca_lsu_lock = packet_id_fifo_valid || rca_fifo_populated; //lock lsu as long as the packet id fifo contains elements or an RCA is running
 
     //Load tracking FIFOs - for returning load results to grid
     //Both FIFOs will be popped at the simultaneously
-    logic [$clog2(GRID_NUM_ROWS-1):0] next_load_destination;
+    logic [$clog2(GRID_NUM_ROWS)-1:0] next_load_destination;
     logic next_load_destination_valid;
 
-    fifo_interface #(.DATA_WIDTH($clog2(GRID_NUM_ROWS-1))) load_tracking_fifo_if ();
+    fifo_interface #(.DATA_WIDTH($clog2(GRID_NUM_ROWS))) load_tracking_fifo_if ();
 
-    taiga_fifo #(.DATA_WIDTH($clog2(GRID_NUM_ROWS-1)), .FIFO_DEPTH(MAX_IDS)) load_tracking_fifo(
+    taiga_fifo #(.DATA_WIDTH($clog2(GRID_NUM_ROWS)), .FIFO_DEPTH(MAX_IDS)) load_tracking_fifo(
         .clk,
         .rst,
         .fifo(load_tracking_fifo_if)
@@ -179,7 +180,7 @@ module rca_lsq
     assign grid.load_data = next_load_data;
     always_comb begin
         //Default
-        for(int i = 0; i < NUM_GRID_ROWS; i++) begin
+        for(int i = 0; i < GRID_NUM_ROWS; i++) begin
             grid.load_complete[i] = 0;
         end
         grid.load_complete[next_load_destination] = next_load_data_valid && next_load_destination_valid;

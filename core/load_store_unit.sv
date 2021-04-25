@@ -135,7 +135,7 @@ module load_store_unit (
     logic operation_state;
     logic next_state;
     initial operation_state = 1'b0;
-    always_ff begin
+    always_ff @(posedge clk) begin
         if(rst) operation_state <= 1'b0;
         else operation_state <= next_state;
     end
@@ -148,11 +148,12 @@ module load_store_unit (
             SERVICING_RCA: begin
                 next_state = (lsq.empty && !rca_lsq.rca_lsu_lock) ? NORMAL_OPERATION : SERVICING_RCA;
             end
+        endcase
     end
 
     assign rca_lsq.lsu_ready = (operation_state == SERVICING_RCA) ? lsq.ready : 1'b0;
     
-    logic load_store_inputs_t muxed_inputs;
+    load_store_inputs_t muxed_inputs;
     assign muxed_inputs.rs1 = (operation_state == NORMAL_OPERATION) ? ls_inputs.rs1 : rca_lsq.rs1;
     assign muxed_inputs.rs2 = (operation_state == NORMAL_OPERATION) ? ls_inputs.rs2 : rca_lsq.rs2;
     assign muxed_inputs.offset = (operation_state == NORMAL_OPERATION) ?
@@ -162,7 +163,7 @@ module load_store_unit (
     assign muxed_inputs.store = (operation_state == NORMAL_OPERATION) ? ls_inputs.store : rca_lsq.store;
     assign muxed_inputs.forwarded_store = (operation_state == NORMAL_OPERATION) ? ls_inputs.forwarded_store : 1'b0;
     assign muxed_inputs.store_forward_id = (operation_state == NORMAL_OPERATION) ? ls_inputs.store_forward_id : 0;
-    assign muxed_inputs.amo_details_t = (operation_state == NORMAL_OPERATION) ? ls_inputs.amo_details_t : 0;
+    assign muxed_inputs.amo = (operation_state == NORMAL_OPERATION) ? ls_inputs.amo : 0;
     //TODO: switch between rca lsq inputs and normal ls inputs based on state.
     //TODO: issue side ready signal needs to be switched off in servicing RCA state
 

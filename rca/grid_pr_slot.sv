@@ -82,7 +82,7 @@ logic input2_fifo_populated;
         .data_in_ack1(ou_data_in_ack1),
         .data_in_ack2(ou_data_in_ack2),
         .uses_data_in1,
-        .uses_data_in2
+        .uses_data_in2,
         .* //LS interface
     );
     
