@@ -35,8 +35,6 @@ module rca_lsq
     //Packet ID generator
     id_t next_packet_id;
     logic increment_packet_id;
-    logic id_pushed;
-    logic id_popped;
 
     logic [GRID_NUM_ROWS-1:0] grid_new_request; //packed version of interface signal
 
@@ -44,29 +42,11 @@ module rca_lsq
     always_ff @(posedge clk)
         if(increment_packet_id) next_packet_id <= next_packet_id + 1;
 
-    toggle_memory id_pushed_tm(
-        .clk,
-        .rst,
-        .toggle(packet_id_fifo_if.push),
-        .toggle_id(next_packet_id),
-        .read_id(next_packet_id),
-        .read_data(id_pushed)
-    );
-
-    toggle_memory id_popped_tm(
-        .clk,
-        .rst,
-        .toggle(packet_id_fifo_if.pop),
-        .toggle_id(curr_lsq_packet_id),
-        .read_id(next_packet_id),
-        .read_data(id_popped)
-    );
-
     always_comb
         for(int i = 0; i < GRID_NUM_ROWS; i++)
             grid_new_request[i] = grid.new_request[i];
 
-    assign increment_packet_id = ~(id_pushed ^ id_popped) && (|grid_new_request); //also serves as fifo push signal. No point in pushing into FIFO an empty packet
+    assign increment_packet_id = ~packet_id_fifo_if.full && (|grid_new_request); //also serves as fifo push signal. No point in pushing into FIFO an empty packet
 
     //FIFO Data
 
