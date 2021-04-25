@@ -227,8 +227,8 @@ endgenerate
     assign lsq.forwarded_store = muxed_inputs.forwarded_store;
     assign lsq.data_id = muxed_inputs.store_forward_id;
 
-    assign lsq.possible_issue = issue.possible_issue;
-    assign lsq.new_issue = issue.new_request & ~unaligned_addr;
+    assign lsq.possible_issue = (operation_state == NORMAL_OPERATION) ? issue.possible_issue : rca_lsq.new_request;
+    assign lsq.new_issue = (operation_state == NORMAL_OPERATION) ? issue.new_request & ~unaligned_addr : rca_lsq.new_request;
 
     logic [MAX_IDS-1:0] wb_hold_for_store_ids;
     load_store_queue lsq_block (.*);
@@ -238,7 +238,7 @@ endgenerate
 
     ////////////////////////////////////////////////////
     //ID Management
-    assign store_complete = lsq.accepted & lsq.transaction_out.store;
+    assign store_complete = (operation_state == NORMAL_OPERATION) ? lsq.accepted & lsq.transaction_out.store : 1'b0; //do not assert done on writeback if servicing RCA
     assign store_id = lsq.transaction_out.id;
 
     ////////////////////////////////////////////////////
@@ -358,7 +358,7 @@ endgenerate
     ////////////////////////////////////////////////////
     //Output bank
     assign wb.rd = csr_done ? csr_rd : final_load_data;
-    assign wb.done = csr_done | load_complete;
+    assign wb.done = (operation_state == NORMAL_OPERATION) ? csr_done | load_complete : 1'b0; //do not assert done on writeback if servicing RCA
     assign wb.id = csr_done ? csr_id : stage2_attr.id;
 
     assign rca_lsq.load_complete = (operation_state == SERVICING_RCA) ? load_complete : 1'b0;
