@@ -34,6 +34,7 @@ module load_store_queue //ID-based input buffer for Load/Store Unit
 
         load_store_queue_interface.queue lsq,
         writeback_store_interface.ls wb_store,
+        input rca_request,
 
         output logic ready_for_forwarded_store
     );
@@ -55,6 +56,7 @@ module load_store_queue //ID-based input buffer for Load/Store Unit
 
     lsq_entry_t new_lsq_entry;
     logic [$bits(lsq_entry_t)-1:0] lsq_entries [MAX_IDS];
+    logic [$bits(lsq_entry_t)-1:0] rca_lsq_entries [MAX_IDS];
     lsq_entry_t oldest_lsq_entry;
 
     fifo_interface #(.DATA_WIDTH($bits(id_t))) oldest_fifo ();
@@ -78,6 +80,24 @@ module load_store_queue //ID-based input buffer for Load/Store Unit
 
     assign lsq.empty = ~oldest_fifo.valid;
 
+    //FIFO to store whether IDs are RCA associated or not
+    fifo_interface #(.DATA_WIDTH(1)) rca_id_fifo_if ();
+
+    logic rca_id;
+    logic rca_id_valid;
+
+    taiga_fifo #(.DATA_WIDTH(1), .FIFO_DEPTH(MAX_IDS)) rca_id_fifo (
+        .clk, .rst(rst | gc_issue_flush),
+        .fifo(rca_id_fifo_if)
+    );
+
+    assign rca_id_fifo_if.data_in = rca_request;
+    assign rca_id_fifo_if.push = lsq.new_issue;
+    assign rca_id_fifo_if.potential_push = lsq.possible_issue;
+    assign rca_id_fifo_if.pop = lsq.accepted;
+    assign rca_id = rca_id_fifo_if.data_out;
+    assign rca_id_valid = rca_id_fifo_if.valid;
+
     ////////////////////////////////////////////////////
     //Request attributes and input data (LUTRAMs)
     always_comb begin
@@ -94,7 +114,10 @@ module load_store_queue //ID-based input buffer for Load/Store Unit
 
     always_ff @ (posedge clk) begin
         if (lsq.possible_issue)
-            lsq_entries[lsq.id] <= new_lsq_entry;
+            if(rca_request)
+                rca_lsq_entries[lsq.id] <= new_lsq_entry;
+            else
+                lsq_entries[lsq.id] <= new_lsq_entry;
     end
 
     ////////////////////////////////////////////////////
@@ -157,8 +180,8 @@ module load_store_queue //ID-based input buffer for Load/Store Unit
     //Output
     logic [31:0] data_for_alignment;
 
-    assign oldest_lsq_entry = lsq_entries[oldest_id];
-    assign lsq.transaction_ready =  oldest_fifo.valid & (~oldest_lsq_entry.forwarded_store | wb_store.id_done);
+    assign oldest_lsq_entry = rca_id & rca_id_valid  ? rca_lsq_entries[oldest_id] : lsq_entries[oldest_id];
+    assign lsq.transaction_ready = rca_id & rca_id_valid ? oldest_fifo.valid : oldest_fifo.valid & (~oldest_lsq_entry.forwarded_store | wb_store.id_done);
 
     always_comb begin
         lsq.transaction_out.addr = oldest_lsq_entry.addr;

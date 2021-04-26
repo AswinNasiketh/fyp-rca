@@ -107,12 +107,23 @@ module rca_lsq
         next_request_valid = curr_packet[next_request].new_request && ~request_completed[next_request] && packet_id_fifo_valid;
     end
 
+    //CPU Side LSU ID generator - not important for anything except to give CPU LSQ unique IDs to store LS attributes with
+    id_t next_request_id;
+    logic increment_request_id;
+
+    initial next_request_id = 0;
+    always_ff @(posedge clk)
+        if(increment_request_id) next_request_id <= next_request_id + 1;
+
+    assign increment_request_id = lsu.lsu_ready && next_request_valid; // same as new request
+
     // Next LSU Request Inputs
     assign lsu.rs1 = curr_packet[next_request].addr;
     assign lsu.rs2 = curr_packet[next_request].data;
     assign lsu.fn3 = curr_packet[next_request].fn3;
     assign lsu.load = curr_packet[next_request].load;
     assign lsu.store = curr_packet[next_request].store;
+    assign lsu.id = next_request_id;
     assign lsu.new_request = lsu.lsu_ready && next_request_valid;
 
     assign lsu.rca_lsu_lock = packet_id_fifo_valid || rca_fifo_populated; //lock lsu as long as the packet id fifo contains elements or an RCA is running

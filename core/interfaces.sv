@@ -310,6 +310,7 @@ interface rca_lsu_interface;
     logic [2:0] fn3;
     logic load;
     logic store;
+    id_t id;
 
     //Writeback interface
     logic load_complete;
@@ -320,10 +321,10 @@ interface rca_lsu_interface;
     logic new_request;
     logic lsu_ready;
 
-    modport lsq (output rs1, rs2, fn3, load, store, rca_lsu_lock, new_request,
+    modport lsq (output rs1, rs2, fn3, load, store, rca_lsu_lock, new_request, id,
     input lsu_ready, load_complete, load_data);
 
-    modport lsu (input rs1, rs2, fn3, load, store, rca_lsu_lock, new_request,
+    modport lsu (input rs1, rs2, fn3, load, store, rca_lsu_lock, new_request, id,
     output lsu_ready, load_complete, load_data);
 
 endinterface

@@ -164,8 +164,6 @@ module load_store_unit (
     assign muxed_inputs.forwarded_store = (operation_state == NORMAL_OPERATION) ? ls_inputs.forwarded_store : 1'b0;
     assign muxed_inputs.store_forward_id = (operation_state == NORMAL_OPERATION) ? ls_inputs.store_forward_id : 0;
     assign muxed_inputs.amo = (operation_state == NORMAL_OPERATION) ? ls_inputs.amo : 0;
-    //TODO: switch between rca lsq inputs and normal ls inputs based on state.
-    //TODO: issue side ready signal needs to be switched off in servicing RCA state
 
     ////////////////////////////////////////////////////
     //Alignment Exception
@@ -217,18 +215,21 @@ endgenerate
 
     ////////////////////////////////////////////////////
     //Load Store Queue
+    logic rca_request;
+
     assign lsq.addr = virtual_address;
     assign lsq.fn3 = muxed_inputs.fn3;
     assign lsq.be = be;
     assign lsq.data_in = muxed_inputs.rs2;
     assign lsq.load = muxed_inputs.load;
     assign lsq.store = muxed_inputs.store;
-    assign lsq.id = issue.id;
+    assign lsq.id = (operation_state == NORMAL_OPERATION) ? issue.id : rca_lsq.id;
     assign lsq.forwarded_store = muxed_inputs.forwarded_store;
     assign lsq.data_id = muxed_inputs.store_forward_id;
 
     assign lsq.possible_issue = (operation_state == NORMAL_OPERATION) ? issue.possible_issue : rca_lsq.new_request;
     assign lsq.new_issue = (operation_state == NORMAL_OPERATION) ? issue.new_request & ~unaligned_addr : rca_lsq.new_request;
+    assign rca_request = (operation_state == SERVICING_RCA) && rca_lsq.new_request;
 
     logic [MAX_IDS-1:0] wb_hold_for_store_ids;
     load_store_queue lsq_block (.*);
