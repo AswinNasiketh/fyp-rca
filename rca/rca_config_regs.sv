@@ -73,8 +73,8 @@ module rca_config_regs (
     input rca_io_ls_mask_wr_en,
     input rca_io_ls_mask_fb_wr_en,
     input [NUM_IO_UNITS-1:0] new_io_ls_mask,
-    output [NUM_IO_UNITS-1:0] curr_io_ls_mask_fb,
-    output [NUM_IO_UNITS-1:0] curr_io_ls_mask_nfb
+    output logic [NUM_IO_UNITS-1:0] curr_io_ls_mask_fb,
+    output logic [NUM_IO_UNITS-1:0] curr_io_ls_mask_nfb
 );
 
     logic [4:0] [NUM_READ_PORTS-1:0] cpu_src_reg_addrs [NUM_RCAS]; 
