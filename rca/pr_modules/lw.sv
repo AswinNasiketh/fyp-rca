@@ -1,4 +1,4 @@
-module load_word_ou
+module lw_ou
     import taiga_config::*;
     import riscv_types::*;
     import taiga_types::*;

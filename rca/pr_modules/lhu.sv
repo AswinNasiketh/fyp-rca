@@ -1,4 +1,4 @@
-module load_half_ou
+module lhu_ou
     import taiga_config::*;
     import riscv_types::*;
     import taiga_types::*;
@@ -39,7 +39,7 @@ module load_half_ou
 
     //Load Request Submission
     assign data = 0;
-    assign fn3 = LS_H_fn3;
+    assign fn3 = LS_HU_fn3;
     assign load = 1'b1;
     assign store = 1'b0;
 

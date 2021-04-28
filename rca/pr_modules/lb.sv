@@ -1,4 +1,4 @@
-module store_half_ou
+module lb_ou
     import taiga_config::*;
     import riscv_types::*;
     import taiga_types::*;
@@ -35,20 +35,19 @@ module store_half_ou
     input load_complete
 );
     assign uses_data_in1 = 1'b1;
-    assign uses_data_in2 = 1'b1;
+    assign uses_data_in2 = 1'b0;
 
-    //Store Request Submission
-    assign fn3 = LS_H_fn3;
-    assign load = 1'b0;
-    assign store = 1'b1;
+    //Load Request Submission
+    assign data = 0;
+    assign fn3 = LS_B_fn3;
+    assign load = 1'b1;
+    assign store = 1'b0;
 
     assign addr = data_in1;
-    assign data = {16'd0, data_in2[15:0]};
-    assign new_request = data_valid_in1 && data_valid_in2 && !lsq_full;
-    assign data_in_ack1 = data_valid_in1 && data_valid_in2 && !lsq_full;
-    assign data_in_ack2 = data_valid_in1 && data_valid_in2 && !lsq_full;
+    assign new_request = data_valid_in1 && !lsq_full;
+    assign data_in_ack1 = data_valid_in1 && !lsq_full;
 
-    assign data_out = 0;
-    assign data_valid_out = 0;
+    assign data_out = load_data;
+    assign data_valid_out = load_complete;
     
 endmodule
