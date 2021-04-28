@@ -70,7 +70,7 @@ logic input2_fifo_populated;
     logic uses_data_in1;
     logic uses_data_in2;
 
-    load_ou ou(
+    pr_module_pt ou(
         .clk,
         .rst,
         .data_in1(input1_fifo_if.data_out),
