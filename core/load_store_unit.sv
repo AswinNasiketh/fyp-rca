@@ -30,7 +30,7 @@ module load_store_unit (
         input load_store_inputs_t ls_inputs,
         unit_issue_interface.unit issue,
 
-        rca_lsu_interface.master rca_lsq,
+        rca_lsu_interface.lsu rca_lsq,
 
         input logic dcache_on,
         input logic clear_reservation,
