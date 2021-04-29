@@ -34,6 +34,7 @@ import l2_config_and_types::*;
         local_memory_interface.master data_bram,
 
        	l2_requester_interface.master l2,
+		rca_cpu_interface.master rca,
 
         // AXI SIGNALS - need these to unwrap the interface for packaging //
 	    input logic m_axi_arready,

@@ -9,6 +9,7 @@ l2_arbiter/l2_interfaces.sv
 l2_arbiter/l2_external_interfaces.sv
 local_memory/local_memory_interface.sv 
 local_memory/local_mem.sv
+rca/rca_cpu_interface.sv
 
 core/interfaces.sv  
 core/external_interfaces.sv  
@@ -134,6 +135,7 @@ rca/pr_modules/xor.sv
 
 rca/grid_pr_slot.sv
 rca/rca_pr_grid.sv
+rca/rca_wrapper.sv
 
 core/taiga.sv
 

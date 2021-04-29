@@ -40,7 +40,8 @@ module taiga (
         l2_requester_interface.master l2,
 
         input logic timer_interrupt,
-        input logic interrupt
+        input logic interrupt,
+        rca_cpu_interface.master rca
         );
 
     l1_arbiter_request_interface l1_request[L1_CONNECTIONS-1:0]();
@@ -258,10 +259,85 @@ module taiga (
             div_unit div_unit_block (.*, .issue(unit_issue[DIV_UNIT_WB_ID]), .wb(unit_wb[DIV_UNIT_WB_ID]));
     endgenerate
 
-    generate if (USE_RCA)
-        rca_unit rca (.*, .issue(unit_issue[RCA_UNIT_WB_ID]), .lsu(rca_ls));
-    endgenerate
+    // generate if (USE_RCA)
+    //     rca_unit rca (.*, .issue(unit_issue[RCA_UNIT_WB_ID]), .lsu(rca_ls));
+    // endgenerate
 
+    //RCA interface
+    assign rca.possible_issue = unit_issue[RCA_UNIT_WB_ID].possible_issue;
+    assign rca.new_request = unit_issue[RCA_UNIT_WB_ID].new_request;
+    assign rca.new_request_r = unit_issue[RCA_UNIT_WB_ID].new_request_r;
+    assign rca.issue_id = unit_issue[RCA_UNIT_WB_ID].issue_id;
+    assign unit_issue[RCA_UNIT_WB_ID].ready = rca.ready;
+
+    assign rca.rca_use_fb_instr_decode = rca_inputs.rca_use_fb_instr_decode;
+    assign rca.rca_fb_cpu_reg_config_instr = rca_inputs.rca_fb_cpu_reg_config_instr;
+    assign rca.rca_nfb_cpu_reg_config_instr = rca_inputs.rca_nfb_cpu_reg_config_instr;
+    assign rca.rca_result_mux_config_fb = rca_inputs.rca_result_mux_config_fb;
+    assign rca.rs1 = rca_inputs.rs1;
+    assign rca.rs2 = rca_inputs.rs2;
+    assign rca.rs3 = rca_inputs.rs3;
+    assign rca.rs4 = rca_inputs.rs4;
+    assign rca.rs5 = rca_inputs.rs5;
+
+    assign rca.rca_sel_decode = rca_inputs.rca_sel_decode;
+
+    assign rca.cpu_port_sel = rca_inputs.cpu_port_sel;
+    assign rca.cpu_src_dest_port = rca_inputs.cpu_src_dest_port;
+    assign rca.cpu_reg_addr = rca_inputs.cpu_reg_addr;
+
+    assign rca.grid_mux_addr = rca_inputs.grid_mux_addr;
+    assign rca.new_grid_mux_sel = rca_inputs.new_grid_mux_sel;
+
+    assign rca.io_mux_addr = rca_inputs.io_mux_addr;
+    assign rca.new_io_mux_sel = rca_inputs.new_io_mux_sel;
+
+    assign rca.rca_result_mux_addr = rca_inputs.rca_result_mux_addr;
+    assign rca.new_rca_result_mux_sel = rca_inputs.new_rca_result_mux_sel;
+
+    assign rca.new_rca_io_inp_map = rca_inputs.new_rca_io_inp_map;
+
+    assign rca.io_unit_addr = rca_inputs.io_unit_addr;
+    assign rca.new_input_constant = rca_inputs.new_input_constant;
+
+    assign rca.io_unit_addr = rca_inputs.io_unit_addr;
+    assign rca.new_input_constant = rca_inputs.new_input_constant;
+
+    assign rca.io_ls_mask_config_fb = rca_inputs.io_ls_mask_config_fb;
+    assign rca.new_io_ls_mask = rca_inputs.new_io_ls_mask;
+
+    assign rca.rca_use_instr = rca_dec_inputs_r.rca_use_instr;
+    assign rca.rca_use_fb_instr = rca_dec_inputs_r.rca_use_fb_instr;
+    assign rca.rca_sel = rca_dec_inputs_r.rca_sel;
+    assign rca.rca_grid_mux_config_instr = rca_dec_inputs_r.rca_grid_mux_config_instr;
+    assign rca.rca_io_mux_config_instr = rca_dec_inputs_r.rca_io_mux_config_instr;
+    assign rca.rca_result_mux_config_instr = rca_dec_inputs_r.rca_result_mux_config_instr;
+    assign rca.rca_io_inp_map_config_instr = rca_dec_inputs_r.rca_io_inp_map_config_instr;
+    assign rca.rca_input_constants_config_instr = rca_dec_inputs_r.rca_input_constants_config_instr;
+    assign rca.rca_io_ls_mask_config_instr = rca_dec_inputs_r.rca_io_ls_mask_config_instr;
+
+    assign rca_config_regs_op.rca_cpu_src_reg_addrs = rca.rca_cpu_src_reg_addrs;
+    assign rca_config_regs_op.rca_cpu_dest_reg_addrs = rca.rca_cpu_dest_reg_addrs;
+
+    assign rca.ack = rca_wb.ack;
+    assign rca_wb.id = rca.id;
+    assign rca_wb.done = rca.done;
+    assign rca_wb.rd = rca.rd;
+
+    assign rca_config_locked = rca.rca_config_locked;
+
+    assign rca_ls.rs1 = rca.ls_request_rs1;
+    assign rca_ls.rs2 = rca.ls_request_rs2;
+    assign rca_ls.fn3 = rca.ls_request_fn3;
+    assign rca_ls.load = rca.ls_request_load;
+    assign rca_ls.store = rca.ls_request_store;
+    assign rca_ls.id = rca.ls_request_id;
+
+    assign rca.load_complete = rca_ls.load_complete;
+    assign rca.load_data = rca_ls.load_data;
+    assign rca_ls.rca_lsu_lock = rca.rca_lsu_lock;
+    assign rca_ls.new_request = rca.ls_new_request;
+    assign rca.lsu_ready = rca_ls.lsu_ready;
 
     ////////////////////////////////////////////////////
     //End of Implementation

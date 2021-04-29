@@ -124,6 +124,7 @@ import_files -norecurse $origin_dir/../../core/external_interfaces.sv -force
 import_files -norecurse $origin_dir/../../rca/rca_config.sv -force
 import_files -norecurse $origin_dir/../../core/taiga_config.sv -force
 import_files -norecurse $origin_dir/../../l2_arbiter/l2_config_and_types.sv -force
+import_files -norecurse $origin_dir/../../rca/rca_cpu_interface.sv -force
 
 # Set IP repository paths
 set obj [get_filesets sources_1]
