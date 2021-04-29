@@ -1,7 +1,7 @@
 package rca_config;
-    localparam NUM_RCAS = 4;
-    localparam NUM_READ_PORTS = 5;
-    localparam NUM_WRITE_PORTS = 5;
+    parameter NUM_RCAS = 4;
+    parameter NUM_READ_PORTS = 5;
+    parameter NUM_WRITE_PORTS = 5;
 
 
     //RCA Use Instruction will be of R -type
@@ -42,16 +42,16 @@ package rca_config;
     //110 - RCA Use - specifying non-feedback destination registers
 
     //RCA Grid Params
-    localparam GRID_NUM_ROWS = 12;
-    localparam GRID_NUM_COLS = 6;
+    parameter GRID_NUM_ROWS = 12;
+    parameter GRID_NUM_COLS = 6;
 
-    localparam NUM_GRID_MUXES = GRID_NUM_COLS * GRID_NUM_ROWS; //per PR slot input
+    parameter NUM_GRID_MUXES = GRID_NUM_COLS * GRID_NUM_ROWS; //per PR slot input
 
-    localparam GRID_MUX_INPUTS = GRID_NUM_COLS + 2; //1 extra input to take data from module on left, 1 extra input to take data from IO unit of column above
+    parameter GRID_MUX_INPUTS = GRID_NUM_COLS + 2; //1 extra input to take data from module on left, 1 extra input to take data from IO unit of column above
 
-    localparam IO_UNIT_MUX_INPUTS = GRID_NUM_COLS + NUM_READ_PORTS + 1; //+1 for input constant
-    localparam NUM_IO_UNITS = GRID_NUM_ROWS + 1; //one extra IO unit on top and below grid
+    parameter IO_UNIT_MUX_INPUTS = GRID_NUM_COLS + NUM_READ_PORTS + 1; //+1 for input constant
+    parameter NUM_IO_UNITS = GRID_NUM_ROWS + 1; //one extra IO unit on top and below grid
 
-    localparam UNUSED_WRITE_PORT_ADDR = NUM_IO_UNITS;
+    parameter UNUSED_WRITE_PORT_ADDR = NUM_IO_UNITS;
 
 endpackage

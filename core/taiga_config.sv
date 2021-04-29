@@ -163,7 +163,7 @@ package taiga_config;
     ////////////////////////////////////////////////////
     //ID limit
     //MAX_IDS restricted to a power of 2
-    localparam MAX_IDS = 8; //8 sufficient for rv32im configs
+    parameter MAX_IDS = 8; //8 sufficient for rv32im configs
 
     ////////////////////////////////////////////////////
     //Number of commit ports

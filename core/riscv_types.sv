@@ -23,7 +23,7 @@
 package riscv_types;
     import taiga_config::*;
 
-    localparam XLEN = 32;
+    parameter XLEN = 32;
     localparam PAGE_ADDR_W = 12;
     localparam ECODE_W = 5;
 
