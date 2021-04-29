@@ -43,6 +43,7 @@ module taiga (
         input logic interrupt,
         
         //RCA Unit interfaces
+        unit_issue_interface.decode rca_issue_if,
         rca_decode_issue_interface.cpu rca_di_if,
         rca_writeback_interface.wb rca_wb_if,
         rca_lsu_interface.lsu rca_lsq_if
@@ -262,6 +263,12 @@ module taiga (
     // generate if (USE_RCA)
     //     rca_unit rca (.*, .issue(unit_issue[RCA_UNIT_WB_ID]), .lsu(rca_ls));
     // endgenerate
+
+    assign rca_issue_if.possible_issue = unit_issue[RCA_UNIT_WB_ID].possible_issue;
+    assign rca_issue_if.new_request = unit_issue[RCA_UNIT_WB_ID].new_request;
+    assign rca_issue_if.new_request_r = unit_issue[RCA_UNIT_WB_ID].new_request_r;
+    assign rca_issue_if.id = unit_issue[RCA_UNIT_WB_ID].id;
+    assign unit_issue[RCA_UNIT_WB_ID].ready = rca_issue_if.ready;
 
 
     ////////////////////////////////////////////////////

@@ -78,6 +78,7 @@ import l2_config_and_types::*;
 	    input logic [5:0] m_axi_bid,
 		
 		//RCA Unit interfaces
+		unit_issue_interface.decode rca_issue_if,
 		rca_decode_issue_interface.cpu rca_di_if,
         rca_writeback_interface.wb rca_wb_if,
         rca_lsu_interface.lsu rca_lsq_if
