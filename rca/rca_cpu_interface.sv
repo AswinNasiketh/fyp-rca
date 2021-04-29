@@ -71,7 +71,6 @@ interface rca_cpu_interface;
 
         logic[$clog2(MAX_IDS)-1:0] wb_id;
         logic done;
-        logic [XLEN-1:0] rd [NUM_WRITE_PORTS];
         logic [XLEN-1:0] rd1;
         logic [XLEN-1:0] rd2;
         logic [XLEN-1:0] rd3;
