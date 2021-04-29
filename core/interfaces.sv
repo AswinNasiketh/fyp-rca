@@ -328,3 +328,16 @@ interface rca_lsu_interface;
     output lsu_ready, load_complete, load_data);
 
 endinterface
+
+interface rca_decode_issue_interface
+    rca_inputs_t rca_inputs;
+    rca_dec_inputs_r_t rca_dec_inputs_r;
+    rca_cpu_reg_config_t rca_config_regs_op;
+    logic rca_config_locked;
+
+    modport rca(input rca_inputs, rca_dec_inputs_r, 
+    output rca_config_regs_op, rca_config_locked);
+
+    modport cpu(output rca_inputs, rca_dec_inputs_r, 
+    input rca_config_regs_op, rca_config_locked);
+endinterface
