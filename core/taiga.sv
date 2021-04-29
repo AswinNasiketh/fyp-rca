@@ -40,11 +40,7 @@ module taiga (
         l2_requester_interface.master l2,
 
         input logic timer_interrupt,
-        input logic interrupt,
-
-        rca_decode_issue_interface.cpu rca_di_if,
-        rca_writeback_interface.wb rca_wb_if,
-        rca_lsu_interface.lsu rca_lsq_if
+        input logic interrupt
         );
 
     l1_arbiter_request_interface l1_request[L1_CONNECTIONS-1:0]();
@@ -71,9 +67,9 @@ module taiga (
     mul_inputs_t mul_inputs;
     div_inputs_t div_inputs;
     gc_inputs_t gc_inputs;
-    // rca_inputs_t rca_inputs;
-    // rca_dec_inputs_r_t rca_dec_inputs_r;
-    // rca_cpu_reg_config_t rca_config_regs_op;
+    rca_inputs_t rca_inputs;
+    rca_dec_inputs_r_t rca_dec_inputs_r;
+    rca_cpu_reg_config_t rca_config_regs_op;
 
     unit_issue_interface unit_issue [NUM_UNITS-1:0]();
     logic alu_issued;
@@ -161,7 +157,11 @@ module taiga (
     logic [4:0] rca_retired_rd_addrs [NUM_WRITE_PORTS];
     id_t rca_id_for_rds [NUM_WRITE_PORTS];
 
+    rca_writeback_interface rca_wb();
     logic rca_config_locked;
+
+    //RCA-LSU interface 
+    rca_lsu_interface rca_ls();
 
     //Trace Interface Signals
     logic tr_operand_stall;
@@ -229,17 +229,17 @@ module taiga (
 
     ////////////////////////////////////////////////////
     //Decode/Issue
-    decode_and_issue decode_and_issue_block (.*, .rca(rca_di_if));
+    decode_and_issue decode_and_issue_block (.*);
 
     ////////////////////////////////////////////////////
     //Register File and Writeback
-    register_file_and_writeback register_file_and_writeback_block (.*, rca_wb(rca_wb_if));
+    register_file_and_writeback register_file_and_writeback_block (.*);
 
     ////////////////////////////////////////////////////
     //Execution Units
     branch_unit branch_unit_block (.*, .issue(unit_issue[BRANCH_UNIT_ID]));
     alu_unit alu_unit_block (.*, .issue(unit_issue[ALU_UNIT_WB_ID]), .wb(unit_wb[ALU_UNIT_WB_ID]));
-    load_store_unit load_store_unit_block (.*, .dcache_on(1'b1), .clear_reservation(1'b0), .tlb(dtlb), .issue(unit_issue[LS_UNIT_WB_ID]), .wb(unit_wb[LS_UNIT_WB_ID]), .l1_request(l1_request[L1_DCACHE_ID]), .l1_response(l1_response[L1_DCACHE_ID]), .rca_lsq(rca_lsq_if));
+    load_store_unit load_store_unit_block (.*, .dcache_on(1'b1), .clear_reservation(1'b0), .tlb(dtlb), .issue(unit_issue[LS_UNIT_WB_ID]), .wb(unit_wb[LS_UNIT_WB_ID]), .l1_request(l1_request[L1_DCACHE_ID]), .l1_response(l1_response[L1_DCACHE_ID]), .rca_lsq(rca_ls));
     generate if (ENABLE_S_MODE) begin
             tlb_lut_ram #(DTLB_WAYS, DTLB_DEPTH) d_tlb (.*, .tlb(dtlb), .mmu(dmmu));
             mmu d_mmu (.*, .mmu(dmmu), .l1_request(l1_request[L1_DMMU_ID]), .l1_response(l1_response[L1_DMMU_ID]), .mmu_exception());
@@ -258,9 +258,9 @@ module taiga (
             div_unit div_unit_block (.*, .issue(unit_issue[DIV_UNIT_WB_ID]), .wb(unit_wb[DIV_UNIT_WB_ID]));
     endgenerate
 
-    // generate if (USE_RCA)
-    //     rca_unit rca (.*, .issue(unit_issue[RCA_UNIT_WB_ID]), .lsu(rca_ls));
-    // endgenerate
+    generate if (USE_RCA)
+        rca_unit rca (.*, .issue(unit_issue[RCA_UNIT_WB_ID]), .lsu(rca_ls));
+    endgenerate
 
 
     ////////////////////////////////////////////////////

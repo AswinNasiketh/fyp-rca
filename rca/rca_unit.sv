@@ -6,8 +6,10 @@ module rca_unit(
     // unit_writeback_interface.unit wb,
     input clk,
     input rst,
-    rca_decode_issue_interface.rca cpu,    
+    rca_decode_issue_interface.rca cpu,
     rca_writeback_interface.unit rca_wb,
+    output rca_config_locked,
+
     rca_lsu_interface.lsq lsu
 );
 
@@ -191,6 +193,6 @@ module rca_unit(
 
     assign rca_wb.done = wb_committing || config_instr_issued;
 
-    assign rca.rca_config_locked = fifo_populated; // lock any reconfiguration if there are any RCAs being used
+    assign rca_config_locked = fifo_populated; // lock any reconfiguration if there are any RCAs being used
     
 endmodule
