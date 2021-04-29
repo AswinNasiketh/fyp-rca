@@ -162,6 +162,10 @@ module taiga (
     logic [4:0] rca_retired_rd_addrs [NUM_WRITE_PORTS];
     id_t rca_id_for_rds [NUM_WRITE_PORTS];
 
+    //RCA - Decode and Issue Signals
+    rca_inputs_t rca_inputs;
+    rca_dec_inputs_r_t rca_dec_inputs_r;
+    rca_cpu_reg_config_t rca_config_regs_op;
     logic rca_config_locked;
 
     //Trace Interface Signals
@@ -230,7 +234,7 @@ module taiga (
 
     ////////////////////////////////////////////////////
     //Decode/Issue
-    decode_and_issue decode_and_issue_block (.*, .rca(rca_di_if));
+    decode_and_issue decode_and_issue_block (.*);
 
     ////////////////////////////////////////////////////
     //Register File and Writeback
@@ -268,6 +272,11 @@ module taiga (
     assign rca_di_if.new_request_r = unit_issue[RCA_UNIT_WB_ID].new_request_r;
     assign rca_di_if.id = unit_issue[RCA_UNIT_WB_ID].id;
     assign unit_issue[RCA_UNIT_WB_ID].ready = rca_di_if.ready;
+
+    assign rca_di_if.rca_inputs = rca_inputs;
+    assign rca_di_if.rca_dec_inputs_r = rca_dec_inputs_r;
+    assign rca_config_regs_op = rca_di_if.rca_config_regs_op;
+    assign rca_config_locked = rca_di_if.rca_config_locked;
 
 
     ////////////////////////////////////////////////////

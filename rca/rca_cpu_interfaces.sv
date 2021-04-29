@@ -50,7 +50,7 @@ interface rca_lsu_interface;
 
 endinterface
 
-interface rca_decode_issue_interface
+interface rca_decode_issue_interface;
     logic possible_issue;
     logic new_request;
     logic new_request_r;
@@ -68,7 +68,4 @@ interface rca_decode_issue_interface
 
     modport master(output rca_inputs, rca_dec_inputs_r, possible_issue, new_request, new_request_r, id, 
     input rca_config_regs_op, rca_config_locked, ready);
-
-    modport decode(output rca_inputs, rca_dec_inputs_r,
-    input rca_config_regs_op, rca_config_locked);
 endinterface
