@@ -72,6 +72,11 @@ interface rca_cpu_interface;
         logic[$clog2(MAX_IDS)-1:0] wb_id;
         logic done;
         logic [XLEN-1:0] rd [NUM_WRITE_PORTS];
+        logic [XLEN-1:0] rd1;
+        logic [XLEN-1:0] rd2;
+        logic [XLEN-1:0] rd3;
+        logic [XLEN-1:0] rd4;
+        logic [XLEN-1:0] rd5;
 
         logic rca_config_locked;
 
@@ -92,10 +97,10 @@ interface rca_cpu_interface;
         logic ls_new_request;
         logic lsu_ready;
 
-        modport master(input rca_cpu_src_reg_addrs, rca_cpu_dest_reg_addrs, wb_id, done, rd, rca_config_locked, ls_request_rs1, ls_request_rs2, ls_request_fn3, ls_request_load, ls_request_store, rca_lsu_lock, ls_new_request, ls_request_id, ready,
+        modport master(input rca_cpu_src_reg_addrs, rca_cpu_dest_reg_addrs, wb_id, done, rd1, rd2, rd3, rd4, rd5, rca_config_locked, ls_request_rs1, ls_request_rs2, ls_request_fn3, ls_request_load, ls_request_store, rca_lsu_lock, ls_new_request, ls_request_id, ready,
         output rca_use_fb_instr_decode, rca_fb_cpu_reg_config_instr, rca_nfb_cpu_reg_config_instr, rca_result_mux_config_fb, rs1, rs2, rs3, rs4, rs5, rca_sel_decode, cpu_port_sel, cpu_src_dest_port, cpu_reg_addr, grid_mux_addr, new_grid_mux_sel, io_mux_addr, new_io_mux_sel, rca_result_mux_addr, new_rca_result_mux_sel, new_rca_io_inp_map, io_unit_addr, new_input_constant, io_ls_mask_config_fb, new_io_ls_mask, rca_use_instr, rca_use_fb_instr, rca_sel, rca_grid_mux_config_instr, rca_io_mux_config_instr, rca_result_mux_config_instr, rca_io_inp_map_config_instr, rca_input_constants_config_instr, rca_io_ls_mask_config_instr, ack, lsu_ready, load_complete, load_data, possible_issue, new_request, new_request_r, issue_id);
 
-        modport slave(output rca_cpu_src_reg_addrs, rca_cpu_dest_reg_addrs, wb_id, done, rd, rca_config_locked, ls_request_rs1, ls_request_rs2, ls_request_fn3, ls_request_load, ls_request_store, rca_lsu_lock, ls_new_request, ls_request_id, ready,
+        modport slave(output rca_cpu_src_reg_addrs, rca_cpu_dest_reg_addrs, wb_id, done, rd1, rd2, rd3, rd4, rd5, rca_config_locked, ls_request_rs1, ls_request_rs2, ls_request_fn3, ls_request_load, ls_request_store, rca_lsu_lock, ls_new_request, ls_request_id, ready,
         input rca_use_fb_instr_decode, rca_fb_cpu_reg_config_instr, rca_nfb_cpu_reg_config_instr, rca_result_mux_config_fb, rs1, rs2, rs3, rs4, rs5, rca_sel_decode, cpu_port_sel, cpu_src_dest_port, cpu_reg_addr, grid_mux_addr, new_grid_mux_sel, io_mux_addr, new_io_mux_sel, rca_result_mux_addr, new_rca_result_mux_sel, new_rca_io_inp_map, io_unit_addr, new_input_constant, io_ls_mask_config_fb, new_io_ls_mask, rca_use_instr, rca_use_fb_instr, rca_sel, rca_grid_mux_config_instr, rca_io_mux_config_instr, rca_result_mux_config_instr, rca_io_inp_map_config_instr, rca_input_constants_config_instr, rca_io_ls_mask_config_instr, ack, lsu_ready, load_complete, load_data, possible_issue, new_request, new_request_r, issue_id);
 
 endinterface

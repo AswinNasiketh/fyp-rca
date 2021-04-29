@@ -71,7 +71,11 @@ module rca_wrapper(
     assign rca_wb_if.ack = cpu.ack;
     assign cpu.id = rca_wb_if.id;
     assign cpu.done = rca_wb_if.done;
-    assign cpu.rd = rca_wb_if.rd;
+    assign cpu.rd1 = rca_wb_if.rd[0];
+    assign cpu.rd2 = rca_wb_if.rd[1];
+    assign cpu.rd3 = rca_wb_if.rd[2];
+    assign cpu.rd4 = rca_wb_if.rd[3];
+    assign cpu.rd5 = rca_wb_if.rd[4];
     assign cpu.rca_config_locked = rca_config_locked;
 
     assign cpu.ls_request_rs1 = rca_lsu_if.rs1;

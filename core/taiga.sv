@@ -322,7 +322,11 @@ module taiga (
     assign rca.ack = rca_wb.ack;
     assign rca_wb.id = rca.id;
     assign rca_wb.done = rca.done;
-    assign rca_wb.rd = rca.rd;
+    assign rca_wb.rd[0] = rca.rd1;
+    assign rca_wb.rd[1] = rca.rd2;
+    assign rca_wb.rd[2] = rca.rd3;
+    assign rca_wb.rd[3] = rca.rd4;
+    assign rca_wb.rd[4] = rca.rd5;
 
     assign rca_config_locked = rca.rca_config_locked;
 
