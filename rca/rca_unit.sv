@@ -2,13 +2,11 @@ import riscv_types::*;
 import taiga_types::*;
 
 module rca_unit(
-    unit_issue_interface.unit issue,
-    // unit_writeback_interface.unit wb,
     input clk,
     input rst,
-    rca_decode_issue_interface.rca cpu,    
-    rca_writeback_interface.unit rca_wb,
-    rca_lsu_interface.lsq lsu
+    rca_decode_issue_interface.slave cpu,    
+    rca_writeback_interface.slave rca_wb,
+    rca_lsu_interface.slave lsu
 );
 
     logic [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel_out [NUM_GRID_MUXES*2];
@@ -33,34 +31,34 @@ module rca_unit(
         .rca_cpu_dest_reg_addrs_decode(cpu.rca_config_regs_op.rca_cpu_dest_reg_addrs),
         .rca_use_fb_instr_decode(cpu.rca_inputs.rca_use_fb_instr_decode),
 
-        .cpu_fb_reg_addr_wr_en(cpu.rca_inputs.rca_fb_cpu_reg_config_instr && issue.new_request),
-        .cpu_nfb_reg_addr_wr_en(cpu.rca_inputs.rca_nfb_cpu_reg_config_instr && issue.new_request),
+        .cpu_fb_reg_addr_wr_en(cpu.rca_inputs.rca_fb_cpu_reg_config_instr && cpu.new_request),
+        .cpu_nfb_reg_addr_wr_en(cpu.rca_inputs.rca_nfb_cpu_reg_config_instr && cpu.new_request),
         .cpu_port_sel(cpu.rca_inputs.cpu_port_sel),
         .cpu_src_dest_port(cpu.rca_inputs.cpu_src_dest_port),
         .cpu_reg_addr(cpu.rca_inputs.cpu_reg_addr),
 
         .grid_mux_wr_addr(cpu.rca_inputs.grid_mux_addr),
-        .grid_mux_wr_en(cpu.rca_dec_inputs_r.rca_grid_mux_config_instr && issue.new_request),
+        .grid_mux_wr_en(cpu.rca_dec_inputs_r.rca_grid_mux_config_instr && cpu.new_request),
         .new_grid_mux_sel(cpu.rca_inputs.new_grid_mux_sel),
 
         .io_mux_addr(cpu.rca_inputs.io_mux_addr),
-        .io_mux_wr_en(cpu.rca_dec_inputs_r.rca_io_mux_config_instr && issue.new_request),
+        .io_mux_wr_en(cpu.rca_dec_inputs_r.rca_io_mux_config_instr && cpu.new_request),
         .new_io_mux_sel(cpu.rca_inputs.new_io_mux_sel),
 
         .rca_result_mux_addr(cpu.rca_inputs.rca_result_mux_addr),
-        .rca_fb_result_mux_wr_en(cpu.rca_dec_inputs_r.rca_result_mux_config_instr && cpu.rca_inputs.rca_result_mux_config_fb && issue.new_request),
-        .rca_nfb_result_mux_wr_en(cpu.rca_dec_inputs_r.rca_result_mux_config_instr && ~cpu.rca_inputs.rca_result_mux_config_fb && issue.new_request),
+        .rca_fb_result_mux_wr_en(cpu.rca_dec_inputs_r.rca_result_mux_config_instr && cpu.rca_inputs.rca_result_mux_config_fb && cpu.new_request),
+        .rca_nfb_result_mux_wr_en(cpu.rca_dec_inputs_r.rca_result_mux_config_instr && ~cpu.rca_inputs.rca_result_mux_config_fb && cpu.new_request),
         .new_rca_result_mux_sel(cpu.rca_inputs.new_rca_result_mux_sel),
 
-        .rca_io_inp_map_wr_en(cpu.rca_dec_inputs_r.rca_io_inp_map_config_instr && issue.new_request),
+        .rca_io_inp_map_wr_en(cpu.rca_dec_inputs_r.rca_io_inp_map_config_instr && cpu.new_request),
         .new_rca_io_inp_map(cpu.rca_inputs.new_rca_io_inp_map),
 
-        .rca_input_constants_wr_en(cpu.rca_dec_inputs_r.rca_input_constants_config_instr && issue.new_request),
+        .rca_input_constants_wr_en(cpu.rca_dec_inputs_r.rca_input_constants_config_instr && cpu.new_request),
         .io_unit_addr(cpu.rca_inputs.io_unit_addr),
         .new_input_constant(cpu.rca_inputs.new_input_constant),
 
-        .rca_io_ls_mask_wr_en(cpu.rca_dec_inputs_r.rca_io_ls_mask_config_instr && issue.new_request),
-        .rca_io_ls_mask_fb_wr_en(cpu.rca_dec_inputs_r.rca_io_ls_mask_config_instr && cpu.rca_inputs.io_ls_mask_config_fb && issue.new_request),
+        .rca_io_ls_mask_wr_en(cpu.rca_dec_inputs_r.rca_io_ls_mask_config_instr && cpu.new_request),
+        .rca_io_ls_mask_fb_wr_en(cpu.rca_dec_inputs_r.rca_io_ls_mask_config_instr && cpu.rca_inputs.io_ls_mask_config_fb && cpu.new_request),
         .new_io_ls_mask(cpu.rca_inputs.new_io_ls_mask)
     );
 
@@ -176,7 +174,7 @@ module rca_unit(
 
     //rca_wb.id
     id_t id_prev;
-    always_ff @(posedge clk) id_prev <= issue.id;
+    always_ff @(posedge clk) id_prev <= cpu.id;
 
     always_comb begin
         if (wb_committing)
@@ -187,7 +185,7 @@ module rca_unit(
 
     //rca_wb.done
     logic config_instr_issued;
-    always_ff @(posedge clk) config_instr_issued <= issue.new_request && ~cpu.rca_dec_inputs_r.rca_use_instr;
+    always_ff @(posedge clk) config_instr_issued <= cpu.new_request && ~cpu.rca_dec_inputs_r.rca_use_instr;
 
     assign rca_wb.done = wb_committing || config_instr_issued;
 

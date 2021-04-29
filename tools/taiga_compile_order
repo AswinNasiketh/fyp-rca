@@ -12,6 +12,7 @@ local_memory/local_mem.sv
 
 core/interfaces.sv  
 core/external_interfaces.sv  
+rca/rca_cpu_interfaces.sv
 
 core/csr_types.sv  
 core/csr_regs.sv  

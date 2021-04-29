@@ -50,7 +50,7 @@ module register_file_and_writeback
         unit_writeback_interface.wb unit_wb[NUM_WB_UNITS],
         writeback_store_interface.wb wb_store,
 
-        rca_writeback_interface.wb rca_wb,
+        rca_writeback_interface.master rca_wb,
 
         //Trace signals
         output logic tr_rs1_forwarding_needed,

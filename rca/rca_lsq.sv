@@ -9,7 +9,7 @@ module rca_lsq
     input rca_fifo_populated,
 
     rca_lsq_grid_interface.lsq grid,
-    rca_lsu_interface.lsq lsu
+    rca_lsu_interface.slave lsu
 );
 
     //Packet ID FIFO

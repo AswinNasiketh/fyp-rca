@@ -42,7 +42,7 @@ module decode_and_issue (
         output gc_inputs_t gc_inputs,
         output mul_inputs_t mul_inputs,
         output div_inputs_t div_inputs,
-        rca_decode_issue_interface.cpu rca,
+        rca_decode_issue_interface.decode rca,
 
         unit_issue_interface.decode unit_issue [NUM_UNITS-1:0],
         input logic potential_branch_exception,
