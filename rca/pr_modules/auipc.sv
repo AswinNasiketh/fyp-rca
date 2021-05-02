@@ -37,7 +37,7 @@ module auipc_ou
     assign uses_data_in1 = 1'b1; //data in 1's lowest 20 bits MUST be the immediate value of the AUIPC instruction
     assign uses_data_in2 = 1'b1; //data in 2 must be the PC address of the AUIPC instruction
 
-    assign data_out = {data_in1[19:0], 12'd0} + data_in_2;
+    assign data_out = {data_in1[19:0], 12'd0} + data_in2;
     assign data_valid_out = data_valid_in1 && data_valid_in2;
 
     assign data_in_ack1 = data_valid_in1 && data_valid_in2;
