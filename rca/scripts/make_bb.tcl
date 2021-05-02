@@ -12,5 +12,5 @@ for {set row 0} {$row < 12} {incr row} {
 	}
 }
 
-lock_design -level routing
+#lock_design -level routing
 write_checkpoint /home/anv17/FYP/fyp-rca/rca/dcps/top_bb_route_locked.dcp
