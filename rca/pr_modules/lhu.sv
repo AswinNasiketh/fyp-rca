@@ -39,7 +39,7 @@ module lhu_ou
 
     //Load Request Submission
     assign data = 0;
-    assign fn3 = LS_HU_fn3;
+    assign fn3 = L_HU_fn3;
     assign load = 1'b1;
     assign store = 1'b0;
 
