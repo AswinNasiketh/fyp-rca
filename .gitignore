@@ -1,2 +1,5 @@
 test_benches/verilator/build/*
 scripts/xilinx/*IP/*
+*.log
+*.jou
+*.swp
