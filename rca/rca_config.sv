@@ -42,7 +42,7 @@ package rca_config;
     //110 - RCA Use - specifying non-feedback destination registers
 
     //RCA Grid Params
-    localparam GRID_NUM_ROWS = 12;
+    localparam GRID_NUM_ROWS = 5;
     localparam GRID_NUM_COLS = 6;
 
     localparam NUM_GRID_MUXES = GRID_NUM_COLS * GRID_NUM_ROWS; //per PR slot input
