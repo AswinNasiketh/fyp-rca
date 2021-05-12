@@ -74,6 +74,6 @@ set rps [get_cells -hierarchical ou]
 place_design
 route_design
 
-write_checkpoint -force  i/home/anv17/FYP/fyp-rca/rca/dcps/greybox_routed.dcp
+write_checkpoint -force  /home/anv17/FYP/fyp-rca/rca/dcps/greybox_routed.dcp
 close_design
 

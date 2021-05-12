@@ -25,15 +25,13 @@ lappend rm_names pr_module_pt
 
 #OOC Synthesis of the modules
 
-#Read config files and ensure they are included for all source files
-add_files /home/anv17/FYP/fyp-rca/rca/rca_config.sv
-set_property IS_GLOBAL_INCLUDE 1 [get_files /home/anv17/FYP/fyp-rca/rca/rca_config.sv]
-add_files /home/anv17/FYP/fyp-rca/core/taiga_config.sv
-set_property IS_GLOBAL_INCLUDE 1 [get_files /home/anv17/FYP/fyp-rca/core/taiga_config.sv]
-add_files /home/anv17/FYP/fyp-rca/core/riscv_types.sv
-set_property IS_GLOBAL_INCLUDE 1 [get_files /home/anv17/FYP/fyp-rca/core/riscv_types.sv]
-add_files /home/anv17/FYP/fyp-rca/core/taiga_types.sv
-set_property IS_GLOBAL_INCLUDE 1 [get_files /home/anv17/FYP/fyp-rca/core/taiga_types.sv]
+#Read config files
+
+read_verilog -sv /home/anv17/FYP/fyp-rca/core/taiga_config.sv
+/home/anv17/FYP/fyp-rca/
+read_verilog -sv /home/anv17/FYP/fyp-rca/core/riscv_types.sv
+read_verilog -sv /home/anv17/FYP/fyp-rca/core/taiga_types.sv
+read_verilog -sv /home/anv17/FYP/fyp-rca/rca/rca_config.sv
 
 
 foreach file_name $rm_files rm_name $rm_names {
@@ -42,4 +40,6 @@ foreach file_name $rm_files rm_name $rm_names {
         set dcp_path /home/anv17/FYP/fyp-rca/rca/dcps/rm_ooc_synth_dcps/
 	append dcp_path $rm_name "_synth.dcp"
 	write_checkpoint $dcp_path
-} 
+}
+#Rename PR module DCP
+exec mv /home/anv17/FYP/fyp-rca/rca/dcps/rm_ooc_synth_dcps/pr_module_pt_synth.dcp /home/anv17/FYP/fyp-rca/rca/dcps/rm_ooc_synth_dcps/pt_ou_synth.dcp
