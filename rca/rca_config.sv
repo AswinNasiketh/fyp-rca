@@ -54,4 +54,7 @@ package rca_config;
 
     localparam UNUSED_WRITE_PORT_ADDR = NUM_IO_UNITS;
 
+    localparam NUM_OUS = 22;
+    localparam MAX_PR_QUEUE_REQUESTS = 8;
+
 endpackage
