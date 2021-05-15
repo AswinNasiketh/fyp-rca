@@ -23,3 +23,4 @@ From the root of the Taiga repository, run: `make run-example-c-project-verilato
 The .hw_init file generated can be used to initialise the Taiga's local memory in the IP Block diagram on Vivado.
 
 <!-- TODO: Add instructions for adding AXI PR request Queue structure -->
+<!-- TODO: Zedboard XDC now in RCA folder -->
