@@ -278,8 +278,8 @@ set_false_path -to [get_pins -hier *cdc_to*/D]
 #set_property PACKAGE_PIN AA8  [get_ports {JA10}];  # "JA10"
 #set_property PACKAGE_PIN AA11 [get_ports {JA2}];  # "JA2"
 current_instance -quiet
-set_property PACKAGE_PIN Y10 [get_ports sin]
-set_property PACKAGE_PIN AA9 [get_ports sout]
+#set_property PACKAGE_PIN Y10 [get_ports sin]
+#set_property PACKAGE_PIN AA9 [get_ports sout]
 #set_property PACKAGE_PIN AB11 [get_ports {JA7}];  # "JA7"
 #set_property PACKAGE_PIN AB10 [get_ports {JA8}];  # "JA8"
 #set_property PACKAGE_PIN AB9  [get_ports {JA9}];  # "JA9"
