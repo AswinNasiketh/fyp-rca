@@ -56,7 +56,10 @@ module taiga (
         output s_axi_arready,
         output [31:0] s_axi_rdata,
         output s_axi_rvalid,
-        input s_axi_rready
+        input s_axi_rready,
+
+        //PR Queue Pending signal
+        output logic pr_request_pending
         );
 
     l1_arbiter_request_interface l1_request[L1_CONNECTIONS-1:0]();
@@ -179,9 +182,6 @@ module taiga (
 
     //RCA-LSU interface 
     rca_lsu_interface rca_ls();
-
-    //PR Queue Pending signal
-    logic pr_request_pending;
 
     //Trace Interface Signals
     logic tr_operand_stall;

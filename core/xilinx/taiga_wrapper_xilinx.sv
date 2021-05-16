@@ -91,7 +91,8 @@ import l2_config_and_types::*;
         output s_axi_arready,
         output [31:0] s_axi_rdata,
         output s_axi_rvalid,
-        input s_axi_rready
+        input s_axi_rready,
+		output pr_request_pending
     );
 
     //Unused outputs
