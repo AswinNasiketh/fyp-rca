@@ -105,7 +105,7 @@ import l2_config_and_types::*;
     //AXI interface
     axi_interface m_axi();
 
-    assign m_axi_arready = m_axi.arready;
+    // assign m_axi_arready = m_axi.arready;
     assign m_axi_arvalid = m_axi.arvalid;
     assign m_axi_araddr = m_axi.araddr;
     assign m_axi_arlen = m_axi.arlen;
@@ -114,6 +114,7 @@ import l2_config_and_types::*;
     assign m_axi_arcache = m_axi.arcache;
     //assign m_axi_arid = m_axi.arid;
 
+	assign m_axi.arready = m_axi_arready
     assign m_axi_rready = m_axi.rready;
     assign m_axi_rvalid = m_axi.rvalid;
     assign m_axi_rdata = m_axi.rdata;
