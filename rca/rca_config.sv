@@ -57,4 +57,9 @@ package rca_config;
     localparam NUM_OUS = 22;
     localparam MAX_PR_QUEUE_REQUESTS = 8;
 
+    //Profiler Params
+    localparam NUM_PROFILER_ENTRIES = 4;
+    localparam SBB_MAX_OFFSET = 20'(signed'd(-32));
+    localparam MAX_TAKEN_COUNT = 256;
+
 endpackage
