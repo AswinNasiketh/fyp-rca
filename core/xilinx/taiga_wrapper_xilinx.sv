@@ -75,7 +75,23 @@ import l2_config_and_types::*;
 	    output logic m_axi_bready,
 	    input logic m_axi_bvalid,
 	    input logic [1:0] m_axi_bresp,
-	    input logic [5:0] m_axi_bid
+	    input logic [5:0] m_axi_bid,
+
+		//AXI slave interface for PR Queue
+        input [1:0] s_axi_awaddr,
+	    input s_axi_awvalid,
+	    output s_axi_awready,
+        input [31:0] s_axi_wdata,
+        input s_axi_wvalid,
+        output s_axi_wready,
+        output s_axi_bvalid,
+        input s_axi_bready,
+        input [1:0] s_axi_araddr,
+        input s_axi_arvalid,
+        output s_axi_arready,
+        output [31:0] s_axi_rdata,
+        output s_axi_rvalid,
+        input s_axi_rready
     );
 
     //Unused outputs

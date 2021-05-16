@@ -4,7 +4,10 @@ module axi_pr_queue
     import taiga_types::*;
     import rca_config::*;
 (   
-    //AXI interface
+    input clk,
+    input rst,
+
+    //AXI interface - use Taiga clock and reset
     input wire [1:0] s_axi_awaddr,
 	input wire s_axi_awvalid,
 	output reg s_axi_awready,
@@ -19,8 +22,8 @@ module axi_pr_queue
 	output reg [31:0] s_axi_rdata,
 	output reg s_axi_rvalid,
 	input wire s_axi_rready,
-	input wire s_axi_aclk,
-	input wire s_axi_aresetn,
+	// input wire s_axi_aclk,
+	// input wire s_axi_aresetn,
 
     //Interrupt and RCA stall signal
     output logic pr_request_pending,
@@ -38,8 +41,8 @@ parameter POP_R_ADDR = 2'b10;
 fifo_interface #(.DATA_WIDTH($bits(pr_queue_inputs_t))) pr_request_fifo_if ();
 
 taiga_fifo #(.DATA_WIDTH($bits(pr_queue_inputs_t)), .FIFO_DEPTH(MAX_PR_QUEUE_REQUESTS)) pr_request_fifo(
-        .clk(s_axi_aclk),
-        .rst(~s_axi_aresetn),
+        .clk,
+        .rst,
         .fifo(pr_request_fifo_if)
     );
 
@@ -90,12 +93,12 @@ localparam [1:0]
 reg [1:0] rstate;
 
 logic pop;
-always @ (posedge s_axi_aclk) begin
+always @ (posedge clk) begin
     s_axi_arready <= 1'h0;
     s_axi_rvalid <= 1'h0;
 
     pop_pr_request <= 1'h0;  
-    if (s_axi_aresetn)
+    if (~rst)
         case (rstate)
             RSTATE_ADDR:
                 if (s_axi_arvalid && pr_request_pending) begin
