@@ -351,4 +351,11 @@ package taiga_types;
         logic [4:0] [NUM_WRITE_PORTS-1:0] rca_cpu_dest_reg_addrs; 
     } rca_cpu_reg_config_t;
 
+    //PR Queue Unit inputs
+    typedef struct packed{        
+        logic [$clog2(GRID_NUM_COLS*GRID_NUM_ROWS)-1:0] grid_slot;
+        logic [$clog2(NUM_OUS)-1:0] ou_id;
+    } pr_queue_inputs_t;
+
+
 endpackage
