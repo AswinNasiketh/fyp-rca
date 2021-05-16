@@ -35,8 +35,8 @@ module axi_pr_queue
 );
 
 // parameter ENQUEUE_W_ADDR = 2'b01;
-parameter PEEK_R_ADDR = 2'b01;
-parameter POP_R_ADDR = 2'b10;
+parameter PEEK_R_ADDR = 4'h4;
+parameter POP_R_ADDR = 4'h8;
 
 fifo_interface #(.DATA_WIDTH($bits(pr_queue_inputs_t))) pr_request_fifo_if ();
 
