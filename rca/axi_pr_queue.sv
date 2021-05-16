@@ -56,7 +56,7 @@ assign oldest_pr_request = pr_request_fifo_if.data_out;
 assign pr_request_pending = pr_request_fifo_if.valid;
 assign request_fifo_full = pr_request_fifo_if.full;
 assign pr_request_fifo_if.push = issue.new_request;
-assign pr_request_fifo_if.potential_push = push_pr_request;
+assign pr_request_fifo_if.potential_push = issue.new_request;
 assign pr_request_fifo_if.data_in = pr_queue_inputs;
 
 //No AXI write interface - Queue pushes are done through Taiga Issue interface

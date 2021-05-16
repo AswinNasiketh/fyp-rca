@@ -283,7 +283,7 @@ module taiga (
     endgenerate
 
     generate if (USE_PR_QUEUE)
-        axi_pr_queue(.*, .issue(unit_issue[PR_QUEUE_WB_ID]), .wb(unit_wb[PR_QUEUE_WB_ID]));
+        axi_pr_queue pr_queue(.*, .issue(unit_issue[PR_QUEUE_WB_ID]), .wb(unit_wb[PR_QUEUE_WB_ID]));
     endgenerate
 
 
