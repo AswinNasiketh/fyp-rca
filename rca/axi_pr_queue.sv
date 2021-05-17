@@ -59,6 +59,7 @@ assign request_fifo_full = pr_request_fifo_if.full;
 assign pr_request_fifo_if.push = issue.new_request;
 assign pr_request_fifo_if.potential_push = issue.new_request;
 assign pr_request_fifo_if.data_in = pr_queue_inputs;
+assign pr_request_fifo_if.pop = pop_pr_request;
 
 //No AXI write interface - Queue pushes are done through Taiga Issue interface
 assign s_axi_awready = 1'h0;
