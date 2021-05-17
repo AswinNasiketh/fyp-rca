@@ -114,7 +114,7 @@ import l2_config_and_types::*;
     assign m_axi_arcache = m_axi.arcache;
     //assign m_axi_arid = m_axi.arid;
 
-	assign m_axi.arready = m_axi_arready
+	assign m_axi.arready = m_axi_arready;
     assign m_axi_rready = m_axi.rready;
     assign m_axi_rvalid = m_axi.rvalid;
     assign m_axi_rdata = m_axi.rdata;
