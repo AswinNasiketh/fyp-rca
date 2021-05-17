@@ -16,7 +16,7 @@ module axi_pr_queue
 	output reg s_axi_wready,
 	output reg s_axi_bvalid,
 	input wire s_axi_bready,
-	input wire [1:0] s_axi_araddr,
+	input wire [3:0] s_axi_araddr,
 	input wire s_axi_arvalid,
 	output reg s_axi_arready,
 	output reg [31:0] s_axi_rdata,
@@ -37,6 +37,7 @@ module axi_pr_queue
 // parameter ENQUEUE_W_ADDR = 2'b01;
 parameter PEEK_R_ADDR = 4'h4;
 parameter POP_R_ADDR = 4'h8;
+parameter CHECK_PENDING_R_ADDR = 4'hC;
 
 fifo_interface #(.DATA_WIDTH($bits(pr_queue_inputs_t))) pr_request_fifo_if ();
 
@@ -93,6 +94,7 @@ localparam [1:0]
 reg [1:0] rstate;
 
 logic pop;
+logic check_pending;
 always @ (posedge clk) begin
     s_axi_arready <= 1'h0;
     s_axi_rvalid <= 1'h0;
@@ -101,16 +103,21 @@ always @ (posedge clk) begin
     if (~rst)
         case (rstate)
             RSTATE_ADDR:
-                if (s_axi_arvalid && pr_request_pending) begin
+                if (s_axi_arvalid) begin
                     rstate <= RSTATE_CAPTURE;
                     s_axi_arready <= 1'h1;
                     pop <= (s_axi_araddr == POP_R_ADDR); //just determine whether its a pop or a peek
+                    check_pending <= (s_axi_araddr == CHECK_PENDING_R_ADDR);
                 end
             RSTATE_CAPTURE: begin
                 rstate <= RSTATE_DATA;
-                s_axi_rdata <= {oldest_pr_request.ou_id, oldest_pr_request.grid_slot};
+                if(check_pending)
+                    s_axi_rdata <= pr_request_pending ? '1 : '0;
+                else
+                    s_axi_rdata <= {oldest_pr_request.ou_id, oldest_pr_request.grid_slot};
+                
                 s_axi_rvalid <= 1'h1;
-                pop_pr_request <= pop;
+                pop_pr_request <= pop && pr_request_pending;
             end
             RSTATE_DATA: begin
                 if (s_axi_rready)
