@@ -66,7 +66,7 @@ assign s_axi_wready = 1'h0;
 assign s_axi_bvalid = 1'h0;
 
 always @(posedge clk) 
-    if(~waiting_for_ack) begin
+    if(~(waiting_for_ack & ~wb.ack)) begin
         wb.done <= issue.new_request;
         wb.id <= issue.id;
     end
@@ -95,9 +95,12 @@ reg [1:0] rstate;
 
 logic pop;
 logic check_pending;
+
+localparam NUM_R_DATA_BITS = $clog2(GRID_NUM_COLS*GRID_NUM_ROWS) + $clog2(NUM_OUS);
 always @ (posedge clk) begin
     s_axi_arready <= 1'h0;
     s_axi_rvalid <= 1'h0;
+    s_axi_rdata <= '0;
 
     pop_pr_request <= 1'h0;  
     if (~rst)
@@ -112,9 +115,9 @@ always @ (posedge clk) begin
             RSTATE_CAPTURE: begin
                 rstate <= RSTATE_DATA;
                 if(check_pending)
-                    s_axi_rdata <= pr_request_pending ? '1 : '0;
+                    s_axi_rdata <= pr_request_pending ? 32'd1 : 32'd0;
                 else
-                    s_axi_rdata <= {oldest_pr_request.ou_id, oldest_pr_request.grid_slot};
+                    s_axi_rdata[NUM_R_DATA_BITS-1:0] <= {oldest_pr_request.ou_id, oldest_pr_request.grid_slot};
                 
                 s_axi_rvalid <= 1'h1;
                 pop_pr_request <= pop && pr_request_pending;
