@@ -51,7 +51,7 @@ module taiga (
         output s_axi_wready,
         output s_axi_bvalid,
         input s_axi_bready,
-        input [1:0] s_axi_araddr,
+        input [3:0] s_axi_araddr,
         input s_axi_arvalid,
         output s_axi_arready,
         output [31:0] s_axi_rdata,
