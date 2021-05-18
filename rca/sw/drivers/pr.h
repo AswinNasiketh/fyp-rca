@@ -30,10 +30,13 @@ typedef enum{
     XOR = 21
 }ou_t;
 
-inline void send_pr_request(ou_t ou, uint32_t grid_slot){
+#define NUM_OUS 22
+
+
+void send_pr_request(ou_t ou, uint32_t grid_slot){
     uint32_t dummy;
     uint32_t rs2 = ou;
-    asm volatile("rcapprq %0, %1, %2;"
+    asm volatile("rcapprq.d %0, %1, %2;"
         : "=r"(dummy)
         : "r"(grid_slot), "r"(rs2)
         :

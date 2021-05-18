@@ -6,7 +6,7 @@
 
 static void bad_config_trap(){
     printf("bad config");
-    while(1);
+    // while(1);
 }
 
 reg_port_t int_to_reg_port(uint32_t i){
