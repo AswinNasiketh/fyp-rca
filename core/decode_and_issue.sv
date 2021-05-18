@@ -183,7 +183,7 @@ module decode_and_issue (
     assign uses_rd = !(opcode_trim inside {BRANCH_T, STORE_T, FENCE_T} || environment_op || rca_instr);
 
     //rca instruction decode
-    assign rca_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) : 1'b0;
+    assign rca_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && !(fn7 inside {PUSH_PR_REQUEST_fn7}) : 1'b0;
     assign rca_use_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 inside {USE_FB_fn7, USE_NFB_fn7}) : 1'b0;
     assign rca_use_fb_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == USE_FB_fn7) : 1'b0;
 
@@ -252,7 +252,7 @@ module decode_and_issue (
 
     //Writeback interface
     generate if (USE_RCA)
-        assign unit_needed[RCA_UNIT_WB_ID] = (opcode_trim == RCA_T); //not using fn3 and fn7
+        assign unit_needed[RCA_UNIT_WB_ID] = (opcode_trim == RCA_T) && !(fn7 inside {PUSH_PR_REQUEST_fn7});
     endgenerate
 
     //decode interface
