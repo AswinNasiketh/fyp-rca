@@ -67,10 +67,8 @@ assign s_axi_wready = 1'h0;
 assign s_axi_bvalid = 1'h0;
 
 always @(posedge clk) 
-    if(~(waiting_for_ack & ~wb.ack)) begin
-        wb.done <= issue.new_request;
+    if(issue.new_request) 
         wb.id <= issue.id;
-    end
 
 
 assign wb.rd = 0;
@@ -82,6 +80,8 @@ set_clr_reg_with_rst #(.SET_OVER_CLR(1), .WIDTH(1), .RST_VALUE(0)) wb_ack_wait (
       .clr(wb.ack),
       .result(waiting_for_ack)
     );
+
+assign wb.done = waiting_for_ack;
 
 assign issue.ready = !waiting_for_ack && !request_fifo_full;
     
