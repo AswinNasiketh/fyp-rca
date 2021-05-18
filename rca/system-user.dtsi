@@ -1,5 +1,6 @@
 //Device tree additions to enable UIO driver for Taiga AXI slave interrupt
-//Ensure PL is included in device tree
+//Ensure PL is included in device tree for petalinux
+//Ensure UIO drivers are included in petalinux kernel - Tutorial: https://xilinx-wiki.atlassian.net/wiki/spaces/A/pages/18842490/Testing+UIO+with+Interrupt+on+Zynq+Ultrascale
 
 /include/ "system-conf.dtsi"
 / {
