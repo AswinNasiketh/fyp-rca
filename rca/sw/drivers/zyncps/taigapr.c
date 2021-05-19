@@ -1,4 +1,5 @@
 //Based on example from https://forums.xilinx.com/t5/Embedded-Linux/Custom-Hardware-with-UIO/m-p/805185#M22515
+//TODO: Change to using Incomplete Requests model
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -8,6 +9,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <string.h>
+#include <pthread.h>
 
 #define TAIGA_PR_QUEUE_BASEADDR             0x43C00000
 #define TAIGA_PR_QUEUE_MAP_SIZE             0x10000
@@ -56,6 +58,52 @@ typedef struct{
 } pr_request_t;
 
 
+//Quick linked list queue implementation - based on https://www.geeksforgeeks.org/queue-linked-list-implementation/
+typedef struct queue_item_t queue_item_t;
+struct queue_item_t{
+    pr_request_t request;
+    struct queue_item_t* next_item;
+};
+
+typedef struct{
+    queue_item_t* front;
+    queue_item_t* rear;
+}queue_t;
+
+void enqueue_request(queue_t* queue, pr_request_t request){
+    queue_item_t* new_item = (queue_item_t *) malloc(sizeof(queue_item_t));
+    new_item->request = request;
+    new_item->next_item = NULL;
+    if(queue->front == NULL && queue->rear == NULL){
+        queue->front = new_item;
+        queue->rear = new_item;
+    }else{
+        queue->rear->next_item = new_item;
+        queue->rear = new_item;
+    }
+}
+
+pr_request_t dequeue_request(queue_t* queue){
+    pr_request_t request = queue->front->request;
+    queue_item_t* tmp = queue->front;
+    queue->front = queue->front->next_item;
+
+    if(queue->front == NULL){
+        queue->rear = NULL;
+    }
+    free(tmp);
+    return request;
+}
+
+uint32_t is_queue_empty(queue_t* queue){
+    return (queue->front == NULL && queue->rear == NULL);
+}
+
+queue_t create_queue(){
+    queue_t queue = {.front = NULL, .rear = NULL};
+    return queue;
+}
+
 uint32_t check_pending_status(void* ptr){
     uint32_t pr_request_pending;
     printf("Checking PR Request Pending\n\r");
@@ -70,7 +118,7 @@ pr_request_t get_pr_request(void* ptr){
     uint32_t ou_id;
 
     printf("Peeking PR Request\n\r");
-    pr_request_raw = *((unsigned *)(ptr + TAIGA_PR_QUEUE_PEEK_OFFSET));
+    pr_request_raw = *((unsigned *)(ptr + TAIGA_PR_QUEUE_POP_OFFSET));
     grid_slot = (pr_request_raw >> GRID_SLOT_SHIFT) & GRID_SLOT_MASK;
     ou_id = (pr_request_raw >> OU_ID_SHIFT) & OU_ID_MASK;
     printf("Request: OU %u in Slot %u\n\r", ou_id, grid_slot);
@@ -135,17 +183,73 @@ void do_pr_request(pr_request_t pr_request, char pb_paths[NUM_GRID_SLOTS][MAX_PA
     strcat(command, pb_paths[pr_request.grid_slot]);
     strcat(command, ou_file_names[pr_request.ou]);
     strcat(command, " -f Partial");
-    printf("%s\n\r", command);
+    // printf("%s\n\r", command);
     system(command);
+}
+
+uint32_t pop_pr_request_nc(void* ptr){
+    uint32_t pr_request_pop_raw;
+
+    printf("Popping PR Request\n\r");
+    pr_request_pop_raw = *((unsigned volatile *)(ptr + TAIGA_PR_QUEUE_POP_OFFSET));   
+
+    return pr_request_pop_raw;
+}
+
+char pb_path[NUM_GRID_SLOTS][MAX_PATH_LEN]; 
+char ou_file_names[NUM_OUS][20];
+queue_t pr_request_queue;
+pthread_mutex_t queue_lock;
+volatile uint32_t completed_requests;
+pthread_mutex_t completed_requests_lock;
+pthread_t request_service_thread;
+
+void *do_pr_thread_fn(void *arg){
+    
+
+    uint32_t queue_empty = 1;
+    pr_request_t pr_request;
+
+    while(1){
+        while(queue_empty == 1){
+            pthread_mutex_lock(&queue_lock);
+            queue_empty = is_queue_empty(&pr_request_queue);
+            pthread_mutex_unlock(&queue_lock);
+        }
+        pthread_mutex_lock(&queue_lock);
+        pr_request = dequeue_request(&pr_request_queue);
+        pthread_mutex_unlock(&queue_lock);
+
+        do_pr_request(pr_request, pb_path, ou_file_names);
+
+        pthread_mutex_lock(&completed_requests_lock);
+        completed_requests++;
+        pthread_mutex_unlock(&completed_requests_lock);
+
+        pthread_mutex_lock(&queue_lock);
+        queue_empty = is_queue_empty(&pr_request_queue);
+        pthread_mutex_unlock(&queue_lock);
+    }
+
 }
 
 int main(void)
 {
-    char pb_path[NUM_GRID_SLOTS][MAX_PATH_LEN]; 
-    char ou_file_names[NUM_OUS][20];
-
     populate_paths(pb_path);
     populate_ou_names(ou_file_names);
+
+    pr_request_queue = create_queue();
+
+    //taken from https://www.geeksforgeeks.org/mutex-lock-for-linux-thread-synchronization/
+    if (pthread_mutex_init(&queue_lock, NULL) != 0) {
+        printf("\n mutex init has failed\n");
+        return 1;
+    }
+
+    if (pthread_mutex_init(&completed_requests_lock, NULL) != 0) {
+        printf("\n mutex init has failed\n");
+        return 1;
+    }
 
     int fd = open("/dev/uio0", O_RDWR);
     void *ptr;
@@ -156,6 +260,10 @@ int main(void)
     }
 
     ptr = mmap(NULL, TAIGA_PR_QUEUE_MAP_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+    volatile uint32_t completed_requests_lcl;
+    uint32_t total_requests_completed = 0;
+
+    int iret = pthread_create(&request_service_thread, NULL, do_pr_thread_fn, NULL);
 
     while (1) {
         uint32_t info = 1; /* Enable Interrupt */
@@ -174,31 +282,40 @@ int main(void)
             .events = POLLIN,
         };
 
-        int ret = poll(&fds, 1, -1);
+        int ret = poll(&fds, 1, 5);
         if (ret >= 1) {
             nb = read(fd, &info, sizeof(info));
             if (nb == sizeof(info)) {
                 /* Do something in response to the interrupt. */
                 printf("Interrupt #%u!\n\r", info);
 
-                check_pending_status(ptr);
-
-                pr_request = get_pr_request(ptr);
-
-                do_pr_request(pr_request, pb_path, ou_file_names);
-
-                if(pop_pr_request(ptr, pr_request)){
-                    printf("Popped and Peeked PR Requests Match!\n\r");
-                }else{
-                    printf("Popped and Peeked PR Requests didn't match!\n\r");
+                pr_request_pending = check_pending_status(ptr);
+                while(pr_request_pending == 1){
+                    pr_request = get_pr_request(ptr);
+                    pthread_mutex_lock(&queue_lock);
+                    enqueue_request(&pr_request_queue, pr_request);
+                    pthread_mutex_unlock(&queue_lock);
+                    pr_request_pending = check_pending_status(ptr);
                 }
-                
             }
-        } else {
-            perror("poll()");
-            close(fd);
-            exit(EXIT_FAILURE);
-        }
+        } 
+        // else {
+        //     perror("poll()");
+        //     close(fd);
+        //     exit(EXIT_FAILURE);
+        // }
+        pthread_mutex_lock(&completed_requests_lock);
+        completed_requests_lcl = completed_requests;
+        completed_requests = 0;
+        pthread_mutex_unlock(&completed_requests_lock);
+        total_requests_completed += completed_requests_lcl;
+        // for(int i = 0; i < completed_requests_lcl; i++){
+        //     pop_pr_request_nc(ptr);
+        // }
+        if(completed_requests_lcl > 0){
+            printf("-----------------Completed %u Requests \n\r", completed_requests_lcl);
+            printf("Total requests completed: %u \n\r", total_requests_completed);
+        }        
     }
 
     close(fd);
