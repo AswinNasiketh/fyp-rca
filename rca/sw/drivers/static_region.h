@@ -65,10 +65,12 @@ uint32_t configure_src_regs(static_region_t* pstatic_config, rca_t rca, uint32_t
 uint32_t configure_nfb_dst_regs(static_region_t* pstatic_config, rca_t rca, uint32_t* reg_addrs);
 uint32_t configure_fb_dst_regs(static_region_t* pstatic_config, rca_t rca, uint32_t* reg_addrs);
 uint32_t configure_grid_mux(static_region_t* pstatic_config, uint32_t row, uint32_t col, grid_slot_inp_t inp, grid_mux_inp_addr_t inp_addr);
+uint32_t configure_io_unit_mux(static_region_t* pstatic_config, uint32_t io_unit_addr, bool is_input, io_mux_inp_addr_t io_mux_inp_addr);
+uint32_t configure_io_unit_inp_mask(static_region_t* pstatic_config, rca_t rca, bool* is_input);
 uint32_t configure_fb_result_mux(static_region_t* pstatic_config, rca_t rca, rd_t write_port, uint32_t io_unit_addr);
 uint32_t configure_nfb_result_mux(static_region_t* pstatic_config, rca_t rca, rd_t write_port, uint32_t io_unit_addr);
 uint32_t configure_input_constant(static_region_t* pstatic_config, uint32_t io_unit_addr, uint32_t new_constant);
-uint32_t configure_fb_ls_mask(static_region_t* pstatic_config, rca_t rca, uint32_t io_unit_addr, bool wait_for_ls_request);
-uint32_t configure_nfb_ls_mask(static_region_t* pstatic_config, rca_t rca, uint32_t io_unit_addr, bool wait_for_ls_request);
+uint32_t configure_fb_ls_mask(static_region_t* pstatic_config, rca_t rca, bool* wait_for_ls_request);
+uint32_t configure_nfb_ls_mask(static_region_t* pstatic_config, rca_t rca, bool* wait_for_ls_request);
 
 //Note:https://beginnersbook.com/2014/01/2d-arrays-in-c-example/

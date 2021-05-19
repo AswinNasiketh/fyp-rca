@@ -33,10 +33,16 @@ uint32_t configure_grid_mux(static_region_t* pstatic_config, uint32_t row, uint3
     return 0;
 }
 
-uint32_t configure_io_unit(static_region_t* pstatic_config, uint32_t io_unit_addr, bool is_input, io_mux_inp_addr_t io_mux_inp_addr){
+uint32_t configure_io_unit_mux(static_region_t* pstatic_config, uint32_t io_unit_addr, bool is_input, io_mux_inp_addr_t io_mux_inp_addr){
     if(io_unit_addr >= NUM_IO_MUX_INPUTS) return 1;
     pstatic_config->io_mux_sel[io_unit_addr] = io_mux_inp_addr;
-    pstatic_config->io_unit_is_input[io_unit_addr] = is_input;
+    return 0;
+}
+//is_input array must have NUM_IO_UNIT elements
+uint32_t configure_io_unit_inp_mask(static_region_t* pstatic_config, rca_t rca, bool* is_input){
+    for(int i = 0; i < NUM_IO_UNITS; i++){
+        pstatic_config->io_unit_is_input[rca][i] = is_input[i];
+    }
     return 0;
 }
 
@@ -58,15 +64,18 @@ uint32_t configure_input_constant(static_region_t* pstatic_config, uint32_t io_u
     return 0;
 }
 
-uint32_t configure_fb_ls_mask(static_region_t* pstatic_config, rca_t rca, uint32_t io_unit_addr, bool wait_for_ls_request){
-    if(io_unit_addr >= NUM_IO_UNITS) return 1;
-    pstatic_config->ls_mask_fb[rca][io_unit_addr] = wait_for_ls_request;
+//wait_for_ls_request array must have NUM_IO_UNITS elements
+uint32_t configure_fb_ls_mask(static_region_t* pstatic_config, rca_t rca, bool* wait_for_ls_request){
+    for(int i = 0; i < NUM_IO_UNITS; i++){
+        pstatic_config->ls_mask_fb[rca][i] = wait_for_ls_request[i];
+    }    
     return 0;
 }
 
-uint32_t configure_nfb_ls_mask(static_region_t* pstatic_config, rca_t rca, uint32_t io_unit_addr, bool wait_for_ls_request){
-    if(io_unit_addr >= NUM_IO_UNITS) return 1;
-    pstatic_config->ls_mask_nfb[rca][io_unit_addr] = wait_for_ls_request;
+uint32_t configure_nfb_ls_mask(static_region_t* pstatic_config, rca_t rca, bool* wait_for_ls_request){
+    for(int i = 0; i < NUM_IO_UNITS; i++){
+        pstatic_config->ls_mask_nfb[rca][i] = wait_for_ls_request[i];
+    }    
     return 0;
 }
 
