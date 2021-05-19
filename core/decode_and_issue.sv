@@ -48,7 +48,7 @@ module decode_and_issue (
 
         input rca_cpu_reg_config_t rca_config_regs_op,
         input rca_config_locked,
-        input pr_request_pending,
+        input pr_requests_incomplete,
 
         unit_issue_interface.decode unit_issue [NUM_UNITS-1:0],
         input logic potential_branch_exception,
@@ -357,7 +357,7 @@ module decode_and_issue (
     end endgenerate
 
     //special case for RCA to lock configuration whenever an RCA is running and don't use RCAs if a PR request is pending
-    assign unit_ready[RCA_UNIT_WB_ID] = unit_issue[RCA_UNIT_WB_ID].ready && !(rca_config_locked && issue.rca_config_instr) && !(pr_request_pending && issue.rca_use_instr);
+    assign unit_ready[RCA_UNIT_WB_ID] = unit_issue[RCA_UNIT_WB_ID].ready && !(rca_config_locked && issue.rca_config_instr) && !(pr_requests_incomplete && issue.rca_use_instr);
 
     //special case for PR Queue to not issue any PR requests when RCA config is locked
     assign unit_ready[PR_QUEUE_WB_ID] = unit_issue[PR_QUEUE_WB_ID].ready && (~rca_config_locked); 

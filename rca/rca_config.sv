@@ -57,4 +57,6 @@ package rca_config;
     localparam NUM_OUS = 22;
     localparam MAX_PR_QUEUE_REQUESTS = 8;
 
+    localparam MAX_INCOMPLETE_PR_REQUESTS = 64;
+
 endpackage

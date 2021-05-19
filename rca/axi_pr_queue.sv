@@ -26,7 +26,8 @@ module axi_pr_queue
 	// input wire s_axi_aresetn,
 
     //Interrupt and RCA stall signal
-    output logic pr_request_pending,
+    output logic pr_request_pending, //to ARM core for interrupt
+    output logic pr_requests_incomplete, //for Taiga decoder
 
     //Taiga Interfaces
     unit_issue_interface.unit issue,
@@ -35,8 +36,8 @@ module axi_pr_queue
 );
 
 // parameter ENQUEUE_W_ADDR = 2'b01;
-parameter PEEK_R_ADDR = 4'h4;
-parameter POP_R_ADDR = 4'h8;
+parameter POP_R_ADDR = 4'h4;
+parameter COMPLETE_R_ADDR = 4'h8;
 parameter CHECK_PENDING_R_ADDR = 4'hC;
 
 fifo_interface #(.DATA_WIDTH($bits(pr_queue_inputs_t))) pr_request_fifo_if ();
@@ -83,8 +84,16 @@ set_clr_reg_with_rst #(.SET_OVER_CLR(1), .WIDTH(1), .RST_VALUE(0)) wb_ack_wait (
 
 assign wb.done = waiting_for_ack;
 
-assign issue.ready = !waiting_for_ack && !request_fifo_full;
-    
+assign issue.ready = !waiting_for_ack && !request_fifo_full && !(&incomplete_pr_request_count);
+
+logic [$clog2(MAX_INCOMPLETE_PR_REQUESTS)-1:0] incomplete_pr_request_count;
+always_ff @(posedge clk)
+    if(rst)
+        incomplete_pr_request_count <= 0;
+    else
+        incomplete_pr_request_count <= incomplete_pr_request_count + ($clog2(MAX_INCOMPLETE_PR_REQUESTS))'(issue.new_request) - ($clog2(MAX_INCOMPLETE_PR_REQUESTS))'(request_complete);
+
+assign pr_requests_incomplete = |incomplete_pr_request_count;
 
 // Bus read FSM - Taken from James Davis' URAM Checkerboard
 localparam [1:0]
@@ -96,6 +105,7 @@ reg [1:0] rstate;
 
 logic pop;
 logic check_pending;
+logic request_complete;
 
 localparam NUM_R_DATA_BITS = $clog2(GRID_NUM_COLS*GRID_NUM_ROWS) + $clog2(NUM_OUS);
 always @ (posedge clk) begin
@@ -103,15 +113,17 @@ always @ (posedge clk) begin
     s_axi_rvalid <= 1'h0;
     s_axi_rdata <= '0;
 
-    pop_pr_request <= 1'h0;  
+    pop_pr_request <= 1'h0;
+    request_complete <= 1'h0;
     if (~rst)
         case (rstate)
             RSTATE_ADDR:
                 if (s_axi_arvalid) begin
                     rstate <= RSTATE_CAPTURE;
                     s_axi_arready <= 1'h1;
-                    pop <= (s_axi_araddr == POP_R_ADDR); //just determine whether its a pop or a peek
+                    pop <= (s_axi_araddr == POP_R_ADDR);
                     check_pending <= (s_axi_araddr == CHECK_PENDING_R_ADDR);
+                    request_complete <= (s_axi_araddr == COMPLETE_R_ADDR); 
                 end
             RSTATE_CAPTURE: begin
                 rstate <= RSTATE_DATA;

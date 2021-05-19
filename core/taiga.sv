@@ -179,7 +179,7 @@ module taiga (
 
     rca_writeback_interface rca_wb();
     logic rca_config_locked;
-
+    logic pr_requests_incomplete;
     //RCA-LSU interface 
     rca_lsu_interface rca_ls();
 
