@@ -3,7 +3,7 @@
 #include "static_region.h"
 
 //reg_addrs points to array with 5 register addresses
-uint32_t configure_src_regs(static_region_t* pstatic_config, rca_t rca, uint32_t* reg_addrs){
+uint32_t configure_src_regs(static_region_t* pstatic_config, rca_t rca, uint32_t reg_addrs[NUM_READ_PORTS]){
     for(int i = 0; i < NUM_READ_PORTS; i++){
         if(reg_addrs[i] > 31) return 1; //returns 1 if register addr is outside range
         pstatic_config->cpu_src_regs[rca][i] = reg_addrs[i];
@@ -11,7 +11,7 @@ uint32_t configure_src_regs(static_region_t* pstatic_config, rca_t rca, uint32_t
     return 0;
 }
 
-uint32_t configure_nfb_dst_regs(static_region_t* pstatic_config, rca_t rca, uint32_t* reg_addrs){
+uint32_t configure_nfb_dst_regs(static_region_t* pstatic_config, rca_t rca, uint32_t reg_addrs[NUM_WRITE_PORTS]){
     for(int i = 0; i < NUM_WRITE_PORTS; i++){
         if(reg_addrs[i] > 31) return 1; //returns 1 if register addr is outside range
         pstatic_config->cpu_nfb_dst_regs[rca][i] = reg_addrs[i];
@@ -19,7 +19,7 @@ uint32_t configure_nfb_dst_regs(static_region_t* pstatic_config, rca_t rca, uint
     return 0;
 }
 
-uint32_t configure_fb_dst_regs(static_region_t* pstatic_config, rca_t rca, uint32_t* reg_addrs){
+uint32_t configure_fb_dst_regs(static_region_t* pstatic_config, rca_t rca, uint32_t reg_addrs[NUM_WRITE_PORTS]){
     for(int i = 0; i < NUM_WRITE_PORTS; i++){
         if(reg_addrs[i] > 31) return 1; //returns 1 if register addr is outside range
         pstatic_config->cpu_fb_dst_regs[rca][i] = reg_addrs[i];
@@ -33,13 +33,13 @@ uint32_t configure_grid_mux(static_region_t* pstatic_config, uint32_t row, uint3
     return 0;
 }
 
-uint32_t configure_io_unit_mux(static_region_t* pstatic_config, uint32_t io_unit_addr, bool is_input, io_mux_inp_addr_t io_mux_inp_addr){
+uint32_t configure_io_unit_mux(static_region_t* pstatic_config, uint32_t io_unit_addr, io_mux_inp_addr_t io_mux_inp_addr){
     if(io_unit_addr >= NUM_IO_MUX_INPUTS) return 1;
     pstatic_config->io_mux_sel[io_unit_addr] = io_mux_inp_addr;
     return 0;
 }
 //is_input array must have NUM_IO_UNIT elements
-uint32_t configure_io_unit_inp_mask(static_region_t* pstatic_config, rca_t rca, bool* is_input){
+uint32_t configure_io_unit_inp_mask(static_region_t* pstatic_config, rca_t rca, bool is_input[NUM_IO_UNITS]){
     for(int i = 0; i < NUM_IO_UNITS; i++){
         pstatic_config->io_unit_is_input[rca][i] = is_input[i];
     }
@@ -65,14 +65,14 @@ uint32_t configure_input_constant(static_region_t* pstatic_config, uint32_t io_u
 }
 
 //wait_for_ls_request array must have NUM_IO_UNITS elements
-uint32_t configure_fb_ls_mask(static_region_t* pstatic_config, rca_t rca, bool* wait_for_ls_request){
+uint32_t configure_fb_ls_mask(static_region_t* pstatic_config, rca_t rca, bool wait_for_ls_request[NUM_IO_UNITS]){
     for(int i = 0; i < NUM_IO_UNITS; i++){
         pstatic_config->ls_mask_fb[rca][i] = wait_for_ls_request[i];
     }    
     return 0;
 }
 
-uint32_t configure_nfb_ls_mask(static_region_t* pstatic_config, rca_t rca, bool* wait_for_ls_request){
+uint32_t configure_nfb_ls_mask(static_region_t* pstatic_config, rca_t rca, bool wait_for_ls_request[NUM_IO_UNITS]){
     for(int i = 0; i < NUM_IO_UNITS; i++){
         pstatic_config->ls_mask_nfb[rca][i] = wait_for_ls_request[i];
     }    

@@ -13,8 +13,8 @@
 
 #define TAIGA_PR_QUEUE_BASEADDR             0x43C00000
 #define TAIGA_PR_QUEUE_MAP_SIZE             0x10000
-#define TAIGA_PR_QUEUE_PEEK_OFFSET          0x4
-#define TAIGA_PR_QUEUE_POP_OFFSET           0x8
+#define TAIGA_PR_QUEUE_COMPLETE_OFFSET      0x8
+#define TAIGA_PR_QUEUE_POP_OFFSET           0x4
 #define TAIGA_PR_QUEUE_REQUEST_PENDING_OFFSET   0xC
 
 #define GRID_SLOT_MASK                      0x0000001F
@@ -187,13 +187,13 @@ void do_pr_request(pr_request_t pr_request, char pb_paths[NUM_GRID_SLOTS][MAX_PA
     system(command);
 }
 
-uint32_t pop_pr_request_nc(void* ptr){
+uint32_t complete_pr_request(void* ptr){
     uint32_t pr_request_pop_raw;
 
-    printf("Popping PR Request\n\r");
-    pr_request_pop_raw = *((unsigned volatile *)(ptr + TAIGA_PR_QUEUE_POP_OFFSET));   
+    // printf("Completing PR Request\n\r");
+    pr_request_pop_raw = *((unsigned volatile *)(ptr + TAIGA_PR_QUEUE_COMPLETE_OFFSET));   
 
-    return pr_request_pop_raw;
+    return pr_request_pop_raw; //unpredictable
 }
 
 char pb_path[NUM_GRID_SLOTS][MAX_PATH_LEN]; 
@@ -309,9 +309,9 @@ int main(void)
         completed_requests = 0;
         pthread_mutex_unlock(&completed_requests_lock);
         total_requests_completed += completed_requests_lcl;
-        // for(int i = 0; i < completed_requests_lcl; i++){
-        //     pop_pr_request_nc(ptr);
-        // }
+        for(int i = 0; i < completed_requests_lcl; i++){
+            complete_pr_request(ptr);
+        }
         if(completed_requests_lcl > 0){
             printf("-----------------Completed %u Requests \n\r", completed_requests_lcl);
             printf("Total requests completed: %u \n\r", total_requests_completed);
