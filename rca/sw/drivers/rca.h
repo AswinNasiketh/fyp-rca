@@ -13,13 +13,13 @@
 #define NUM_CPU_REGS            32
 #define NUM_REG_PORTS           5
 
-#define NUM_GRID_ROWS           12
+#define NUM_GRID_ROWS           5
 #define NUM_GRID_COLS           6
-#define NUM_GRID_MUXES          144 //(NUM_GRID_ROWS * NUM_GRID_COLS * 2)
+#define NUM_GRID_MUXES          60 //(NUM_GRID_ROWS * NUM_GRID_COLS * 2)
 #define NUM_GRID_MUX_INPUTS     8 //(NUM_GRID_COLS + 1 (IO) + 1 (LSI))
 #define LSI_GRID_MUX_ADDR       7 //LSI - Left side input
 
-#define NUM_IO_UNITS            13 //(NUM_GRID_ROWS + 1)
+#define NUM_IO_UNITS            6 //(NUM_GRID_ROWS + 1)
 #define NUM_IO_MUX_INPUTS       12 //(NUM_READ_PORTS + NUM_GRID_COLS + 1)
 #define IO_UNIT_GRID_MUX_ADDR   6
 
@@ -27,7 +27,7 @@
 #define NUM_READ_PORTS          5
 #define NUM_WRITE_PORTS         5
 
-#define UNUSED_WRITE_PORT_ADDR  13 //(NUM_IO_UNITS)
+#define UNUSED_WRITE_PORT_ADDR  6 //(NUM_IO_UNITS)
 
 typedef enum {
     RX1 = 0,
@@ -52,6 +52,7 @@ typedef enum {
 
 char rca_to_opcode_ext(rca_t rca);
 reg_port_t int_to_reg_port(uint32_t i);
+uint32_t grid_coord_to_slot(uint32_t row, uint32_t col);
 
 //Static Region Configuration
 void rca_config_cpu_reg(rca_t rca, reg_port_t reg_port, reg_port_type_t reg_port_type, uint32_t reg_addr);

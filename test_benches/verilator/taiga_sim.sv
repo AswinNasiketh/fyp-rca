@@ -284,6 +284,24 @@ module taiga_sim # (
     assign data_bram_data_in = data_bram.data_in;
     assign data_bram.data_out = data_bram_data_out;
 
+    //Dummy logic for Taiga PR queue
+    logic [1:0] s_axi_awaddr;
+    logic s_axi_awvalid;
+    logic s_axi_awready;
+    logic [31:0] s_axi_wdata;
+    logic s_axi_wvalid;
+    logic s_axi_wready;
+    logic s_axi_bvalid;
+    logic s_axi_bready;
+    logic [3:0] s_axi_araddr;
+    logic s_axi_arvalid;
+    logic s_axi_arready;
+    logic [31:0] s_axi_rdata;
+    logic s_axi_rvalid;
+    logic s_axi_rready;
+    logic pr_request_pending;
+    
+
     taiga cpu(.*, .l2(l2[0]));
 
     //read channel

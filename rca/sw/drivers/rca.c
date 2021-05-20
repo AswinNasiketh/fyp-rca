@@ -4,6 +4,10 @@
 
 #include "rca.h"
 
+uint32_t grid_coord_to_slot(uint32_t row, uint32_t col){
+    return (NUM_GRID_COLS*row) + col;
+}
+
 static void bad_config_trap(){
     printf("bad config");
     // while(1);

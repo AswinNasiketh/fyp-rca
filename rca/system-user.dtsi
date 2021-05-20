@@ -1,0 +1,16 @@
+//Device tree additions to enable UIO driver for Taiga AXI slave interrupt
+//Ensure PL is included in device tree for petalinux
+//Ensure UIO drivers are included in petalinux kernel - Tutorial: https://xilinx-wiki.atlassian.net/wiki/spaces/A/pages/18842490/Testing+UIO+with+Interrupt+on+Zynq+Ultrascale
+
+/include/ "system-conf.dtsi"
+/ {
+	chosen {
+
+        	bootargs = "ttyPS0,115200 earlycon uio_pdrv_genirq.of_id=generic-uio root=/dev/mmcblk0p2 rw rootwait";
+			stdout-path = "serial0:115200n8";
+        };
+};
+
+&taiga_wrapper_xilinx_0 {
+	compatible = "generic-uio";	
+};

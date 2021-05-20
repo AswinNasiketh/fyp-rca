@@ -51,6 +51,7 @@ package taiga_config;
 
     //RCAs
     localparam USE_RCA = 1;
+    localparam USE_PR_QUEUE = 1;
 
     //Multiply and Divide Inclusion
     localparam USE_MUL = 1;
@@ -194,7 +195,7 @@ package taiga_config;
 
     ////////////////////////////////////////////////////
     //Write-Back Unit IDs
-    localparam NUM_WB_UNITS = 2 + USE_MUL + USE_DIV + USE_TESTADDER + USE_RCA;//ALU and LS
+    localparam NUM_WB_UNITS = 2 + USE_MUL + USE_DIV + USE_TESTADDER + USE_RCA + USE_PR_QUEUE;//ALU and LS
     localparam NUM_UNITS = NUM_WB_UNITS + 2;//Branch and CSRs
 
     localparam ALU_UNIT_WB_ID = 0;
@@ -203,8 +204,9 @@ package taiga_config;
     localparam MUL_UNIT_WB_ID = DIV_UNIT_WB_ID + USE_MUL;
     localparam TESTADDER_UNIT_WB_ID = MUL_UNIT_WB_ID + USE_TESTADDER;
     localparam RCA_UNIT_WB_ID = TESTADDER_UNIT_WB_ID + USE_RCA;
+    localparam PR_QUEUE_WB_ID = RCA_UNIT_WB_ID + USE_PR_QUEUE;
     //Non-writeback units
-    localparam BRANCH_UNIT_ID = RCA_UNIT_WB_ID + 1;
+    localparam BRANCH_UNIT_ID = PR_QUEUE_WB_ID + 1;
     localparam GC_UNIT_ID = BRANCH_UNIT_ID + 1;
 
     ////////////////////////////////////////////////////

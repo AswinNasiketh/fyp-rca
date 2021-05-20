@@ -29,6 +29,3 @@ set bs_name greybox
 set bs_path $bitstream_dir$bs_name
 write_bitstream $bs_path -force -bin_file -no_partial_bitfile
 close_design
-
-exec "cd /home/anv17/FYP/fyp-rca/rca/bitstreams"
-exec "bootgen -image greybox.bif -arch zynq -process_bitstream bin -w on"

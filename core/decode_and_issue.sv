@@ -44,9 +44,11 @@ module decode_and_issue (
         output div_inputs_t div_inputs,
         output rca_inputs_t rca_inputs,
         output rca_dec_inputs_r_t rca_dec_inputs_r,
+        output pr_queue_inputs_t pr_queue_inputs,
 
         input rca_cpu_reg_config_t rca_config_regs_op,
         input rca_config_locked,
+        input pr_requests_incomplete,
 
         unit_issue_interface.decode unit_issue [NUM_UNITS-1:0],
         input logic potential_branch_exception,
@@ -181,7 +183,7 @@ module decode_and_issue (
     assign uses_rd = !(opcode_trim inside {BRANCH_T, STORE_T, FENCE_T} || environment_op || rca_instr);
 
     //rca instruction decode
-    assign rca_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) : 1'b0;
+    assign rca_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && !(fn7 inside {PUSH_PR_REQUEST_fn7}) : 1'b0;
     assign rca_use_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 inside {USE_FB_fn7, USE_NFB_fn7}) : 1'b0;
     assign rca_use_fb_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == USE_FB_fn7) : 1'b0;
 
@@ -250,7 +252,7 @@ module decode_and_issue (
 
     //Writeback interface
     generate if (USE_RCA)
-        assign unit_needed[RCA_UNIT_WB_ID] = (opcode_trim == RCA_T); //not using fn3 and fn7
+        assign unit_needed[RCA_UNIT_WB_ID] = (opcode_trim == RCA_T) && !(fn7 inside {PUSH_PR_REQUEST_fn7});
     endgenerate
 
     //decode interface
@@ -332,6 +334,16 @@ module decode_and_issue (
         assign rca_inputs.new_io_ls_mask = rs_data[RS2][NUM_IO_UNITS-1:0];
     endgenerate
 
+    //PR Queue inputs
+    generate if (USE_PR_QUEUE)
+        assign unit_needed[PR_QUEUE_WB_ID] = (opcode_trim == RCA_T) && (fn7 == PUSH_PR_REQUEST_fn7);
+    endgenerate
+
+    generate if (USE_PR_QUEUE)
+        assign pr_queue_inputs.grid_slot = rs_data[RS1][$clog2(GRID_NUM_COLS*GRID_NUM_ROWS)-1:0];
+        assign pr_queue_inputs.ou_id = rs_data[RS2][$clog2(NUM_OUS)-1:0];
+    endgenerate
+
     always_ff @(posedge clk) begin
         if (issue_stage_ready)
             unit_needed_issue_stage <= unit_needed;
@@ -340,12 +352,15 @@ module decode_and_issue (
     ////////////////////////////////////////////////////
     //Unit ready
     generate for (i=0; i<NUM_UNITS; i++) begin
-        if (i != RCA_UNIT_WB_ID)
+        if (i != RCA_UNIT_WB_ID && i != PR_QUEUE_WB_ID)
             assign unit_ready[i] = unit_issue[i].ready;
     end endgenerate
 
-    //special case for RCA to lock configuration whenever an RCA is running
-    assign unit_ready[RCA_UNIT_WB_ID] = unit_issue[RCA_UNIT_WB_ID].ready && !(rca_config_locked && issue.rca_config_instr);    
+    //special case for RCA to lock configuration whenever an RCA is running and don't use RCAs if a PR request is pending
+    assign unit_ready[RCA_UNIT_WB_ID] = unit_issue[RCA_UNIT_WB_ID].ready && !(rca_config_locked && issue.rca_config_instr) && !(pr_requests_incomplete && issue.rca_use_instr);
+
+    //special case for PR Queue to not issue any PR requests when RCA config is locked
+    assign unit_ready[PR_QUEUE_WB_ID] = unit_issue[PR_QUEUE_WB_ID].ready && (~rca_config_locked); 
 
     ////////////////////////////////////////////////////
     //Issue Determination

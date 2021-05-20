@@ -75,7 +75,24 @@ import l2_config_and_types::*;
 	    output logic m_axi_bready,
 	    input logic m_axi_bvalid,
 	    input logic [1:0] m_axi_bresp,
-	    input logic [5:0] m_axi_bid
+	    input logic [5:0] m_axi_bid,
+
+		//AXI slave interface for PR Queue
+        input [1:0] s_axi_awaddr,
+	    input s_axi_awvalid,
+	    output s_axi_awready,
+        input [31:0] s_axi_wdata,
+        input s_axi_wvalid,
+        output s_axi_wready,
+        output s_axi_bvalid,
+        input s_axi_bready,
+        input [3:0] s_axi_araddr,
+        input s_axi_arvalid,
+        output s_axi_arready,
+        output [31:0] s_axi_rdata,
+        output s_axi_rvalid,
+        input s_axi_rready,
+		output pr_request_pending
     );
 
     //Unused outputs
@@ -88,7 +105,7 @@ import l2_config_and_types::*;
     //AXI interface
     axi_interface m_axi();
 
-    assign m_axi_arready = m_axi.arready;
+    // assign m_axi_arready = m_axi.arready;
     assign m_axi_arvalid = m_axi.arvalid;
     assign m_axi_araddr = m_axi.araddr;
     assign m_axi_arlen = m_axi.arlen;
@@ -97,6 +114,7 @@ import l2_config_and_types::*;
     assign m_axi_arcache = m_axi.arcache;
     //assign m_axi_arid = m_axi.arid;
 
+	assign m_axi.arready = m_axi_arready;
     assign m_axi_rready = m_axi.rready;
     assign m_axi_rvalid = m_axi.rvalid;
     assign m_axi_rdata = m_axi.rdata;

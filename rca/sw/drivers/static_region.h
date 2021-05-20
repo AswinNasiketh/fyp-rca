@@ -20,10 +20,57 @@ typedef struct {
     bool ls_mask_nfb [NUM_RCAS][NUM_IO_UNITS];
 } static_region_t;
 
+typedef enum{
+    SLOT_0 = 0,
+    SLOT_1 = 1,
+    SLOT_2 = 2,
+    SLOT_3 = 3,
+    SLOT_4 = 4,
+    SLOT_5 = 5,
+    IO_UNIT = IO_UNIT_GRID_MUX_ADDR,
+    LSI = LSI_GRID_MUX_ADDR
+} grid_mux_inp_addr_t;
+
+typedef enum{
+    INP1 = 0,
+    INP2 = 1
+} grid_slot_inp_t;
+
+typedef enum{
+    RS1 = 0,
+    RS2 = 1,
+    RS3 = 2,
+    RS4 = 3,
+    RS5 = 4,
+    SLOT_0_OP = 5,
+    SLOT_1_OP = 6,
+    SLOT_2_OP = 7,
+    SLOT_3_OP = 8,
+    SLOT_4_OP = 9,
+    SLOT_5_OP = 10,
+    CONST = 11
+} io_mux_inp_addr_t;
+
+typedef enum{
+    RD1 = 0,
+    RD2 = 1,
+    RD3 = 2,
+    RD4 = 3,
+    RD5 = 4
+} rd_t;
+
 void write_config(static_region_t* pstatic_config, uint32_t row_start, uint32_t row_end, rca_t rca);
 
-
-
-//TODO: Add functions for changing configuration in a safe way - likely not needed as any bad configs are caught in rca.c
+uint32_t configure_src_regs(static_region_t* pstatic_config, rca_t rca, uint32_t reg_addrs[NUM_READ_PORTS]);
+uint32_t configure_nfb_dst_regs(static_region_t* pstatic_config, rca_t rca, uint32_t reg_addrs[NUM_WRITE_PORTS]);
+uint32_t configure_fb_dst_regs(static_region_t* pstatic_config, rca_t rca, uint32_t reg_addrs[NUM_WRITE_PORTS]);
+uint32_t configure_grid_mux(static_region_t* pstatic_config, uint32_t row, uint32_t col, grid_slot_inp_t inp, grid_mux_inp_addr_t inp_addr);
+uint32_t configure_io_unit_mux(static_region_t* pstatic_config, uint32_t io_unit_addr, io_mux_inp_addr_t io_mux_inp_addr);
+uint32_t configure_io_unit_inp_mask(static_region_t* pstatic_config, rca_t rca, bool is_input[NUM_IO_UNITS]);
+uint32_t configure_fb_result_mux(static_region_t* pstatic_config, rca_t rca, rd_t write_port, uint32_t io_unit_addr);
+uint32_t configure_nfb_result_mux(static_region_t* pstatic_config, rca_t rca, rd_t write_port, uint32_t io_unit_addr);
+uint32_t configure_input_constant(static_region_t* pstatic_config, uint32_t io_unit_addr, uint32_t new_constant);
+uint32_t configure_fb_ls_mask(static_region_t* pstatic_config, rca_t rca, bool wait_for_ls_request[NUM_IO_UNITS]);
+uint32_t configure_nfb_ls_mask(static_region_t* pstatic_config, rca_t rca, bool wait_for_ls_request[NUM_IO_UNITS]);
 
 //Note:https://beginnersbook.com/2014/01/2d-arrays-in-c-example/

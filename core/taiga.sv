@@ -40,7 +40,26 @@ module taiga (
         l2_requester_interface.master l2,
 
         input logic timer_interrupt,
-        input logic interrupt
+        input logic interrupt,
+
+        //AXI slave interface for PR Queue
+        input [1:0] s_axi_awaddr,
+	    input s_axi_awvalid,
+	    output s_axi_awready,
+        input [31:0] s_axi_wdata,
+        input s_axi_wvalid,
+        output s_axi_wready,
+        output s_axi_bvalid,
+        input s_axi_bready,
+        input [3:0] s_axi_araddr,
+        input s_axi_arvalid,
+        output s_axi_arready,
+        output [31:0] s_axi_rdata,
+        output s_axi_rvalid,
+        input s_axi_rready,
+
+        //PR Queue Pending signal
+        output logic pr_request_pending
         );
 
     l1_arbiter_request_interface l1_request[L1_CONNECTIONS-1:0]();
@@ -70,6 +89,7 @@ module taiga (
     rca_inputs_t rca_inputs;
     rca_dec_inputs_r_t rca_dec_inputs_r;
     rca_cpu_reg_config_t rca_config_regs_op;
+    pr_queue_inputs_t pr_queue_inputs;
 
     unit_issue_interface unit_issue [NUM_UNITS-1:0]();
     logic alu_issued;
@@ -159,7 +179,7 @@ module taiga (
 
     rca_writeback_interface rca_wb();
     logic rca_config_locked;
-
+    logic pr_requests_incomplete;
     //RCA-LSU interface 
     rca_lsu_interface rca_ls();
 
@@ -260,6 +280,10 @@ module taiga (
 
     generate if (USE_RCA)
         rca_unit rca (.*, .issue(unit_issue[RCA_UNIT_WB_ID]), .lsu(rca_ls));
+    endgenerate
+
+    generate if (USE_PR_QUEUE)
+        axi_pr_queue pr_queue(.*, .issue(unit_issue[PR_QUEUE_WB_ID]), .wb(unit_wb[PR_QUEUE_WB_ID]));
     endgenerate
 
 
