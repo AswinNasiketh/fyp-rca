@@ -7,11 +7,8 @@ module rca_profiler
     input clk,
     input rst,
     
-    //Signals from branch unit
-    input branch_instr_issue,
-    input [XLEN-1:0] branch_instr_pc,
-    input [20:0] branch_pc_offset,
-    input branch_taken,
+    //Branch Unit interface
+    profiler_branch_interface.profiler branch_data,
 
     output profiler_exception,
     input profiler_inputs_t profiler_inputs,
@@ -22,11 +19,11 @@ module rca_profiler
     //Short backward branch detection
     logic sbb;
     logic cache_operation; //to know whether its a branch instruction which is taken
-    logic profiler_lock; //To lock profile cache when sequence selection routines are running - TODO:set using custom instr
+    logic profiler_lock; //To lock profile cache when sequence selection routines are running
 
-    assign sbb = (signed'(branch_pc_offset) < 20'd0) && (signed'(branch_pc_offset) > SBB_MAX_OFFSET);
+    assign sbb = (signed'(branch_data.branch_pc_offset) < 20'd0) && (signed'(branch_data.branch_pc_offset) > SBB_MAX_OFFSET);
 
-    assign cache_operation = branch_instr_issue && branch_taken && ~profiler_lock;
+    assign cache_operation = branch_data.branch_instr_issue && branch_data.branch_taken && ~profiler_lock;
 
     //Profiler Data Structure
     typedef struct packed{
@@ -46,7 +43,7 @@ module rca_profiler
 
     always_comb
         for(int i = 0; i < NUM_PROFILER_ENTRIES; i++)
-            addr_match[i] = cache_operation && profiler_data[i].valid && (profiler_data[i].branch_instr_addr == branch_instr_pc);
+            addr_match[i] = cache_operation && profiler_data[i].valid && (profiler_data[i].branch_instr_addr == branch_data.branch_instr_pc);
 
     always_comb
         for(int i = 0; i < NUM_PROFILER_ENTRIES; i++)
@@ -101,7 +98,7 @@ module rca_profiler
             profiler_data[i].taken_count = next_taken_count[i];
         
         if(new_cache_entry) begin
-            profiler_data[next_entry_to_replace].branch_instr_addr = branch_instr_pc;
+            profiler_data[next_entry_to_replace].branch_instr_addr = branch_data.branch_instr_pc;
             profiler_data[next_entry_to_replace].taken_count = 1;
             profiler_data[next_entry_to_replace].valid = 1;
         end
@@ -130,11 +127,12 @@ module rca_profiler
     localparam FIELD_TAKEN_COUNT = 32'd2;
 
     always_ff @(posedge clk) begin
-        case(profiler_inputs.field_id)
-            FIELD_BRANCH_ADDR: wb.rd <= 32'(profiler_data[profiler_inputs.entry_index].branch_instr_addr);
-            FIELD_ENTRY_VALID: wb.rd <= 32'(profiler_data[profiler_inputs.entry_index].entry_valid);
-            FIELD_TAKEN_COUNT: wb.rd <= 32'(profiler_data[profiler_inputs.entry_index].taken_count);
-        endcase
+        if(issue.new_request && ~profiler_inputs.toggle_lock)
+            case(profiler_inputs.field_id)
+                FIELD_BRANCH_ADDR: wb.rd <= 32'(profiler_data[profiler_inputs.entry_index].branch_instr_addr);
+                FIELD_ENTRY_VALID: wb.rd <= 32'(profiler_data[profiler_inputs.entry_index].entry_valid);
+                FIELD_TAKEN_COUNT: wb.rd <= 32'(profiler_data[profiler_inputs.entry_index].taken_count);
+            endcase
     end
 
     always_ff @(posedge clk)

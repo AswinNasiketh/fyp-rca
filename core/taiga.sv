@@ -90,6 +90,9 @@ module taiga (
     rca_dec_inputs_r_t rca_dec_inputs_r;
     rca_cpu_reg_config_t rca_config_regs_op;
     pr_queue_inputs_t pr_queue_inputs;
+    profiler_inputs_t profiler_inputs;
+
+    profiler_branch_interface pb_if();
 
     unit_issue_interface unit_issue [NUM_UNITS-1:0]();
     logic alu_issued;
@@ -257,7 +260,7 @@ module taiga (
 
     ////////////////////////////////////////////////////
     //Execution Units
-    branch_unit branch_unit_block (.*, .issue(unit_issue[BRANCH_UNIT_ID]));
+    branch_unit branch_unit_block (.*, .issue(unit_issue[BRANCH_UNIT_ID]), .profiler_data(pb_if));
     alu_unit alu_unit_block (.*, .issue(unit_issue[ALU_UNIT_WB_ID]), .wb(unit_wb[ALU_UNIT_WB_ID]));
     load_store_unit load_store_unit_block (.*, .dcache_on(1'b1), .clear_reservation(1'b0), .tlb(dtlb), .issue(unit_issue[LS_UNIT_WB_ID]), .wb(unit_wb[LS_UNIT_WB_ID]), .l1_request(l1_request[L1_DCACHE_ID]), .l1_response(l1_response[L1_DCACHE_ID]), .rca_lsq(rca_ls));
     generate if (ENABLE_S_MODE) begin
@@ -286,6 +289,9 @@ module taiga (
         axi_pr_queue pr_queue(.*, .issue(unit_issue[PR_QUEUE_WB_ID]), .wb(unit_wb[PR_QUEUE_WB_ID]));
     endgenerate
 
+    generate if (USE_PROFILER)
+        rca_profiler profiler(.*, .issue(unit_issue[RCA_UNIT_WB_ID]), .wb(unit_wb[RCA_UNIT_WB_ID]), .branch_data(pb_if));
+    endgenerate
 
     ////////////////////////////////////////////////////
     //End of Implementation

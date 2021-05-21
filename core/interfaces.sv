@@ -328,3 +328,15 @@ interface rca_lsu_interface;
     output lsu_ready, load_complete, load_data);
 
 endinterface
+
+interface profiler_branch_interface
+    logic branch_instr_issue;
+    logic [XLEN-1:0] branch_instr_pc;
+    logic [20:0] branch_pc_offset;
+    logic branch_taken;
+
+    modport profiler(input branch_instr_issue, branch_instr_pc, branch_pc_offset, branch_taken);
+
+    modport branch(output branch_instr_issue, branch_instr_pc, branch_pc_offset, branch_taken);
+
+endinterface

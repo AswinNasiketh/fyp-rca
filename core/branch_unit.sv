@@ -46,7 +46,10 @@ module branch_unit(
         output logic tr_branch_correct,
         output logic tr_branch_misspredict,
         output logic tr_return_correct,
-        output logic tr_return_misspredict
+        output logic tr_return_misspredict,
+
+        //Profiler interface
+        profiler_branch_interface.branch profiler_data
         );
 
     logic branch_issued_r;
@@ -180,5 +183,11 @@ module branch_unit(
         assign tr_return_misspredict = instruction_is_completing & is_return & branch_flush;
     end
     endgenerate
+
+    //Profiler Interface
+    assign profiler_data.branch_instr_issue = issue.new_request;
+    assign profiler_data.branch_instr_pc = branch_inputs.issue_pc;
+    assign profiler_data.branch_pc_offset = branch_inputs.pc_offset;
+    assign profiler_data.branch_taken = branch_taken; //this includes jals -might not be a good idea
 
 endmodule

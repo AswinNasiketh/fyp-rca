@@ -86,7 +86,10 @@ package riscv_types;
         INP_CONSTANT_CONFIG_fn7 = 7'b0000111,
         IO_LS_MASK_CONFIG_fn7 = 7'b0001000,
 
-        PUSH_PR_REQUEST_fn7 = 7'b0001001
+        PUSH_PR_REQUEST_fn7 = 7'b0001001,
+
+        TOGGLE_PROFILER_LOCK_fn7 = 7'b0001010,
+        GET_PROFILER_DATA_fn7 = 7'b0001011
     } rca_fn7_t;
 
     typedef enum logic [2:0] {
