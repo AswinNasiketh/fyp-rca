@@ -186,7 +186,9 @@ module taiga (
     logic pr_requests_incomplete;
     //RCA-LSU interface 
     rca_lsu_interface rca_ls();
+
     logic profiler_exception;
+    att_fetch_interface att_if();
 
     //Trace Interface Signals
     logic tr_operand_stall;
@@ -239,7 +241,7 @@ module taiga (
 
     ////////////////////////////////////////////////////
     // Fetch
-    fetch fetch_block (.*, .icache_on('1), .tlb(itlb), .l1_request(l1_request[L1_ICACHE_ID]), .l1_response(l1_response[L1_ICACHE_ID]), .exception(1'b0));
+    fetch fetch_block (.*, .icache_on('1), .tlb(itlb), .l1_request(l1_request[L1_ICACHE_ID]), .l1_response(l1_response[L1_ICACHE_ID]), .exception(1'b0), .att(att_if));
     branch_predictor bp_block (.*);
     ras ras_block(.*);
     generate if (ENABLE_S_MODE) begin
@@ -296,7 +298,7 @@ module taiga (
     endgenerate
 
     generate if (USE_ATT)
-        rca_att att(.*, issue(unit_issue[ATT_WB_ID]), .wb(unit_wb[ATT_WB_ID]));
+        rca_att att(.*, issue(unit_issue[ATT_WB_ID]), .wb(unit_wb[ATT_WB_ID]), .fetch(att_if));
     endgenerate
     ////////////////////////////////////////////////////
     //End of Implementation

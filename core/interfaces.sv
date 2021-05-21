@@ -340,3 +340,14 @@ interface profiler_branch_interface
     modport branch(output branch_instr_issue, branch_instr_pc, branch_pc_offset, branch_taken);
 
 endinterface
+
+interface att_fetch_interface
+    logic [XLEN-1:0] if_pc;
+    logic att_override;
+    logic [XLEN-1:0] override_instr;
+    logic [XLEN-1:0] next_pc_override;
+
+    modport fetch(output if_pc, input att_override, override_instr, next_pc_override);
+
+    modport att(input if_pc, output att_override, override_instr, next_pc_override);
+endinterface

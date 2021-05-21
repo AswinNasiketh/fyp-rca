@@ -52,7 +52,10 @@ module fetch(
         local_memory_interface.master instruction_bram,
         input logic icache_on,
         l1_arbiter_request_interface.master l1_request,
-        l1_arbiter_return_interface.master l1_response
+        l1_arbiter_return_interface.master l1_response,
+
+        //ATT interface
+        att_fetch_interface.fetch att
         );
 
     localparam NUM_SUB_UNITS = USE_I_SCRATCH_MEM + USE_ICACHE;
@@ -75,7 +78,11 @@ module fetch(
     typedef struct packed{
         logic address_valid;
         logic [NUM_SUB_UNITS_W-1:0] subunit_id;
+
+        logic att_override;
+        logic [XLEN-1:0] override_instr;
     } fetch_attributes_t;
+
     fetch_attributes_t fetch_attr_next;
     fetch_attributes_t fetch_attr;
 
@@ -111,6 +118,8 @@ module fetch(
             next_pc = bp.branch_flush_pc;
         else if (bp.use_prediction)
             next_pc = bp.is_return ? ras.addr : bp.predicted_pc;
+        else if (att.att_override)
+            next_pc = att.next_pc_override;
         else
             next_pc = pc_plus_4;
     end
@@ -149,6 +158,9 @@ module fetch(
     assign fetch_attr_fifo.pop = fetch_complete;
     one_hot_to_integer #(NUM_SUB_UNITS) hit_way_conv (.*, .one_hot(sub_unit_address_match), .int_out(fetch_attr_next.subunit_id));
     assign fetch_attr_next.address_valid = |sub_unit_address_match;
+
+    assign fetch_attr_next.att_override = att.att_override;
+    assign fetch_attr_next.override_instr = att.override_instr;
 
     assign fetch_attr_fifo.data_in = fetch_attr_next;
 
@@ -189,9 +201,12 @@ module fetch(
     ////////////////////////////////////////////////////
     //Instruction metada updates
     assign if_pc = pc;
-    assign fetch_instruction = unit_data_array[fetch_attr.subunit_id];
+    assign fetch_instruction = fetch_attr.att_override ? fetch_attr.override_instr : unit_data_array[fetch_attr.subunit_id];
     assign fetch_complete = (|unit_data_valid) | (fetch_attr_fifo.valid & ~fetch_attr.address_valid);//allow instruction to propagate to decode if address is invalid
     assign fetch_address_valid = fetch_attr.address_valid;
+
+    //ATT input
+    assign att.if_pc = pc;
 
     ////////////////////////////////////////////////////
     //End of Implementation

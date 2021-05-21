@@ -12,10 +12,7 @@ module rca_att
     unit_writeback_interface.unit wb,
     input att_inputs_t att_inputs,
 
-    input [XLEN-1:0] if_pc,
-    output att_override,
-    output [XLEN-1:0] override_instr,
-    output [XLEN-1:0] next_pc_override
+    att_fetch_interface.att fetch
 );
 
     typedef struct packed{
@@ -32,7 +29,7 @@ module rca_att
     logic [$clog2(NUM_RCAS)-1:0] hit_way_r;
     always_comb
         for(int i = 0; i < NUM_RCAS; i++)
-            entry_hit = (if_pc == rca_triggers[i].loop_start_addr) & rca_triggers[i].valid; 
+            entry_hit = (fetch.if_pc == rca_triggers[i].loop_start_addr) & rca_triggers[i].valid; 
 
     //taken from Branch Predictor
     generate if (NUM_SUB_UNITS > 1)
@@ -68,21 +65,21 @@ module rca_att
         endcase
 
     always_comb begin
-        att_override = 0;
-        override_instr = '0;
-        next_pc_override = '0;
+        fetch.att_override = 0;
+        fetch.override_instr = '0;
+        fetch.next_pc_override = '0;
         case(curr_state)
             STATE_NO_TRIGGER: begin
                 if(|entry_hit) begin
-                    att_override = 1;
-                    override_instr = rca_fb_instrs[hit_way];
-                    next_pc_override = if_pc + 32'd4;
+                    fetch.att_override = 1;
+                    fetch.override_instr = rca_fb_instrs[hit_way];
+                    fetch.next_pc_override = fetch.if_pc + 32'd4;
                 end
             end
             STATE_INJECTED_FB_INSTR: begin
-                att_override = 1;
-                override_instr = rca_nfb_instrs[hit_way_r];
-                next_pc_override = rca_triggers[hit_way_r];
+                fetch.att_override = 1;
+                fetch.override_instr = rca_nfb_instrs[hit_way_r];
+                fetch.next_pc_override = rca_triggers[hit_way_r].sbb_addr;
             end
         endcase
     end
