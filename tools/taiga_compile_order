@@ -134,6 +134,7 @@ rca/pr_modules/sw.sv
 rca/pr_modules/xor.sv
 
 rca/profiler/rca_profiler.sv
+rca/profiler/rca_att.sv
 rca/grid_pr_slot.sv
 rca/rca_pr_grid.sv
 

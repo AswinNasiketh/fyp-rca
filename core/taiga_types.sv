@@ -364,5 +364,11 @@ package taiga_types;
         logic toggle_lock;
     }profiler_inputs_t;
 
+    typedef struct packed{
+        logic [$clog2(NUM_RCAS)-1:0] rca_addr; //rs1
+        logic [31-$clog2(NUM_RCAS):0] field_id; //rs1
+        logic [XLEN-1:0] field_value;
+    }att_inputs_t;
+
 
 endpackage
