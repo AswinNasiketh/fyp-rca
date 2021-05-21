@@ -1,5 +1,5 @@
 //Accelerator Trigger Table - to be integrated with fetch unit
-module rca_profiler
+module rca_att
     import taiga_config::*;
     import riscv_types::*;
     import taiga_types::*;

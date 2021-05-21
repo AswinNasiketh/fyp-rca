@@ -89,7 +89,8 @@ package riscv_types;
         PUSH_PR_REQUEST_fn7 = 7'b0001001,
 
         TOGGLE_PROFILER_LOCK_fn7 = 7'b0001010,
-        GET_PROFILER_DATA_fn7 = 7'b0001011
+        GET_PROFILER_DATA_fn7 = 7'b0001011,
+        ATT_CONFIGURE_fn7 = 7'b0001100
     } rca_fn7_t;
 
     typedef enum logic [2:0] {

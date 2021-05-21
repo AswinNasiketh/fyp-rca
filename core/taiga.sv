@@ -91,6 +91,7 @@ module taiga (
     rca_cpu_reg_config_t rca_config_regs_op;
     pr_queue_inputs_t pr_queue_inputs;
     profiler_inputs_t profiler_inputs;
+    att_inputs_t att_inputs;
 
     profiler_branch_interface pb_if();
 
@@ -291,9 +292,12 @@ module taiga (
     endgenerate
 
     generate if (USE_PROFILER)
-        rca_profiler profiler(.*, .issue(unit_issue[RCA_UNIT_WB_ID]), .wb(unit_wb[RCA_UNIT_WB_ID]), .branch_data(pb_if));
+        rca_profiler profiler(.*, .issue(unit_issue[PROFILER_WB_ID]), .wb(unit_wb[PROFILER_WB_ID]), .branch_data(pb_if));
     endgenerate
 
+    generate if (USE_ATT)
+        rca_att att(.*, issue(unit_issue[ATT_WB_ID]), .wb(unit_wb[ATT_WB_ID]));
+    endgenerate
     ////////////////////////////////////////////////////
     //End of Implementation
     ////////////////////////////////////////////////////

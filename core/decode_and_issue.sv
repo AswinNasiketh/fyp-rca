@@ -46,6 +46,7 @@ module decode_and_issue (
         output rca_dec_inputs_r_t rca_dec_inputs_r,
         output pr_queue_inputs_t pr_queue_inputs,
         output profiler_inputs_t profiler_inputs,
+        output att_inputs_t att_inputs,
 
         input rca_cpu_reg_config_t rca_config_regs_op,
         input rca_config_locked,
@@ -184,7 +185,7 @@ module decode_and_issue (
     assign uses_rd = !(opcode_trim inside {BRANCH_T, STORE_T, FENCE_T} || environment_op || rca_instr);
 
     //rca instruction decode
-    assign rca_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && !(fn7 inside {PUSH_PR_REQUEST_fn7, GET_PROFILER_DATA_fn7, TOGGLE_PROFILER_LOCK_fn7}) : 1'b0;
+    assign rca_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && !(fn7 inside {PUSH_PR_REQUEST_fn7, GET_PROFILER_DATA_fn7, TOGGLE_PROFILER_LOCK_fn7, ATT_CONFIGURE_fn7}) : 1'b0;
     assign rca_use_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 inside {USE_FB_fn7, USE_NFB_fn7}) : 1'b0;
     assign rca_use_fb_instr = (USE_RCA == 1) ? (opcode_trim == RCA_T) && (fn7 == USE_FB_fn7) : 1'b0;
 
@@ -253,7 +254,7 @@ module decode_and_issue (
 
     //Writeback interface
     generate if (USE_RCA)
-        assign unit_needed[RCA_UNIT_WB_ID] = (opcode_trim == RCA_T) && !(fn7 inside {PUSH_PR_REQUEST_fn7, GET_PROFILER_DATA_fn7, TOGGLE_PROFILER_LOCK_fn7});
+        assign unit_needed[RCA_UNIT_WB_ID] = (opcode_trim == RCA_T) && !(fn7 inside {PUSH_PR_REQUEST_fn7, GET_PROFILER_DATA_fn7, TOGGLE_PROFILER_LOCK_fn7, ATT_CONFIGURE_fn7});
     endgenerate
 
     //decode interface
@@ -359,6 +360,16 @@ module decode_and_issue (
             toggle_lock_dec <= (opcode_trim == RCA_T) && (fn7 == TOGGLE_PROFILER_LOCK_fn7);
         
         assign profiler_inputs.toggle_lock = toggle_lock_dec;
+    endgenerate
+
+    generate if (USE_ATT)
+        assign unit_needed[ATT_WB_ID] = (opcode_trim = RCA_T) && (fn7 == ATT_CONFIGURE_fn7);
+    endgenerate
+
+    generate if (USE_ATT)
+        assign att_inputs.rca_addr = rs_data[RS1][$clog2(NUM_RCAS)-1:0];
+        assign att_inputs.field_id = rs_data[RS1][31:$clog2(NUM_RCAS)];
+        assign att_inputs.field_value = rs_data[RS2];
     endgenerate
 
     always_ff @(posedge clk) begin
