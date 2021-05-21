@@ -87,7 +87,9 @@ module gc_unit(
         output logic[31:0] csr_rd,
         output id_t csr_id,
         output logic csr_done,
-        input logic ls_is_idle
+        input logic ls_is_idle,
+
+        input profiler_exception
         );
 
     //Largest depth for TLBs
@@ -278,6 +280,9 @@ module gc_unit(
         end else if (ls_exception.valid) begin
             gc_exception.code = ls_exception.code;
             gc_exception.tval = ls_exception.tval;
+        end else if (profiler_exception) begin
+            gc_exception.code = PROFILER_EXCEPTION;
+            gc_exception.tval = '0;
         end else if (gc_inputs.is_ecall) begin
             gc_exception.code = ecall_code;
             gc_exception.tval = '0;
@@ -288,7 +293,7 @@ module gc_unit(
     end
     logic ecall_break_exception;
     assign ecall_break_exception = issue.new_request & (gc_inputs.is_ecall | gc_inputs.is_ebreak);
-    assign gc_exception.valid = ENABLE_M_MODE & (ecall_break_exception | ls_exception.valid | br_exception.valid | illegal_instruction);
+    assign gc_exception.valid = ENABLE_M_MODE & (ecall_break_exception | ls_exception.valid | br_exception.valid | illegal_instruction | profiler_exception);
 
     //PC determination (trap, flush or return)
     //Two cycles: on first cycle the processor front end is flushed,
@@ -296,7 +301,7 @@ module gc_unit(
     always_ff @ (posedge clk) begin
         gc_exception_r <= gc_exception;
         second_cycle_flush <= gc_flush_required;
-        gc_fetch_pc_override <= gc_flush_required | second_cycle_flush | ls_exception.valid | br_exception.valid;
+        gc_fetch_pc_override <= gc_flush_required | second_cycle_flush | ls_exception.valid | br_exception.valid | profiler_exception;
         if (gc_exception.valid | stage1.is_i_fence | (issue.new_request & gc_inputs.is_ret)) begin
             gc_fetch_pc <= gc_exception.valid ? trap_pc :
                 stage1.is_i_fence ? stage1.pc + 4 : //Could stall on dec_pc valid and use instead of another adder

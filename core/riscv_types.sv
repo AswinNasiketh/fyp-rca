@@ -251,8 +251,9 @@ package riscv_types;
         INST_PAGE_FAULT = 5'd12,
         LOAD_PAGE_FAULT = 5'd13,
         //reserved
-        STORE_OR_AMO_PAGE_FAULT = 5'd15
+        STORE_OR_AMO_PAGE_FAULT = 5'd15,
         //reserved
+        PROFILER_EXCEPTION = 5'd24 //defined as for custom use in riscv ISA
     } exception_code_t;
 
 

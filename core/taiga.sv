@@ -185,6 +185,7 @@ module taiga (
     logic pr_requests_incomplete;
     //RCA-LSU interface 
     rca_lsu_interface rca_ls();
+    logic profiler_exception;
 
     //Trace Interface Signals
     logic tr_operand_stall;
