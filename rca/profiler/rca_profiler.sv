@@ -13,7 +13,7 @@ module rca_profiler
     output profiler_exception,
     input profiler_inputs_t profiler_inputs,
     unit_issue_interface.unit issue,
-    unit_writeback_interface.unit wb,
+    unit_writeback_interface.unit wb
 );
 
     //Short backward branch detection
@@ -21,7 +21,7 @@ module rca_profiler
     logic cache_operation; //to know whether its a branch instruction which is taken
     logic profiler_lock; //To lock profile cache when sequence selection routines are running
 
-    assign sbb = (signed'(branch_data.branch_pc_offset) < 20'd0) && (signed'(branch_data.branch_pc_offset) > SBB_MAX_OFFSET);
+    assign sbb = ($signed(branch_data.branch_pc_offset) < $signed(21'd0)) && (signed'(branch_data.branch_pc_offset) > SBB_MAX_OFFSET);
 
     assign cache_operation = branch_data.branch_instr_issue && branch_data.branch_taken && ~profiler_lock;
 
@@ -43,7 +43,7 @@ module rca_profiler
 
     always_comb
         for(int i = 0; i < NUM_PROFILER_ENTRIES; i++)
-            addr_match[i] = cache_operation && profiler_data[i].valid && (profiler_data[i].branch_instr_addr == branch_data.branch_instr_pc);
+            addr_match[i] = cache_operation && profiler_data[i].entry_valid && (profiler_data[i].branch_instr_addr == branch_data.branch_instr_pc);
 
     always_comb
         for(int i = 0; i < NUM_PROFILER_ENTRIES; i++)
@@ -51,12 +51,12 @@ module rca_profiler
 
     assign shift_required = |(addr_match & max_reached);
 
-    always_comb
+    always_comb begin
         if(shift_required)
             for(int i = 0; i < NUM_PROFILER_ENTRIES; i++)
-                next_taken_count[j] = profiler_data[i].taken_count >> 1;
+                next_taken_count[i] = profiler_data[i].taken_count >> 1;
         
-        for(int j = 0; j < NUM_PROFILER_ENTRIES; i++)
+        for(int j = 0; j < NUM_PROFILER_ENTRIES; j++)
             if(addr_match[j])
                 next_taken_count[j] = profiler_data[j].taken_count + 1;
     end
@@ -64,7 +64,7 @@ module rca_profiler
     //Profile Cache Replacement Mechanism
     logic new_cache_entry;
     logic [$clog2(NUM_PROFILER_ENTRIES)-1:0] entry_lowest_hits;
-    logic [$clog2(NUM_PROFILER_ENTRIES)-1:0] next_invalid_entry;
+    logic [$clog2(NUM_PROFILER_ENTRIES):0] next_invalid_entry;
     logic any_invalid_entries;
     logic [$clog2(NUM_PROFILER_ENTRIES)-1:0] next_entry_to_replace;
     logic [$clog2(MAX_TAKEN_COUNT)-1:0] lowest_taken_count;
@@ -84,13 +84,13 @@ module rca_profiler
     always_comb begin
         next_invalid_entry = 0;
         any_invalid_entries = 0;
-        while(!any_invalid_entries && next_invalid_entry < ($clog2(NUM_PROFILER_ENTRIES))'(NUM_PROFILER_ENTRIES)) begin
-            any_invalid_entries = profiler_data[next_invalid_entry].entry_valid;
-            next_invalid_entry = next_invalid_entry + ($clog2(NUM_PROFILER_ENTRIES))'(~any_invalid_entries);
+        while(!any_invalid_entries && next_invalid_entry < ($clog2(NUM_PROFILER_ENTRIES)+1)'(NUM_PROFILER_ENTRIES)) begin
+            any_invalid_entries = !profiler_data[next_invalid_entry[$clog2(NUM_PROFILER_ENTRIES)-1:0]].entry_valid;
+            next_invalid_entry = next_invalid_entry + ($clog2(NUM_PROFILER_ENTRIES)+1)'(!any_invalid_entries);
         end
     end
 
-    assign next_entry_to_replace = any_invalid_entries ? next_invalid_entry : entry_lowest_hits;
+    assign next_entry_to_replace = any_invalid_entries ? next_invalid_entry[$clog2(NUM_PROFILER_ENTRIES)-1:0] : entry_lowest_hits;
 
     //Updating Profile Cache
     always_ff @(posedge clk) begin
@@ -98,7 +98,7 @@ module rca_profiler
             for(int i = 0; i < NUM_PROFILER_ENTRIES; i++) begin
                 profiler_data[i].branch_instr_addr = '0;
                 profiler_data[i].taken_count = '0;
-                profiler_data[i].valid = '0;
+                profiler_data[i].entry_valid = '0;
             end
         end
         else begin
@@ -108,7 +108,7 @@ module rca_profiler
             if(new_cache_entry) begin
                 profiler_data[next_entry_to_replace].branch_instr_addr = branch_data.branch_instr_pc;
                 profiler_data[next_entry_to_replace].taken_count = 1;
-                profiler_data[next_entry_to_replace].valid = 1;
+                profiler_data[next_entry_to_replace].entry_valid = 1;
             end
         end
     end
@@ -154,10 +154,10 @@ module rca_profiler
 
     always_comb
         for(int i = 0; i < NUM_PROFILER_ENTRIES; i++)
-            threshold_reached[i] = profiler_entry[i].taken_count >= ($clog2(MAX_TAKEN_COUNT))'(TAKEN_COUNT_THRESHOLD);
+            threshold_reached[i] = profiler_data[i].taken_count >= ($clog2(MAX_TAKEN_COUNT))'(TAKEN_COUNT_THRESHOLD);
     
     always_ff @(posedge clk)
-        threshold_reached_r[i] <= threshold_reached[i];
+        threshold_reached_r <= threshold_reached;
 
     always_ff @(posedge clk)
         profiler_exception <= |(threshold_reached & (~threshold_reached_r)) & (~profiler_exception); //only generate exception when a taken count crosses the threshold and we haven't already generated an exception last cycle

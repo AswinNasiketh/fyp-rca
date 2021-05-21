@@ -29,19 +29,17 @@ module rca_att
     logic [$clog2(NUM_RCAS)-1:0] hit_way_r;
     always_comb
         for(int i = 0; i < NUM_RCAS; i++)
-            entry_hit = (fetch.if_pc == rca_triggers[i].loop_start_addr) & rca_triggers[i].valid; 
+            entry_hit[i] = (fetch.if_pc == rca_triggers[i].loop_start_addr) && rca_triggers[i].valid; 
 
     //taken from Branch Predictor
-    generate if (NUM_SUB_UNITS > 1)
-        one_hot_to_integer #(NUM_RCAS) hit_way_conv (.*, .one_hot(entry_hit), .int_out(hit_way));
-    else
+    one_hot_to_integer #(NUM_RCAS) hit_way_conv (.*, .one_hot(entry_hit), .int_out(hit_way));
 
     always_ff @(posedge clk)
         hit_way_r <= hit_way;
 
     //RCA use instruction definitions
-    localparam [XLEN-1:0] rca_fb_instrs [NUM_RCAS] = {32'h0000002b, 32'h0000102b, 32'h0000202b, 32'h0000302b};
-    localparam [XLEN-1:0] rca_nfb_instrs [NUM_RCAS] = {32'h0200002b, 32'h0200102b, 32'h0200202b, 32'h0200302b};
+    localparam [XLEN-1:0] rca_fb_instrs [NUM_RCAS] = '{32'h0000002b, 32'h0000102b, 32'h0000202b, 32'h0000302b};
+    localparam [XLEN-1:0] rca_nfb_instrs [NUM_RCAS] = '{32'h0200002b, 32'h0200102b, 32'h0200202b, 32'h0200302b};
 
 
     //state machine to insert 2 instructions
@@ -53,7 +51,7 @@ module rca_att
 
     always_ff @(posedge clk)
         if(rst)
-            curr_state = STATE_NO_TRIGGER;
+            curr_state <= STATE_NO_TRIGGER;
         else
             curr_state <= next_state;
 
@@ -61,7 +59,7 @@ module rca_att
         case (curr_state)
             STATE_NO_TRIGGER: next_state = (|entry_hit) ? STATE_INJECTED_FB_INSTR : STATE_NO_TRIGGER;
             STATE_INJECTED_FB_INSTR: next_state = STATE_NO_TRIGGER;
-            default: STATE_NO_TRIGGER;
+            default: next_state = STATE_NO_TRIGGER;
         endcase
 
     always_comb begin
@@ -85,16 +83,16 @@ module rca_att
     end
 
     //CPU Control Interface
-    localparam FIELD_SBB_ADDR = 32'd0;
-    localparam FIELD_LOOP_START_ADDR = 32'd1;
-    localparam FIELD_VALID = 32'd2;
+    localparam FIELD_SBB_ADDR = 0;
+    localparam FIELD_LOOP_START_ADDR = 1;
+    localparam FIELD_VALID = 2;
 
     always_ff @(posedge clk)
         if(issue.new_request)
             case(att_inputs.field_id)
                 FIELD_SBB_ADDR: rca_triggers[att_inputs.rca_addr].sbb_addr <= att_inputs.field_value;
                 FIELD_LOOP_START_ADDR: rca_triggers[att_inputs.rca_addr].loop_start_addr <= att_inputs.field_value;
-                FIELD_VALID: rca_triggers[att_inputs.rca_addr].valid <= att_inputs.field_value;
+                FIELD_VALID: rca_triggers[att_inputs.rca_addr].valid <= att_inputs.field_value[0];
             endcase
         else if(rst)
             for(int i = 0 ; i < NUM_RCAS; i++) begin

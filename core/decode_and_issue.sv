@@ -363,7 +363,7 @@ module decode_and_issue (
     endgenerate
 
     generate if (USE_ATT)
-        assign unit_needed[ATT_WB_ID] = (opcode_trim = RCA_T) && (fn7 == ATT_CONFIGURE_fn7);
+        assign unit_needed[ATT_WB_ID] = (opcode_trim == RCA_T) && (fn7 == ATT_CONFIGURE_fn7);
     endgenerate
 
     generate if (USE_ATT)

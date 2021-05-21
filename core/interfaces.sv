@@ -329,7 +329,7 @@ interface rca_lsu_interface;
 
 endinterface
 
-interface profiler_branch_interface
+interface profiler_branch_interface;
     logic branch_instr_issue;
     logic [XLEN-1:0] branch_instr_pc;
     logic [20:0] branch_pc_offset;
@@ -341,7 +341,7 @@ interface profiler_branch_interface
 
 endinterface
 
-interface att_fetch_interface
+interface att_fetch_interface;
     logic [XLEN-1:0] if_pc;
     logic att_override;
     logic [XLEN-1:0] override_instr;

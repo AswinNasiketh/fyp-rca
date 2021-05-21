@@ -298,7 +298,7 @@ module taiga (
     endgenerate
 
     generate if (USE_ATT)
-        rca_att att(.*, issue(unit_issue[ATT_WB_ID]), .wb(unit_wb[ATT_WB_ID]), .fetch(att_if));
+        rca_att att(.*, .issue(unit_issue[ATT_WB_ID]), .wb(unit_wb[ATT_WB_ID]), .fetch(att_if));
     endgenerate
     ////////////////////////////////////////////////////
     //End of Implementation

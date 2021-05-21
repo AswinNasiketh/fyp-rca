@@ -59,7 +59,7 @@ package rca_config;
 
     //Profiler Params
     localparam NUM_PROFILER_ENTRIES = 4;
-    localparam SBB_MAX_OFFSET = 20'(signed'd(-32));
+    localparam SBB_MAX_OFFSET = -(21'd32);
     localparam MAX_TAKEN_COUNT = 256;
     localparam MAX_INCOMPLETE_PR_REQUESTS = 64;
     localparam TAKEN_COUNT_THRESHOLD = 20;
