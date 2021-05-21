@@ -94,13 +94,22 @@ module rca_profiler
 
     //Updating Profile Cache
     always_ff @(posedge clk) begin
-        for (int i = 0; i < NUM_PROFILER_ENTRIES; i++)
-            profiler_data[i].taken_count = next_taken_count[i];
-        
-        if(new_cache_entry) begin
-            profiler_data[next_entry_to_replace].branch_instr_addr = branch_data.branch_instr_pc;
-            profiler_data[next_entry_to_replace].taken_count = 1;
-            profiler_data[next_entry_to_replace].valid = 1;
+        if(rst) begin
+            for(int i = 0; i < NUM_PROFILER_ENTRIES; i++) begin
+                profiler_data[i].branch_instr_addr = '0;
+                profiler_data[i].taken_count = '0;
+                profiler_data[i].valid = '0;
+            end
+        end
+        else begin
+            for (int i = 0; i < NUM_PROFILER_ENTRIES; i++)
+                profiler_data[i].taken_count = next_taken_count[i];
+            
+            if(new_cache_entry) begin
+                profiler_data[next_entry_to_replace].branch_instr_addr = branch_data.branch_instr_pc;
+                profiler_data[next_entry_to_replace].taken_count = 1;
+                profiler_data[next_entry_to_replace].valid = 1;
+            end
         end
     end
 
