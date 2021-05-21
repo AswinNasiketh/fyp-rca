@@ -12,6 +12,11 @@ module rca_profiler
     input [XLEN-1:0] branch_instr_pc,
     input [20:0] branch_pc_offset,
     input branch_taken,
+
+    output profiler_exception,
+    input profiler_inputs_t profiler_inputs,
+    unit_issue_interface.unit issue,
+    unit_writeback_interface.unit wb,
 );
 
     //Short backward branch detection
@@ -102,5 +107,51 @@ module rca_profiler
         end
     end
 
+    //CPU interface
 
+    always_ff @(posedge clk)
+        if(issue.new_request && profiler_inputs.toggle_lock)
+            profiler_lock <= !profiler_lock;
+
+    logic waiting_for_ack; 
+
+    set_clr_reg_with_rst #(.SET_OVER_CLR(1), .WIDTH(1), .RST_VALUE(0)) wb_ack_wait (
+        .clk, .rst,
+        .set(issue.new_request),
+        .clr(wb.ack),
+        .result(waiting_for_ack)
+        );
+
+    assign wb.done = waiting_for_ack;
+    assign issue.ready = !waiting_for_ack;
+
+    localparam FIELD_BRANCH_ADDR = 32'd0;
+    localparam FIELD_ENTRY_VALID = 32'd1;
+    localparam FIELD_TAKEN_COUNT = 32'd2;
+
+    always_ff @(posedge clk) begin
+        case(profiler_inputs.field_id)
+            FIELD_BRANCH_ADDR: wb.rd <= 32'(profiler_data[profiler_inputs.entry_index].branch_instr_addr);
+            FIELD_ENTRY_VALID: wb.rd <= 32'(profiler_data[profiler_inputs.entry_index].entry_valid);
+            FIELD_TAKEN_COUNT: wb.rd <= 32'(profiler_data[profiler_inputs.entry_index].taken_count);
+        endcase
+    end
+
+    always_ff @(posedge clk)
+        if(~waiting_for_ack)
+            wb.id <= issue.id;
+
+    //Exception Generation
+    logic [NUM_PROFILER_ENTRIES-1:0] threshold_reached;
+    logic [NUM_PROFILER_ENTRIES-1:0] threshold_reached_r;
+
+    always_comb
+        for(int i = 0; i < NUM_PROFILER_ENTRIES; i++)
+            threshold_reached[i] = profiler_entry[i].taken_count >= ($clog2(MAX_TAKEN_COUNT))'(TAKEN_COUNT_THRESHOLD);
+    
+    always_ff @(posedge clk)
+        threshold_reached_r[i] <= threshold_reached[i];
+
+    always_ff @(posedge clk)
+        profiler_exception <= |(threshold_reached & (~threshold_reached_r)) & (~profiler_exception); //only generate exception when a taken count crosses the threshold and we haven't already generated an exception last cycle
 endmodule
