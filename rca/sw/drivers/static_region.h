@@ -1,5 +1,6 @@
 // For maintaining a model of the static region of PR grid
-
+#ifndef STATIC_REGION_H
+#define STATIC_REGION_H
 #include "rca.h"
 
 typedef struct {
@@ -74,3 +75,5 @@ uint32_t configure_fb_ls_mask(static_region_t* pstatic_config, rca_t rca, bool w
 uint32_t configure_nfb_ls_mask(static_region_t* pstatic_config, rca_t rca, bool wait_for_ls_request[NUM_IO_UNITS]);
 
 //Note:https://beginnersbook.com/2014/01/2d-arrays-in-c-example/
+
+#endif //STATIC_REGION_H
