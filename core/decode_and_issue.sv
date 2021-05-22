@@ -357,7 +357,8 @@ module decode_and_issue (
         
         logic toggle_lock_dec;
         always_ff @(posedge clk)
-            toggle_lock_dec <= (opcode_trim == RCA_T) && (fn7 == TOGGLE_PROFILER_LOCK_fn7);
+            if(issue_stage_ready)
+                toggle_lock_dec <= (opcode_trim == RCA_T) && (fn7 == TOGGLE_PROFILER_LOCK_fn7);
         
         assign profiler_inputs.toggle_lock = toggle_lock_dec;
     endgenerate
