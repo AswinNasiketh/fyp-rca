@@ -188,6 +188,6 @@ module branch_unit(
     assign profiler_data.branch_instr_issue = issue.new_request;
     assign profiler_data.branch_instr_pc = branch_inputs.issue_pc;
     assign profiler_data.branch_pc_offset = branch_inputs.pc_offset;
-    assign profiler_data.branch_taken = branch_taken; //this includes jals -might not be a good idea
+    assign profiler_data.branch_taken = result & ~branch_inputs.jalr & ~branch_inputs.jalr & ~branch_inputs.is_return;
 
 endmodule
