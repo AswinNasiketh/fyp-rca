@@ -437,3 +437,39 @@ void send_pr_request(ou_t ou, uint32_t grid_slot){
         :
     );
 }
+
+uint32_t get_profiler_data(uint32_t entry_num, profiler_field_t field_id){
+    uint32_t data;
+    uint32_t field_id_uint = (uint32_t) field_id;
+
+    asm volatile("rcagpd %0, %1, %2"
+    :"=r"(data)
+    :"r"(entry_num), "r"(field_id_uint)
+    :
+    );
+
+    return data;
+}
+
+void toggle_profiler_lock(){
+    uint32_t dummy;
+    asm volatile("rcatpl %0, %0, %0"
+    :"=r"(dummy)
+    :
+    :
+    );
+}
+
+profiler_entry_t get_profiler_entry(uint32_t entry_num){
+    if(entry_num >= NUM_PROFILER_ENTRIES){
+        printf("Profiler Entry Index out of range \n\r");
+        while(1);
+    }
+
+    profiler_entry_t profiler_entry;
+    profiler_entry.branch_addr = get_profiler_data(entry_num, BRANCH_ADDR);
+    profiler_entry.entry_valid = get_profiler_data(entry_num, ENTRY_VALID);
+    profiler_entry.taken_count = get_profiler_data(entry_num, TAKEN_COUNT);
+    
+    return profiler_entry;
+}

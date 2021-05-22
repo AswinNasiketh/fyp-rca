@@ -31,6 +31,8 @@
 
 #define NUM_OUS 22
 
+#define NUM_PROFILER_ENTRIES    4
+
 typedef enum {
     RX1 = 0,
     RX2 = 1,
@@ -77,6 +79,18 @@ typedef enum{
     XOR = 21
 }ou_t;
 
+typedef enum{
+    BRANCH_ADDR = 0,
+    ENTRY_VALID = 1,
+    TAKEN_COUNT = 2
+}profiler_field_t;
+
+typedef struct{
+    uint32_t branch_addr;
+    bool entry_valid;
+    uint32_t taken_count; 
+}profiler_entry_t;
+
 char rca_to_opcode_ext(rca_t rca);
 reg_port_t int_to_reg_port(uint32_t i);
 uint32_t grid_coord_to_slot(uint32_t row, uint32_t col);
@@ -98,5 +112,9 @@ void rca_d_use();
 
 //Function wrapper for PR request function
 void send_pr_request(ou_t ou, uint32_t grid_slot);
+
+//Function wrapper for profiler operations
+void toggle_profiler_lock();
+profiler_entry_t get_profiler_entry(uint32_t entry_num);
 
 #endif //RCA_H
