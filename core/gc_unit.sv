@@ -185,7 +185,7 @@ module gc_unit(
     always_ff @(posedge clk) begin
         system_op_or_exception_complete <=
                 (issue.new_request & (gc_inputs.is_ret | gc_inputs.is_fence | gc_inputs.is_i_fence)) |
-                gc_exception.valid;
+                (gc_exception.valid & ~profiler_exception); //profiler exception not technically an exception
         system_op_or_exception_id <= exception_or_system_id;
         exception_with_rd_complete <= (ls_exception.valid & ~ls_exception_is_store) | (br_exception.valid & branch_exception_is_jump);
     end
