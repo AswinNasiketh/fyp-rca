@@ -1,5 +1,6 @@
 #include "board_support.h"
 #include <stdio.h>
+#include <stdint.h>
 
 //UART regs
 #define TX_BUFFER_EMPTY 0x00000020
@@ -83,8 +84,12 @@ unsigned long long  _read_inst()
 	return result;
 }
 
-void platform_init () {
-  //platform specific initialization
+void platform_init (uint32_t trap_handler_addr) {
+  asm volatile("csrrw x0, mtvec, %0"
+	:
+	:"r"(trap_handler_addr)
+	:
+  );
 }
 
 void start_profiling ()  {
