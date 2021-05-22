@@ -121,7 +121,9 @@ module  illegal_instruction_checker
     localparam [31:0] RCA_INP_CONSTANT_CONFIG = 32'b0000111??????????0???????0101011;
     localparam [31:0] RCA_LS_MASK_CONFIG = 32'b0001000??????????0???????0101011;
     localparam [31:0] PR_QUEUE_PUSH = 32'b0001001??????????0???????0101011;
-
+    localparam [31:0] TOGGLE_PROFILER_LOCK  = 32'b0001010??????????0???????0101011;
+    localparam [31:0] GET_PROFILER_DATA = 32'b0001011??????????0???????0101011;
+    localparam [31:0] ATT_CONFIGURE = 32'b0001100??????????0???????0101011;
 
 
     logic base_legal;
@@ -165,7 +167,7 @@ module  illegal_instruction_checker
     };
 
     assign rca_legal = instruction inside {
-        RCA_USE_FB, RCA_USE_NFB, RCA_CPU_REG_CONFIG, RCA_GRID_MUX_CONFIG, RCA_IO_MUX_CONFIG, RCA_RESULT_MUX_CONFIG, RCA_IO_INP_MAP_CONFIG, RCA_INP_CONSTANT_CONFIG, RCA_LS_MASK_CONFIG, PR_QUEUE_PUSH
+        RCA_USE_FB, RCA_USE_NFB, RCA_CPU_REG_CONFIG, RCA_GRID_MUX_CONFIG, RCA_IO_MUX_CONFIG, RCA_RESULT_MUX_CONFIG, RCA_IO_INP_MAP_CONFIG, RCA_INP_CONSTANT_CONFIG, RCA_LS_MASK_CONFIG, PR_QUEUE_PUSH, TOGGLE_PROFILER_LOCK, GET_PROFILER_DATA, ATT_CONFIGURE
     };
 
     assign illegal_instruction = ~(
