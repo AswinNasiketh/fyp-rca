@@ -97,14 +97,6 @@ void rca_c_use();
 void rca_d_use();
 
 //Function wrapper for PR request function
-void send_pr_request(ou_t ou, uint32_t grid_slot){
-    uint32_t dummy;
-    uint32_t rs2 = ou;
-    asm volatile("rcapprq %0, %1, %2;"
-        : "=r"(dummy)
-        : "r"(grid_slot), "r"(rs2)
-        :
-    );
-}
+void send_pr_request(ou_t ou, uint32_t grid_slot);
 
 #endif //RCA_H
