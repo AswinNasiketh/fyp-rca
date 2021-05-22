@@ -115,3 +115,15 @@ void end_profiling ()  {
 	printf("User inst: %lld\r\n", _user_instruction_count);
 	printf("IPCx1M: %lld\r\n", _scaled_IPC);
 }
+
+//Trap Handling
+
+void handle_trap(trapframe_t* tf){
+    if(tf->cause == MCAUSE_PROFILER_EX){
+		printf("Profiler exception!\n\r");
+		handle_profiler_exception();
+	}else{
+		printf("Unhandled exception!\n\r");
+		while(1);
+	}
+}

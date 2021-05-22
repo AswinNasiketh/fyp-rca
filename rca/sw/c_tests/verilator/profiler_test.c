@@ -4,15 +4,9 @@
 #include "static_region.h"
 
 
-// void test_fn(){
-//     printf("Hello World!");
-// }
 
-extern void trap_entry(void);
+extern void trap_entry(void); //defined in trap_entry.S
 
-void handle_trap(){
-    printf("Hello from trap\n\r");
-}
 
 int main(void) {
 
