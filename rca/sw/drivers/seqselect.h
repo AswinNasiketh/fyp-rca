@@ -60,8 +60,11 @@ struct dfg_edge_t{
 };
 
 typedef struct{
-    dfg_edge_t* first_edge;
-    dfg_node_t* first_node;
+    dfg_node_t* nodes;
+    dfg_edge_t* edges;
+
+    uint32_t num_nodes;
+    uint32_t num_edges;
 }dfg_t;
 
 typedef struct{

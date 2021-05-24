@@ -36,28 +36,26 @@ void print_dfg(dfg_t dfg){
     printf("Printing DFG \n\r");
     printf("Nodes: \n\r");
 
-    dfg_node_t* curr_node = dfg.first_node;
-    while(curr_node != NULL){
+    for(int i = 0; i < dfg.num_nodes; i++){
         printf("Node ID: %u, is_input: %u, is_output: %u, is_reg: %u, value: %u, op: %u\n\r",
-        curr_node->node_id,
-        curr_node->is_input,
-        curr_node->is_output,
-        curr_node->reg,
-        curr_node->inp_value,
-        curr_node->op
+        dfg.nodes[i].node_id,
+        dfg.nodes[i].is_input,
+        dfg.nodes[i].is_output,
+        dfg.nodes[i].reg,
+        dfg.nodes[i].inp_value,
+        dfg.nodes[i].op
         );
-        curr_node = curr_node->next_node;
+
     }
 
     printf("Edges: \n\r");
-    dfg_edge_t* curr_edge = dfg.first_edge;
-    while(curr_edge != NULL){
+
+    for(int i = 0; i < dfg.num_edges; i++){
         printf("Edge from: %u, to: %u, slot input: %u\n\r",
-        curr_edge->fromNode,
-        curr_edge->toNode,
-        curr_edge->slot_inp
+        dfg.edges[i].fromNode,
+        dfg.edges[i].toNode,
+        dfg.edges[i].slot_inp
         );
-        curr_edge = curr_edge->next_edge;
     }
 }
 
@@ -492,6 +490,44 @@ void process_instr_inputs(dfg_node_t** last_node, instr_t curr_instr, int32_t re
     }    
 }
 
+void lls_to_arrays(dfg_node_t* first_node, dfg_edge_t* first_edge, uint32_t* num_nodes, uint32_t* num_edges, dfg_node_t** node_arr_ptr, dfg_edge_t** edge_arr_ptr){
+    *num_nodes = 0;
+    *num_edges = 0;
+
+    dfg_node_t* curr_node = first_node;
+    while (curr_node != NULL)
+    {
+        (*num_nodes)++;
+        curr_node = curr_node->next_node;
+    }
+
+    dfg_edge_t* curr_edge = first_edge;
+    while (curr_edge != NULL)
+    {
+        (*num_edges)++;
+        curr_edge = curr_edge->next_edge;
+    }
+
+    *node_arr_ptr = malloc((*num_nodes)*sizeof(dfg_node_t));
+    *edge_arr_ptr = malloc((*num_edges)*sizeof(dfg_edge_t));
+
+    // printf("Num Nodes: %u. Num Edges %u\n\r", *num_nodes, *num_edges);
+
+    curr_node = first_node;
+    for(int i = 0; i < *num_nodes; i++){
+        (*node_arr_ptr)[i] = *curr_node;
+        free(curr_node);
+        curr_node = (*node_arr_ptr)[i].next_node;
+    }
+
+    curr_edge = first_edge;
+    for(int i = 0; i < *num_edges; i++){
+        (*edge_arr_ptr)[i] = *curr_edge;
+        free(curr_edge);
+        curr_edge = (*edge_arr_ptr)[i].next_edge;
+    }    
+}
+
 dfg_t create_dfg(instr_seq_t* instr_seq){
     dfg_t dfg;
     int32_t reg_last_write[NUM_CPU_REGS];
@@ -526,7 +562,7 @@ dfg_t create_dfg(instr_seq_t* instr_seq){
     uint32_t finalNodeID = lastNode->node_id;
     bool* hasOutputEdge = malloc(finalNodeID*sizeof(bool));
 
-    //if there is no output edge for the node, and it is an op, and it has a corresponding entry in the reg_last_write table
+    //if there is no output edge for the node => it must be an op, and it has a corresponding entry in the reg_last_write table
 
 
     dfg_edge_t* curr_edge_ptr = firstEdge.next_edge;
@@ -583,8 +619,17 @@ dfg_t create_dfg(instr_seq_t* instr_seq){
         }
     }
 
-    dfg.first_edge = firstEdge.next_edge;
-    dfg.first_node = firstNode.next_node;
+    dfg_edge_t* edge_arr_ptr;
+    dfg_node_t* node_arr_ptr;
+    uint32_t num_nodes;
+    uint32_t num_edges;
+
+    lls_to_arrays(firstNode.next_node, firstEdge.next_edge, &num_nodes, &num_edges, &node_arr_ptr, &edge_arr_ptr);
+    
+    dfg.nodes = node_arr_ptr;
+    dfg.edges = edge_arr_ptr;
+    dfg.num_nodes = num_nodes;
+    dfg.num_edges = num_edges;
 
     free(hasOutputEdge);
 
