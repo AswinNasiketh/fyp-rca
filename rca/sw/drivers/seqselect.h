@@ -6,7 +6,15 @@
 #include <stdlib.h>
 
 #define SEQ_PROFILE_THRESH          20
+
+#define CPU_LOAD_LATENCY            11 //taken from taiga latency diagram + FIFO depth
+#define RCA_PACKET_LSQ_DEPTH        8
+
 #define MAX_ANNEALING_ATTEMPTS      5
+
+#define CPU_CLK_FREQ                50000000
+#define FRAME_RECONF_TIME_MS        6
+
 
 // void handle_profiler_exception(); // forward declared in board_support.h
 
@@ -72,16 +80,18 @@ typedef struct{
 }pr_grid_t;
 
 typedef struct{
-    uint32_t cpu_time;
-    uint32_t acc_time; 
-    uint32_t reconf_time;
+    uint32_t loop_start_addr;
+    uint32_t num_instrs;
+    dfg_t* dfg;
 
-    uint32_t init_interval;
+    uint32_t cpu_time_per_iter;
+    uint32_t acc_time_per_iter; 
+
+    uint32_t pr_time;
+
     uint32_t num_rows;
-
     uint32_t num_annealing_attempts;
 
-    dfg_t* dfg;
     pr_grid_t* pr_grid;
 }seq_profile_t;
 
@@ -95,6 +105,8 @@ void get_operands_s(uint32_t raw_instr, instr_t* instr);
 
 //DFG
 dfg_t create_dfg(instr_seq_t* instr_seq);
-
+uint32_t find_node_depth_acc(dfg_t dfg, uint32_t nodeID, uint32_t num_ls_ops, bool recursive_call);
+uint32_t find_node_depth_cpu(dfg_t dfg, uint32_t nodeID, bool recursive_call);
+seq_profile_t profile_seq(instr_seq_t* seq);
 
 #endif //SEQSELECT_H

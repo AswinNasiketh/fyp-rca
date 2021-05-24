@@ -59,6 +59,18 @@ void print_dfg(dfg_t dfg){
     }
 }
 
+void print_seq_profile(seq_profile_t seq_prof){
+    printf("Printing Sequence Profile\n\r");
+    printf("Loop start address: %x\n\r", seq_prof.loop_start_addr);
+    printf("Num Instrs: %u\n\r", seq_prof.num_instrs);
+    
+    print_dfg(*(seq_prof.dfg));
+    printf("CPU time per iteration: %u\n\r", seq_prof.cpu_time_per_iter);
+    printf("Acc time per iteration: %u\n\r", seq_prof.acc_time_per_iter);
+
+    printf("PR time: %u\n\r", seq_prof.pr_time);
+}
+
 void handle_profiler_exception(){
     toggle_profiler_lock();
     profiler_entry_t profiler_entries[NUM_PROFILER_ENTRIES];
@@ -82,8 +94,8 @@ void handle_profiler_exception(){
             prof_seqs[i].seq_supported = analyse_instr_seq(profiler_entries[i].branch_addr, offset, &prof_seqs[i]);
             print_instr_seq(prof_seqs[i]);
 
-            dfg_t dfg = create_dfg(&prof_seqs[i]);
-            print_dfg(dfg);
+            seq_profile_t seq_prof = profile_seq(&prof_seqs[i]);
+            print_seq_profile(seq_prof);
         }
     }
 
@@ -274,6 +286,8 @@ void process_instr_inputs_normal(dfg_node_t** last_node, instr_t curr_instr, int
                     add_node(*last_node, new_node);
                     *last_node = new_node;
 
+                    reg_last_write[new_node->inp_value] = new_node->node_id;
+
                     new_edge = malloc(sizeof(dfg_edge_t));
                     init_new_edge(new_edge, new_node->node_id, curr_op_node->node_id, i);
                     add_edge(*last_edge, new_edge);
@@ -350,6 +364,8 @@ void process_instr_inputs_load(dfg_node_t** last_node, instr_t curr_instr, int32
         add_node(*last_node, new_node);
         *last_node = new_node;
 
+        reg_last_write[new_node->inp_value] = new_node->node_id;
+
         new_edge = malloc(sizeof(dfg_edge_t));
         init_new_edge(new_edge, new_node->node_id, adder_node->node_id, INP1);
         add_edge(*last_edge, new_edge);
@@ -398,6 +414,8 @@ void process_instr_inputs_store(dfg_node_t** last_node, instr_t curr_instr, int3
         add_node(*last_node, new_node);
         *last_node = new_node;
 
+        reg_last_write[new_node->inp_value] = new_node->node_id;
+
         new_edge = malloc(sizeof(dfg_edge_t));
         init_new_edge(new_edge, new_node->node_id, adder_node->node_id, INP1);
         add_edge(*last_edge, new_edge);
@@ -434,13 +452,15 @@ void process_instr_inputs_store(dfg_node_t** last_node, instr_t curr_instr, int3
         add_node(*last_node, new_node);
         *last_node = new_node;
 
+        reg_last_write[new_node->inp_value] = new_node->node_id;
+
         new_edge = malloc(sizeof(dfg_edge_t));
         init_new_edge(new_edge, new_node->node_id, curr_op_node->node_id, INP2);
         add_edge(*last_edge, new_edge);
         *last_edge = new_edge;
     }else{
         new_edge = malloc(sizeof(dfg_edge_t));
-        init_new_edge(new_edge, reg_last_write[curr_instr.input_operands[1].value] , adder_node->node_id, INP1);
+        init_new_edge(new_edge, reg_last_write[curr_instr.input_operands[1].value] , curr_op_node->node_id, INP1);
         add_edge(*last_edge, new_edge);
         *last_edge = new_edge;
     }
@@ -558,41 +578,28 @@ dfg_t create_dfg(instr_seq_t* instr_seq){
         }
     }
 
+    for(int j = 0; j < NUM_CPU_REGS; j++){
+        if(reg_last_write[j] != -1){
+            // printf("Reg last write %u\n\r", reg_last_write[j]);
 
-    uint32_t finalNodeID = lastNode->node_id;
-    bool* hasOutputEdge = malloc(finalNodeID*sizeof(bool));
-
-    //if there is no output edge for the node => it must be an op, and it has a corresponding entry in the reg_last_write table
-
-
-    dfg_edge_t* curr_edge_ptr = firstEdge.next_edge;
-    while(curr_edge_ptr != NULL){
-        hasOutputEdge[curr_edge_ptr->fromNode] = true;
-        curr_edge_ptr = curr_edge_ptr->next_edge;
-    }
-    for(int i = 0; i < finalNodeID; i++){
-        if(hasOutputEdge[i]){
-            continue;
-        }else{
-            int32_t unwrittenReg = -1;
-            for(int j = 0; j < NUM_CPU_REGS; j++){
-                if(reg_last_write[j] == i){
-                    unwrittenReg = j;
-                    break;
+            dfg_node_t* curr_node_ptr = &firstNode;
+            dfg_node_t* output_node_ptr = NULL;
+            while(output_node_ptr == NULL && curr_node_ptr != NULL){
+                if(curr_node_ptr->node_id == reg_last_write[j]){
+                    output_node_ptr = curr_node_ptr;
                 }
+                curr_node_ptr = curr_node_ptr->next_node;
             }
 
-            if(unwrittenReg == -1){
-                continue; //can assume this is a store instruction
-            }else{
 
+            if(!(output_node_ptr->is_input)){            
                 int32_t reg_id = -1;
                 //find node id of reg
-            
-                dfg_node_t* curr_node_ptr = &firstNode;
+        
+                curr_node_ptr = &firstNode;
 
                 while(reg_id == -1 && curr_node_ptr != NULL){
-                    if(curr_node_ptr->is_input && curr_node_ptr->reg && curr_node_ptr->inp_value == unwrittenReg){
+                    if(curr_node_ptr->is_input && curr_node_ptr->reg && curr_node_ptr->inp_value == j){
                         reg_id = curr_node_ptr->node_id;
                         curr_node_ptr->is_output = true;
                     }else{
@@ -603,7 +610,8 @@ dfg_t create_dfg(instr_seq_t* instr_seq){
                 //if register doesn't already have a node, create one
                 if(reg_id == -1){
                     newNode = malloc(sizeof(dfg_node_t));
-                    init_new_node_output(newNode, i, lastNode->node_id+1);
+                    // printf("Last node ID %u\n\r", reg_last_write[j]);
+                    init_new_node_output(newNode, j, lastNode->node_id+1);
                     add_node(lastNode, newNode);
                     lastNode = newNode;
 
@@ -612,12 +620,13 @@ dfg_t create_dfg(instr_seq_t* instr_seq){
 
                 //create edge from output to register
                 newEdge = malloc(sizeof(dfg_node_t));
-                init_new_edge(newEdge, i, reg_id, INP1); //INP doesn't matter for output nodes
+                init_new_edge(newEdge, reg_last_write[j], reg_id, INP1); //INP doesn't matter for output nodes
                 add_edge(lastEdge, newEdge);
                 lastEdge = newEdge;
             }
         }
     }
+
 
     dfg_edge_t* edge_arr_ptr;
     dfg_node_t* node_arr_ptr;
@@ -631,7 +640,152 @@ dfg_t create_dfg(instr_seq_t* instr_seq){
     dfg.num_nodes = num_nodes;
     dfg.num_edges = num_edges;
 
-    free(hasOutputEdge);
-
     return dfg;
+}
+
+uint32_t find_node_depth_cpu(dfg_t dfg, uint32_t nodeID, bool recursive_call){
+    if(dfg.nodes[nodeID-1].is_input && recursive_call){
+        return 0;
+    }
+
+    int32_t node_inps[2] = {-1, -1}; //each node can have a maximum of 2 inputs
+    uint32_t j = 0;
+    for(int i = 0; i < dfg.num_edges; i++){
+        if(dfg.edges[i].toNode == nodeID){
+            node_inps[j] = dfg.edges[i].fromNode;
+            j++;
+            if(j == 2){
+                break;
+            }
+        }
+    }
+
+    uint32_t inp_node_depths[2] = {0,0};
+    for(int i = 0; i < 2; i++){
+        if(node_inps[i] >=  0){
+            inp_node_depths[i] = find_node_depth_cpu(dfg, node_inps[i], true);
+        }
+    }
+
+    uint32_t largest_inp_depth = (inp_node_depths[1] > inp_node_depths[0]) ? inp_node_depths[1] : inp_node_depths[0];
+
+    if(dfg.nodes[nodeID-1].op == LB || dfg.nodes[nodeID-1].op == LBU || dfg.nodes[nodeID-1].op == LH || dfg.nodes[nodeID-1].op == LHU || dfg.nodes[nodeID-1].op == LW){
+        return largest_inp_depth + CPU_LOAD_LATENCY - 1; //-1 since an extra adder is added in DFG for calculating address with offset in accelerator
+    }else if(dfg.nodes[nodeID-1].op == SB || dfg.nodes[nodeID-1].op == SH || dfg.nodes[nodeID-1].op == SW){
+        return largest_inp_depth; //don't add anything for stores adder is added in DFG for calculating address with offset in accelerator
+    }else{
+        return largest_inp_depth + 1;
+    }
+}
+
+uint32_t find_node_depth_acc(dfg_t dfg, uint32_t nodeID, uint32_t num_ls_ops, bool recursive_call){
+    if(dfg.nodes[nodeID-1].is_input && recursive_call){
+        return 0;
+    }
+
+    //all integer comp latencies are 1 for both cpu and acc
+    //load latency accelerator is (number of L/S ops + 1) * LSQ  depth
+    //this load latency is only to be added once - it is not PER LOAD
+    //load latency cpu is 3 cycles (add 2 because of extra add node added for accelerator)
+    //store latency accelerator is (number of L/S ops + 1) (max time taken for an RCA LSQ packet to become free) - only considering store submit
+    //only one store needs to be considered
+
+    //store latency cpu is 1 cycle - only considering store submit
+
+    int32_t node_inps[2] = {-1, -1}; //each node can have a maximum of 2 inputs
+    uint32_t j = 0;
+    for(int i = 0; i < dfg.num_edges; i++){
+        if(dfg.edges[i].toNode == nodeID){
+            node_inps[j] = dfg.edges[i].fromNode;
+            j++;
+            if(j == 2){
+                break;
+            }
+        }
+    }
+
+    uint32_t inp_node_depths[2] = {0,0};
+    for(int i = 0; i < 2; i++){
+        if(node_inps[i] >=  0){
+            inp_node_depths[i] = find_node_depth_acc(dfg, node_inps[i], num_ls_ops, true);
+        }
+    }
+
+    uint32_t largest_inp_depth = (inp_node_depths[1] > inp_node_depths[0]) ? inp_node_depths[1] : inp_node_depths[0];
+
+    if(dfg.nodes[nodeID-1].op == LB || dfg.nodes[nodeID-1].op == LBU || dfg.nodes[nodeID-1].op == LH || dfg.nodes[nodeID-1].op == LHU || dfg.nodes[nodeID-1].op == LW){
+        return largest_inp_depth + ((num_ls_ops + 1) * RCA_PACKET_LSQ_DEPTH);
+    }else if(dfg.nodes[nodeID-1].op == SB || dfg.nodes[nodeID-1].op == SH || dfg.nodes[nodeID-1].op == SW){
+        return largest_inp_depth; //don't add anything for stores - constant will be added on
+    }else{
+        return largest_inp_depth + 1;
+    }
+}
+
+uint32_t calc_pr_time(dfg_t dfg){
+    uint32_t num_op_nodes = 0;
+    for(int i = 0; i < dfg.num_nodes; i++){
+        if(!dfg.nodes[i].is_input && !dfg.nodes[i].is_output){
+            num_op_nodes++;
+        }
+    }
+    return (num_op_nodes * (FRAME_RECONF_TIME_MS * CPU_CLK_FREQ/1000));
+}
+
+
+seq_profile_t profile_seq(instr_seq_t* seq){
+    dfg_t* dfg = malloc(sizeof(dfg_t));
+
+    *dfg = create_dfg(seq);
+
+    uint32_t cpu_loop_iteration_latency = 0;
+    uint32_t output_node_latency;
+    for(int i = 0; i < (*dfg).num_nodes; i++){
+        if((*dfg).nodes[i].is_output || ((!(*dfg).nodes[i].is_input && !(*dfg).nodes[i].is_output) && ((*dfg).nodes[i].op == SW) || (*dfg).nodes[i].op == SH || (*dfg).nodes[i].op == SB)){
+            // printf("Finding CPU Depth of Node %u\n\r", i);
+            output_node_latency = find_node_depth_cpu((*dfg), (*dfg).nodes[i].node_id, false);
+            if(output_node_latency > cpu_loop_iteration_latency){
+                cpu_loop_iteration_latency = output_node_latency;
+            }
+        }
+    }
+
+    uint32_t acc_loop_iteration_latency;
+    uint32_t num_ls_ops = 0;
+    bool store_ops = false;
+
+    for(int i = 0; i < (*dfg).num_nodes; i++){
+        if((*dfg).nodes[i].op == LB || (*dfg).nodes[i].op == LBU|| (*dfg).nodes[i].op == LH || (*dfg).nodes[i].op == LHU || (*dfg).nodes[i].op == LW || (*dfg).nodes[i].op == SB || (*dfg).nodes[i].op == SH || (*dfg).nodes[i].op == SW){
+            num_ls_ops++;
+            if((*dfg).nodes[i].op == SB || (*dfg).nodes[i].op == SH || (*dfg).nodes[i].op == SW){
+                store_ops = true;
+            }
+        }
+    }
+
+    for(int i = 0; i < (*dfg).num_nodes; i++){
+        if(((*dfg).nodes[i].is_output && (*dfg).nodes[i].is_input) || ((!(*dfg).nodes[i].is_input && !(*dfg).nodes[i].is_output) && ((*dfg).nodes[i].op == SW) || (*dfg).nodes[i].op == SH || (*dfg).nodes[i].op == SB)){
+            output_node_latency = find_node_depth_acc((*dfg), (*dfg).nodes[i].node_id, num_ls_ops, false);
+            if(output_node_latency > acc_loop_iteration_latency){
+                acc_loop_iteration_latency = output_node_latency;
+            }
+        }
+    }
+
+    if(store_ops){
+        acc_loop_iteration_latency += num_ls_ops+1;
+    }
+
+    uint32_t pr_time = calc_pr_time((*dfg));
+
+    seq_profile_t seq_prof;
+
+    seq_prof.loop_start_addr = seq->loop_start_addr;
+    seq_prof.num_instrs = seq->num_instrs;
+    seq_prof.cpu_time_per_iter = cpu_loop_iteration_latency;
+    seq_prof.acc_time_per_iter = acc_loop_iteration_latency;
+    seq_prof.pr_time = pr_time;    
+    seq_prof.dfg = dfg;  
+
+    return seq_prof;
 }
