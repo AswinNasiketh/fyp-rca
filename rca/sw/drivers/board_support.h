@@ -1,6 +1,7 @@
 #ifndef BOARD_SUPPORT_H
 #define BOARD_SUPPORT_H
 #include <stdio.h>
+#include<stdlib.h>
 
 #define CPU_MHZ 1
 

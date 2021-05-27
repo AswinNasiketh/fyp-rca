@@ -33,6 +33,8 @@
 
 #define NUM_PROFILER_ENTRIES    4
 
+#define PT_SLOT_INPUT           1
+
 typedef enum {
     RX1 = 0,
     RX2 = 1,
@@ -94,6 +96,7 @@ typedef struct{
 char rca_to_opcode_ext(rca_t rca);
 reg_port_t int_to_reg_port(uint32_t i);
 uint32_t grid_coord_to_slot(uint32_t row, uint32_t col);
+uint32_t grid_slot_to_coord(uint32_t slot, uint32_t* row, uint32_t* col);
 
 //Static Region Configuration
 void rca_config_cpu_reg(rca_t rca, reg_port_t reg_port, reg_port_type_t reg_port_type, uint32_t reg_addr);

@@ -8,6 +8,11 @@ uint32_t grid_coord_to_slot(uint32_t row, uint32_t col){
     return (NUM_GRID_COLS*row) + col;
 }
 
+uint32_t grid_slot_to_coord(uint32_t slot, uint32_t* row, uint32_t* col){
+    *row = slot/NUM_GRID_COLS;
+    *col = slot%NUM_GRID_COLS;
+}
+
 static void bad_config_trap(){
     printf("bad config");
     // while(1);

@@ -2,7 +2,7 @@
 #define ENCODINGS_H
 
 #include "rca.h"
-#include "seqselect.h"
+#include "iid.h"
 
 //defines taken from riscv-opc.h in binutils
 #define MATCH_LUI 0x37

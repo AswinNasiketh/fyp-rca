@@ -7,6 +7,8 @@
 #define RX_HAS_DATA 	0x00000001
 #define LINE_STATUS_REG_ADDR	(UART_RX_TX_REG + 0x14)
 
+#define RNG_SEED		1234
+
 ////////////////////////////////////////////////////
 //putc and getc support for printf
 int uart_putc(char c, FILE *file) {
@@ -90,6 +92,8 @@ void platform_init (uint32_t trap_handler_addr) {
 	:"r"(trap_handler_addr)
 	:
   );
+
+  srand(RNG_SEED);
 }
 
 void start_profiling ()  {
