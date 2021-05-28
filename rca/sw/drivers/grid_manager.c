@@ -244,11 +244,11 @@ bool wipe_accelerator(seq_profile_t* seq_profile){
     return true;
 }
 
-bool replace_accelerators(seq_profile_t** accs_to_replace, uint32_t num_accs_to_replace, seq_profile_t* replacing_acc){
+bool replace_accelerators(seq_profile_t* accs_to_replace, uint32_t num_accs_to_replace, seq_profile_t* replacing_acc){
     bool success = true;
     for(int i = 0; i < num_accs_to_replace; i++){
-        success = wipe_accelerator(accs_to_replace[i]);
-        if(!sucess) return success;
+        success = wipe_accelerator(&accs_to_replace[i]);
+        if(!success) return success;
     }
 
     success = add_accelerator(replacing_acc);

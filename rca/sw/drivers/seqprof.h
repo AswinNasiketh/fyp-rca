@@ -5,7 +5,6 @@
 #include "iid.h"
 #include "dfg.h"
 #include "subgrid.h"
-#include "grid_manager.h"
 
 #define MAX_STORED_SEQ_PROFS        50
 

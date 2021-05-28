@@ -1,9 +1,8 @@
 #ifndef RCA_H
 #define RCA_H
 
-#include "board_support.h"
-#include <stdio.h>
 
+#include <stdio.h>
 #include "stdbool.h"
 #include "stdint.h"
 #include "string.h"

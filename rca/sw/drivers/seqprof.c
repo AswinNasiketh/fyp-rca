@@ -1,4 +1,5 @@
 #include "seqprof.h"
+#include "grid_manager.h"
 
 seq_profile_t profile_seq(instr_seq_t* seq, profiler_entry_t* profiler_entry){
     dfg_t* dfg = malloc(sizeof(dfg_t));

@@ -1,5 +1,5 @@
 #include "seqselect.h"
-#include "encodings.h"
+
 
 void handle_profiler_exception(){
     toggle_profiler_lock();
@@ -55,7 +55,7 @@ void handle_profiler_exception(){
 
     //Choose accelerator
     select_accelerators(seq_profiles, next_seq_prof_index);
-    
+
     toggle_profiler_lock();
 }
 

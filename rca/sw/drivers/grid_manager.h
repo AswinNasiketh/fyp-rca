@@ -17,6 +17,6 @@ bool add_accelerator(seq_profile_t* seq_profile);
 bool disable_accelerator(rca_t rca);
 int32_t find_accelerator(seq_profile_t* seq_profile);
 bool wipe_accelerator(seq_profile_t* seq_profile);
-bool replace_accelerators(seq_profile_t** accs_to_replace, uint32_t num_accs_to_replace, seq_profile_t* replacing_acc);
+bool replace_accelerators(seq_profile_t* accs_to_replace, uint32_t num_accs_to_replace, seq_profile_t* replacing_acc);
 
 #endif //GRID_MANAGER_H
