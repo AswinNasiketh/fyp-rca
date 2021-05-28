@@ -142,4 +142,3 @@ void write_config(static_region_t* pstatic_config, uint32_t row_start, uint32_t 
     rca_config_io_ls_mask(rca, static_region.ls_mask_fb[rca], true);
     rca_config_io_ls_mask(rca, static_region.ls_mask_nfb[rca], false);
 }
-

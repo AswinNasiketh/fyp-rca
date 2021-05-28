@@ -21,6 +21,7 @@ typedef struct{
     bool is_reg;
 
     uint32_t value;
+    io_mux_inp_addr_t io_mux_inp;
 
     bool wait_for_ls_submit;
 
@@ -62,7 +63,7 @@ bool can_exit_anneal(float curr_temp, sub_grid_t* grid, dfg_t dfg);
 float new_temp_modifier(float prop_accepted);
 float new_swap_dist_modifier(float prop_accepted);
 uint32_t anneal(sub_grid_t* grid, dfg_t dfg, uint32_t iters_per_temp, uint32_t init_swap_dist_row, uint32_t init_swap_dist_col, float init_temp);
-void infer_row_xbar_cfgs(sub_grid_t* sub_grid, dfg_t dfg);
+void infer_mux_cfgs(sub_grid_t* sub_grid, dfg_t dfg);
 bool gen_sub_grid(dfg_t dfg, sub_grid_t* sub_grid);
 
 #endif //SUBGRID_H

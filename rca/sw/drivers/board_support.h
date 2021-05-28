@@ -1,7 +1,8 @@
 #ifndef BOARD_SUPPORT_H
 #define BOARD_SUPPORT_H
 #include <stdio.h>
-#include<stdlib.h>
+#include <stdlib.h>
+#include "grid_manager.h"
 
 #define CPU_MHZ 1
 

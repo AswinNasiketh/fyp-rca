@@ -478,3 +478,22 @@ profiler_entry_t get_profiler_entry(uint32_t entry_num){
     
     return profiler_entry;
 }
+
+void set_att_field(rca_t rca, att_field_t field, uint32_t field_value){
+    uint32_t dummy;
+    uint32_t field_id = field;
+    uint32_t rca_num = rca;
+
+    uint32_t rs1 = (field_id << LOG2_NUM_RCAS) | (rca_num && RCA_NUM_MASK);
+
+    if(field == ACC_ENABLE && (field_value & 0xFFFFFFFE)){
+        printf("Bad ATT field value");
+        while(1);
+    }
+
+    asm volatile("rcaattc %0, %1, %2"
+    :"=r"(dummy)
+    :"r"(rs1), "r"(field_value)
+    :
+    );
+}

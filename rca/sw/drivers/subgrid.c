@@ -323,6 +323,9 @@ void make_random_change_ou(sub_grid_t* sub_grid, uint32_t swap_dist_row, uint32_
     
     sub_grid->grid_slots[row][col] = unit2;
     sub_grid->grid_slots[next_row][next_col] = unit1; 
+
+    sub_grid->io_unit_cfgs[row].wait_for_ls_submit = is_ls_op(unit2.ou);
+    sub_grid->io_unit_cfgs[next_col].wait_for_ls_submit = is_ls_op(unit1.ou);
 }
 
 void make_random_change_io(sub_grid_t* sub_grid, uint32_t swap_dist_row){
@@ -506,7 +509,7 @@ uint32_t anneal(sub_grid_t* grid, dfg_t dfg, uint32_t iters_per_temp, uint32_t i
     return curr_cost;
 }
 
-void infer_row_xbar_cfgs(sub_grid_t* sub_grid, dfg_t dfg){
+void infer_mux_cfgs(sub_grid_t* sub_grid, dfg_t dfg){
     sub_grid->row_xbar_cfgs = malloc(sub_grid->num_rows*sizeof(row_xbar_cfg_t));
     
     for(int i = 0; i < dfg.num_edges; i++){
@@ -530,10 +533,19 @@ void infer_row_xbar_cfgs(sub_grid_t* sub_grid, dfg_t dfg){
             if(to_node_row == row){
                 if(pt_col != -1){
                     sub_grid->row_xbar_cfgs[row].arr[dfg.edges[i].slot_inp][to_node_col] = pt_col;
+                    if(dfg.nodes[dfg.edges[i].toNode-1].is_output){
+                        sub_grid->io_unit_cfgs[row].io_mux_inp = NUM_READ_PORTS+ pt_col;
+                    }else{
+                        sub_grid->row_xbar_cfgs[row].arr[dfg.edges[i].slot_inp][to_node_col] = pt_col;
+                    }  
                 }else if(dfg.nodes[dfg.edges[i].fromNode-1].is_input){
                     sub_grid->row_xbar_cfgs[row].arr[dfg.edges[i].slot_inp][to_node_col] = IO_UNIT;
                 }else{
-                    sub_grid->row_xbar_cfgs[row].arr[dfg.edges[i].slot_inp][to_node_col] = from_node_col;
+                    if(dfg.nodes[dfg.edges[i].toNode-1].is_output){
+                        sub_grid->io_unit_cfgs[row].io_mux_inp = NUM_READ_PORTS+ from_node_col;
+                    }else{
+                        sub_grid->row_xbar_cfgs[row].arr[dfg.edges[i].slot_inp][to_node_col] = from_node_col;
+                    }                    
                 }
                 path_found = true;
                 break;
@@ -544,7 +556,6 @@ void infer_row_xbar_cfgs(sub_grid_t* sub_grid, dfg_t dfg){
                 while(1);
             }            
 
-            //check if next row has passthrough for from node
             bool pt_found = false;
             for(int i = 0; i < NUM_GRID_COLS; i++){
                 if(sub_grid->grid_slots[row][i].ou == PASSTHROUGH && sub_grid->grid_slots[row][i].node_id == dfg.edges[i].fromNode){
@@ -570,7 +581,6 @@ void infer_row_xbar_cfgs(sub_grid_t* sub_grid, dfg_t dfg){
         }
 
     }
-
 }
 
 bool gen_sub_grid(dfg_t dfg, sub_grid_t* sub_grid){
@@ -609,7 +619,7 @@ bool gen_sub_grid(dfg_t dfg, sub_grid_t* sub_grid){
     }
 
     //if all nets are connectable, infer the grid mux configs
-    infer_row_xbar_cfgs(sub_grid, dfg);
+    infer_mux_cfgs(sub_grid, dfg);
 
 
     free_sub_grid(&temp_grid);

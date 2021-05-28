@@ -27,7 +27,7 @@ void handle_profiler_exception(){
             offset = get_branch_offset(raw_branch_instr);
 
             loop_start_addr = profiler_entry.branch_addr + offset;
-            seq_prof_index = find_seq_profile(loop_start_addr, seq_profiles);
+            seq_prof_index = find_seq_profile(loop_start_addr, seq_profiles, next_seq_prof_index);
 
             if(seq_prof_index == -1){
                 if(next_seq_prof_index >= MAX_STORED_SEQ_PROFS){
@@ -54,8 +54,8 @@ void handle_profiler_exception(){
     }
 
     //Choose accelerator
-
-
+    select_accelerators(seq_profiles, next_seq_prof_index);
+    
     toggle_profiler_lock();
 }
 

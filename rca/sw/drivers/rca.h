@@ -35,6 +35,9 @@
 
 #define PT_SLOT_INPUT           1
 
+#define LOG2_NUM_RCAS           2
+#define RCA_NUM_MASK            0x00000003
+
 typedef enum {
     RX1 = 0,
     RX2 = 1,
@@ -93,6 +96,12 @@ typedef struct{
     uint32_t taken_count; 
 }profiler_entry_t;
 
+typedef enum{
+    SBB_ADDR = 0,
+    LOOP_START_ADDR = 1,
+    ACC_ENABLE = 2
+}att_field_t;
+
 char rca_to_opcode_ext(rca_t rca);
 reg_port_t int_to_reg_port(uint32_t i);
 uint32_t grid_coord_to_slot(uint32_t row, uint32_t col);
@@ -119,5 +128,8 @@ void send_pr_request(ou_t ou, uint32_t grid_slot);
 //Function wrapper for profiler operations
 void toggle_profiler_lock();
 profiler_entry_t get_profiler_entry(uint32_t entry_num);
+
+//Function wrapper for ATT configuration
+void set_att_field(rca_t rca, att_field_t field, uint32_t field_value);
 
 #endif //RCA_H
