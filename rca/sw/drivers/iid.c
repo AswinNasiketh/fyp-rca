@@ -163,6 +163,7 @@ bool analyse_instr_seq(uint32_t branch_addr, int32_t branch_offset, instr_seq_t*
     instr_seq->instr_arr = instr_arr;
     instr_seq->num_instrs = num_instrs;
     instr_seq->loop_start_addr = loop_start;
+    instr_seq->loop_branch_addr = branch_addr;
     return true;
 }
 

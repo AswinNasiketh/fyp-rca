@@ -360,6 +360,7 @@ dfg_t create_dfg(instr_seq_t* instr_seq){
 
     for(int i = 0, j = instr_seq->loop_start_addr; i < instr_seq->num_instrs, j < instr_seq->loop_branch_addr; i++, j+=4){
         newNode = malloc(sizeof(dfg_node_t));
+        // printf("Malloc Address: %x\n\r", newNode);
         init_new_node_op(newNode, instr_seq->instr_arr[i].ou, lastNode->node_id+1);
         add_node(lastNode, newNode);
         lastNode = newNode;

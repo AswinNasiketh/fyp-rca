@@ -95,6 +95,8 @@ void platform_init (uint32_t trap_handler_addr) {
 
   srand(RNG_SEED);
   init_grid();
+
+  toggle_profiler_lock();
 }
 
 void start_profiling ()  {

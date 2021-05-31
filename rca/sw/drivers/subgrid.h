@@ -50,7 +50,7 @@ void find_node_pos(sub_grid_t* sub_grid, uint32_t node_id, uint32_t* row, uint32
 bool find_path(sub_grid_t* sub_grid, uint32_t from_node_row, uint32_t to_node_row, uint32_t from_node_id, bool from_node_is_input);
 uint32_t unconnected_nets_cost(sub_grid_t* sub_grid, dfg_t dfg);
 uint32_t calculate_total_cost(sub_grid_t* sub_grid, dfg_t dfg);
-uint32_t get_randint_in_range(uint32_t upper, uint32_t lower);
+uint32_t get_randint_in_range(int32_t upper, int32_t lower);
 void make_random_change_ou(sub_grid_t* sub_grid, uint32_t swap_dist_row, uint32_t swap_dist_col);
 void make_random_change_io(sub_grid_t* sub_grid, uint32_t swap_dist_row);
 void make_random_change(sub_grid_t* sub_grid, uint32_t swap_dist_row, uint32_t swap_dist_col);
@@ -65,5 +65,7 @@ float new_swap_dist_modifier(float prop_accepted);
 uint32_t anneal(sub_grid_t* grid, dfg_t dfg, uint32_t iters_per_temp, uint32_t init_swap_dist_row, uint32_t init_swap_dist_col, float init_temp);
 void infer_mux_cfgs(sub_grid_t* sub_grid, dfg_t dfg);
 bool gen_sub_grid(dfg_t dfg, sub_grid_t* sub_grid);
+void print_sub_grid(sub_grid_t* sub_grid);
+void print_mux_cfgs(sub_grid_t* sub_grid);
 
 #endif //SUBGRID_H

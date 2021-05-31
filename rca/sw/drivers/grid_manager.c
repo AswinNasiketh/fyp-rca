@@ -39,7 +39,7 @@ void apply_partial_region_cfg(seq_profile_t* seq_profile, uint32_t row_offset){
     for(int i = row_offset; i < row_offset + seq_profile->sub_grid->num_rows; i++){
         k = i - row_offset;
         for(int j = 0; j < NUM_GRID_COLS; j++){
-            send_pr_request(seq_profile->sub_grid->grid_slots[k][j].ou, grid_coord_to_slot(i,j));
+            // send_pr_request(seq_profile->sub_grid->grid_slots[k][j].ou, grid_coord_to_slot(i,j));
         }
     }
 }

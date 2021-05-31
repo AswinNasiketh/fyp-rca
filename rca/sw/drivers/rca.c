@@ -457,6 +457,7 @@ uint32_t get_profiler_data(uint32_t entry_num, profiler_field_t field_id){
 }
 
 void toggle_profiler_lock(){
+    printf("Toggling profiler lock!\n\r");
     uint32_t dummy;
     asm volatile("rcatpl %0, %0, %0"
     :"=r"(dummy)

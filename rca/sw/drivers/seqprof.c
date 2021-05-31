@@ -18,7 +18,7 @@ seq_profile_t profile_seq(instr_seq_t* seq, profiler_entry_t* profiler_entry){
         }
     }
 
-    uint32_t acc_loop_iteration_latency;
+    uint32_t acc_loop_iteration_latency = 0;
     uint32_t num_ls_ops = 0;
     bool store_ops = false;
 
@@ -34,6 +34,7 @@ seq_profile_t profile_seq(instr_seq_t* seq, profiler_entry_t* profiler_entry){
     for(int i = 0; i < (*dfg).num_nodes; i++){
         if(((*dfg).nodes[i].is_output && (*dfg).nodes[i].is_input) || ((!(*dfg).nodes[i].is_input && !(*dfg).nodes[i].is_output) && ((*dfg).nodes[i].op == SW) || (*dfg).nodes[i].op == SH || (*dfg).nodes[i].op == SB)){
             output_node_latency = find_node_depth_acc((*dfg), (*dfg).nodes[i].node_id, num_ls_ops, false);
+            // printf("Output node ID %u, accelerator latency: %u\n\r", (*dfg).nodes[i].node_id, output_node_latency);
             if(output_node_latency > acc_loop_iteration_latency){
                 acc_loop_iteration_latency = output_node_latency;
             }
@@ -64,6 +65,7 @@ seq_profile_t profile_seq(instr_seq_t* seq, profiler_entry_t* profiler_entry){
     seq_prof.is_grid_implemented = false;
 
     if(seq_prof.sub_grid->num_rows > NUM_GRID_ROWS){
+        printf("Sequence can't fit on grid, setting supported to false\n\r");
         seq_prof.num_annealing_attempts = MAX_ANNEALING_ATTEMPTS; //do not attempt to build grid
         seq_prof.seq_supported = false;
     }
@@ -138,40 +140,46 @@ int32_t calc_improvement(seq_profile_t seq_prof){
 }
 
 //ensures grid is impelemented
-uint32_t get_area_cost(seq_profile_t seq){
-    if(seq.is_grid_implemented){
-        return seq.sub_grid->num_rows;
+uint32_t get_area_cost(seq_profile_t* seq){
+    if(seq->is_grid_implemented){
+        return seq->sub_grid->num_rows;
     }else{
-        if(seq.num_annealing_attempts < MAX_ANNEALING_ATTEMPTS){
-            if(gen_sub_grid(*seq.dfg, seq.sub_grid)){
-                seq.is_grid_implemented = true;
-                return seq.sub_grid->num_rows;
+        if(seq->num_annealing_attempts < MAX_ANNEALING_ATTEMPTS && seq->seq_supported){
+            printf("Attempting to generate sub grid through simulated annealing \n\r");
+            if(gen_sub_grid(*(seq->dfg), seq->sub_grid)){
+                printf("Sub grid generation succeeded \n\r");
+                seq->is_grid_implemented = true;
+                return seq->sub_grid->num_rows;
             }else{
-                seq.num_annealing_attempts++;
+                printf("Sub grid generation failed \n\r");
+                seq->num_annealing_attempts++;
                 return 0;
             }
         }else{
+            printf("Max anneal attempts for this sequence reached or sequence is unsupported, returning 0 area \n\r");
             return 0;
         }        
     }
 }
 
-int32_t calc_improvement_diff(seq_profile_t accelerated_seqs[NUM_RCAS], uint32_t num_acc_seqs, seq_profile_t potential_seq_to_accelerate, uint32_t* num_accs_to_replace){
+int32_t calc_improvement_diff(seq_profile_t accelerated_seqs[NUM_RCAS], uint32_t num_acc_seqs, seq_profile_t* potential_seq_to_accelerate, uint32_t* num_accs_to_replace){
     uint32_t area_cost = get_area_cost(potential_seq_to_accelerate);
 
     if(area_cost == 0){
+        printf("Area is 0, returning 0 improvement difference\n\r");
         return 0;
     }
 
-    uint32_t improvement_gain = calc_improvement(potential_seq_to_accelerate);
+    uint32_t improvement_gain = calc_improvement(*potential_seq_to_accelerate);
 
     if(improvement_gain == 0x80000000){
         return 0;
     }
 
-    int32_t extra_rows_required = potential_seq_to_accelerate.sub_grid->num_rows - (NUM_GRID_ROWS - get_next_free_row());
+    int32_t extra_rows_required = potential_seq_to_accelerate->sub_grid->num_rows - (NUM_GRID_ROWS - get_next_free_row());
     uint32_t improvement_loss = 0;
     int32_t improvement;
+    *num_accs_to_replace = 0;
     //accelerated seqs will be in ascending order sorted by improvement
     //if maximum number of accelerators is being implemented, definitely remove the worst performing accelerator, even if there are free rows available
     if (num_acc_seqs == NUM_RCAS){
@@ -201,14 +209,15 @@ int32_t calc_improvement_diff(seq_profile_t accelerated_seqs[NUM_RCAS], uint32_t
 
 void calc_improvement_diffs(seq_profile_t accelerated_seqs[NUM_RCAS], uint32_t num_acc_seqs, seq_profile_t* potential_seqs_to_accelerate, uint32_t num_pot_seqs, int32_t* improvement_diffs, uint32_t* num_accs_to_replace){
     for(int i = 0; i < num_pot_seqs; i++){
-        improvement_diffs[i] = calc_improvement_diff(accelerated_seqs, num_acc_seqs, potential_seqs_to_accelerate[i], &num_accs_to_replace[i]);
+        improvement_diffs[i] = calc_improvement_diff(accelerated_seqs, num_acc_seqs, &potential_seqs_to_accelerate[i], &num_accs_to_replace[i]);
+        printf("Improvement Diff = %d \n\r", improvement_diffs[i]);
     }
 }
 
 uint32_t count_positive_entries(int32_t* arr, uint32_t num_els){
     uint32_t num_pos_entries = 0;
     for(int i = 0; i < num_els; i++){
-        if(arr[i] > 0) num_pos_entries++;
+        if(arr[i] >= 0) num_pos_entries++; //TODO: CHANGE BACK TO STRICTLY POSITIVE
     }
     return num_pos_entries;
 }
@@ -227,14 +236,18 @@ uint32_t find_max(int32_t* arr, uint32_t num_els){
     return curr_max_index;
 }
 
-void get_acc_and_rep_seqs(seq_profile_t* sorted_seq_profs, uint32_t num_seq_profs, seq_profile_t accelerated_seqs[NUM_RCAS], uint32_t* next_acc_seq_index, seq_profile_t replacement_seqs[NUM_PROFILER_ENTRIES], uint32_t* next_replacement_seq_index){
+void get_acc_and_rep_seqs(seq_profile_t* sorted_seq_profs, uint32_t num_seq_profs, seq_profile_t* accelerated_seqs, uint32_t* next_acc_seq_index, seq_profile_t* replacement_seqs, uint32_t* next_replacement_seq_index){
+    (*next_acc_seq_index) = 0;
+    (*next_replacement_seq_index) = 0;
     for(int i = 0; i < num_seq_profs; i++){
         if(sorted_seq_profs[i].is_accelerated){
+            // printf("Seq prof is accelerated \n\r");
             accelerated_seqs[*next_acc_seq_index] = sorted_seq_profs[i];
-            *next_acc_seq_index++;            
+            (*next_acc_seq_index)++;            
         }else if(sorted_seq_profs[i].in_hw_profiler){
+            // printf("Seq prof is in HW Profiler \n\r");
             replacement_seqs[*next_replacement_seq_index] = sorted_seq_profs[i];
-            *next_replacement_seq_index++;
+            (*next_replacement_seq_index)++;
         }
     }
 }
@@ -250,10 +263,17 @@ bool set_seq_accelerated(uint32_t loop_start_addr, seq_profile_t seq_profiles[MA
 
 void select_accelerators(seq_profile_t seq_profs[MAX_STORED_SEQ_PROFS], uint32_t num_seq_profs){
     seq_profile_t* temp = malloc(num_seq_profs*sizeof(seq_profile_t));
+
+    // printf("Num Seq Profs %u \n\r", num_seq_profs);
     
     memcpy(temp, &seq_profs[0], num_seq_profs*sizeof(seq_profile_t));
 
     sort_profiles_by_improvement(temp, num_seq_profs);
+    
+    // printf("Printing sorted seq profs \n\r");
+    for(int i = 0; i < num_seq_profs; i++){
+        print_seq_profile(temp[i]);
+    }
 
     seq_profile_t accelerated_seqs[NUM_RCAS];
     uint32_t next_acc_seq_index = 0;
@@ -263,10 +283,26 @@ void select_accelerators(seq_profile_t seq_profs[MAX_STORED_SEQ_PROFS], uint32_t
 
     get_acc_and_rep_seqs(temp, num_seq_profs, accelerated_seqs, &next_acc_seq_index, replacement_seqs, &next_replacement_seq_index);
 
+    printf("Printing %u Accelerated Seq Profiles \n\r", next_acc_seq_index);
+    for(int i = 0; i < next_acc_seq_index; i++){
+        print_seq_profile(accelerated_seqs[i]);
+    }
+
+    printf("Printing %u Replacement Seq Profiles \n\r", next_replacement_seq_index);
+    for(int i = 0; i < next_replacement_seq_index; i++){
+        print_seq_profile(replacement_seqs[i]);
+    }
+
     int32_t improvement_diffs[NUM_PROFILER_ENTRIES];
     uint32_t num_accs_to_replace[NUM_PROFILER_ENTRIES];
 
     calc_improvement_diffs(accelerated_seqs, next_acc_seq_index, replacement_seqs, next_replacement_seq_index, improvement_diffs, num_accs_to_replace);
+
+    // printf("Printing improvement diffs\n\r");
+    // for(int i = 0; i < next_replacement_seq_index; i++){
+    //     print_seq_profile(replacement_seqs[i]);
+    //     printf("Improvement Diff = %d \n\r", improvement_diffs[i]);
+    // }
 
     uint32_t num_pos_entries = count_positive_entries(improvement_diffs, next_replacement_seq_index);
     uint32_t best_seq_index;
@@ -283,8 +319,10 @@ void select_accelerators(seq_profile_t seq_profs[MAX_STORED_SEQ_PROFS], uint32_t
         }
 
         get_acc_and_rep_seqs(temp, num_seq_profs, accelerated_seqs, &next_acc_seq_index, replacement_seqs, &next_replacement_seq_index);
+        printf("Num Replacement Seqs %u \n\r", next_replacement_seq_index);
         calc_improvement_diffs(accelerated_seqs, next_acc_seq_index, replacement_seqs, next_replacement_seq_index, improvement_diffs, num_accs_to_replace);
         num_pos_entries = count_positive_entries(improvement_diffs, next_replacement_seq_index);
+        printf("Num positive entries %u\n\r", num_pos_entries);
     }
 
     free(temp);
@@ -304,9 +342,12 @@ void print_seq_profile(seq_profile_t seq_prof){
     printf("Loop start address: %x\n\r", seq_prof.loop_start_addr);
     printf("Num Instrs: %u\n\r", seq_prof.num_instrs);
     
-    print_dfg(*(seq_prof.dfg));
+    // print_dfg(*(seq_prof.dfg));
     printf("CPU time per iteration: %u\n\r", seq_prof.cpu_time_per_iter);
     printf("Acc time per iteration: %u\n\r", seq_prof.acc_time_per_iter);
+
+    printf("Accelerated? %u\n\r", seq_prof.is_accelerated);
+    printf("In HW profiler? %u\n\r", seq_prof.in_hw_profiler);
 
     printf("PR time: %u\n\r", seq_prof.pr_time);
 }

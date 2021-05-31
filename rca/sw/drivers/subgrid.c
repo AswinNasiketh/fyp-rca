@@ -152,25 +152,40 @@ void find_node_pos(sub_grid_t* sub_grid, uint32_t node_id, uint32_t* row, uint32
 }
 
 bool find_path(sub_grid_t* sub_grid, uint32_t from_node_row, uint32_t to_node_row, uint32_t from_node_id, bool from_node_is_input){
+
+    printf("Finding path between row %u and %u. Num Rows: %u \n\r", from_node_row, to_node_row, sub_grid->num_rows);
     uint32_t row = from_node_row;
     bool path_found = false;
 
-    bool* passthrough_created = malloc(sub_grid->num_rows*sizeof(bool));
-    uint32_t* passthrough_col = malloc(sub_grid->num_rows*sizeof(uint32_t));
+    bool* passthrough_created = malloc((sub_grid->num_rows)*sizeof(bool));
+    uint32_t* passthrough_col = malloc((sub_grid->num_rows)*sizeof(uint32_t));
+
+    printf("loop\n\r");
     for(int i = 0; i < sub_grid->num_rows; i++){
-        passthrough_created = false;
+        passthrough_created[i] = false;
     }
 
+    // printf("PT Arrays initialised, starting path finding\n\r");
     while(!path_found){
+        printf("Checking row %u\n\r", row);
         //check if next row has to_node - done first since there is one more IO unit than the number of grid rows
-        if(to_node_row == row){
+        if(to_node_row == row && from_node_row == row && from_node_is_input){
+            printf("Found path from input IO unit to OU\n\r");
             path_found = true;
             break;
         }else if(row == from_node_row && !from_node_is_input){
+            row++;
             continue;
+        }else if(row == to_node_row){
+            printf("Found path\n\r");
+            path_found = true;
+            break;
         }
 
-        if(row >= sub_grid->num_rows) break; //grid size exceeded
+        if(row >= sub_grid->num_rows) {
+            printf("Grid size exceeded without finding row, breaking out of loop\n\r");
+            break; //grid size exceeded
+        }
 
         //check if next row has passthrough for from node
         bool pt_found = false;
@@ -181,12 +196,16 @@ bool find_path(sub_grid_t* sub_grid, uint32_t from_node_row, uint32_t to_node_ro
             }
         }
 
-        if(pt_found) continue;
+        if(pt_found){
+            row++;
+            continue;
+        }
 
         //Try to create passthrough for from node in next row
         for(int i = 0; i < NUM_GRID_COLS; i++){
             if(sub_grid->grid_slots[row][i].ou == UNUSED){
                 passthrough_created[row] = true;
+                passthrough_col[row] = i;
                 break;
             }
         }
@@ -199,8 +218,11 @@ bool find_path(sub_grid_t* sub_grid, uint32_t from_node_row, uint32_t to_node_ro
 
     //apply passthroughs if a path has been found
     if(path_found){
+        // printf("Applying Passthroughs\n\r");
         for(int i = 0; i < sub_grid->num_rows; i++){
+            // printf("Checking for passthrough in row %u\n\r", i);
             if(passthrough_created[i]){
+                printf("Passthrough added in row %u in column %u\n\r", i, passthrough_col[i]);
                 sub_grid->grid_slots[i][passthrough_col[i]].node_id = from_node_id;
                 sub_grid->grid_slots[i][passthrough_col[i]].ou = PASSTHROUGH;
             }
@@ -209,6 +231,8 @@ bool find_path(sub_grid_t* sub_grid, uint32_t from_node_row, uint32_t to_node_ro
 
     free(passthrough_created);
     free(passthrough_col);
+
+    printf("Path found %u\n\r", path_found);
 
     return path_found;
 }
@@ -260,12 +284,15 @@ uint32_t unconnected_nets_cost(sub_grid_t* sub_grid, dfg_t dfg){
 }
 
 uint32_t calculate_total_cost(sub_grid_t* sub_grid, dfg_t dfg){
-    return calculate_gaps_cost(sub_grid, dfg) + unconnected_nets_cost(sub_grid, dfg);
+    uint32_t gaps_cost = calculate_gaps_cost(sub_grid, dfg);
+    uint32_t uconn_nets_cost = unconnected_nets_cost(sub_grid, dfg);
+    printf("Gaps Cost: %u, Uconn Nets Cost %u \n\r", gaps_cost, uconn_nets_cost);
+    return gaps_cost+uconn_nets_cost;
 }
 
-uint32_t get_randint_in_range(uint32_t upper, uint32_t lower){
-    uint32_t range_size = upper - lower + 1;
-
+uint32_t get_randint_in_range(int32_t upper, int32_t lower){
+    int32_t range_size = upper - lower + 1;
+    // printf("Generating random int between %d and %d, range : %d\n\r", upper, lower, range_size);
     return (rand() % range_size) + lower;
 }
 
@@ -274,11 +301,16 @@ void make_random_change_ou(sub_grid_t* sub_grid, uint32_t swap_dist_row, uint32_
     uint32_t row = rand() % sub_grid->num_rows;
     uint32_t col = rand() % NUM_GRID_COLS;
 
-    uint32_t next_row_ub = row+swap_dist_row;
-    uint32_t next_row_lb = row-swap_dist_row;
+    while(sub_grid->grid_slots[row][col].ou == UNUSED){
+        row = rand() % sub_grid->num_rows;
+        col = rand() % NUM_GRID_COLS;
+    }
 
-    uint32_t next_col_ub = col+swap_dist_col;
-    uint32_t next_col_lb = row-swap_dist_col;
+    int32_t next_row_ub = row+swap_dist_row;
+    int32_t next_row_lb = row-swap_dist_row;
+
+    int32_t next_col_ub = col+swap_dist_col;
+    int32_t next_col_lb = row-swap_dist_col;
 
     if(next_row_lb < 0){
         next_row_lb = 0;
@@ -296,44 +328,52 @@ void make_random_change_ou(sub_grid_t* sub_grid, uint32_t swap_dist_row, uint32_
         next_col_ub = NUM_GRID_COLS-1;
     }
 
+    // printf("Getting First Unit to Swap: row: %u, col: %u\n\r", row, col);
     pr_slot_t unit1 = sub_grid->grid_slots[row][col];
     uint32_t next_row;
     uint32_t next_col;
-
-    next_col = get_randint_in_range(next_col_lb, next_row_ub);
-    next_row = get_randint_in_range(next_row_lb, next_row_ub);
+    
+    next_col = get_randint_in_range(next_col_ub, next_col_lb);
+    next_row = get_randint_in_range(next_row_ub, next_row_lb);
+    // printf("Getting Second Unit to Swap: row: %u, col: %u\n\r", next_row, next_col);
     pr_slot_t unit2 = sub_grid->grid_slots[next_row][next_col];
 
     //if we are swapping an LS OU, it must be in column 0
     if(is_ls_op(unit1.ou) || is_ls_op(unit2.ou)){
+        printf("Swapping LS OU, setting columns to 0");
         col = 0;
         next_col = 0;
         unit1 = sub_grid->grid_slots[row][col];
         unit2 = sub_grid->grid_slots[next_row][next_col];
+
+        sub_grid->io_unit_cfgs[row].wait_for_ls_submit = is_ls_op(unit2.ou);
+        sub_grid->io_unit_cfgs[next_col].wait_for_ls_submit = is_ls_op(unit1.ou);
     }
 
     //if we are swapping a passthrough, just delete it
     if(unit1.ou == PASSTHROUGH){
         unit1.ou = UNUSED;
+        unit1.node_id = 0;
     }
 
     if(unit2.ou == PASSTHROUGH){
         unit2.ou = UNUSED;
+        unit2.node_id = 0;
     }
     
     sub_grid->grid_slots[row][col] = unit2;
     sub_grid->grid_slots[next_row][next_col] = unit1; 
+    printf("OU Swap Complete! \n\r");
 
-    sub_grid->io_unit_cfgs[row].wait_for_ls_submit = is_ls_op(unit2.ou);
-    sub_grid->io_unit_cfgs[next_col].wait_for_ls_submit = is_ls_op(unit1.ou);
+    print_sub_grid(sub_grid);
 }
 
 void make_random_change_io(sub_grid_t* sub_grid, uint32_t swap_dist_row){
     //select co-ordinates of units for swapping
     uint32_t row = rand() % sub_grid->num_rows;
 
-    uint32_t next_row_ub = row+swap_dist_row;
-    uint32_t next_row_lb = row-swap_dist_row;
+    int32_t next_row_ub = row+swap_dist_row;
+    int32_t next_row_lb = row-swap_dist_row;
 
     if(next_row_lb < 0){
         next_row_lb = 0;
@@ -346,7 +386,7 @@ void make_random_change_io(sub_grid_t* sub_grid, uint32_t swap_dist_row){
     io_unit_cfg_t unit1 = sub_grid->io_unit_cfgs[row];
     uint32_t next_row;
 
-    next_row = get_randint_in_range(next_row_lb, next_row_ub);
+    next_row = get_randint_in_range(next_row_ub, next_row_lb);
     io_unit_cfg_t unit2 = sub_grid->io_unit_cfgs[next_row];
     
     sub_grid->io_unit_cfgs[row] = unit2;
@@ -403,10 +443,11 @@ float calculate_std_dev(uint32_t* costs, uint32_t num_costs){
     mean = sum/((float) num_costs);
 
     for(int i = 0; i < num_costs; i++){
-        std += powf(costs[i] - mean, 2);
+        std += powf(((float) costs[i]) - mean, 2);
     }
 
     std = sqrtf(std/((float) num_costs));
+    return std;
 }
 
 float select_init_temp(sub_grid_t* sub_grid, dfg_t dfg){
@@ -423,10 +464,17 @@ float select_init_temp(sub_grid_t* sub_grid, dfg_t dfg){
         cost_arr[i] = cost;
     }
 
+    printf("Printing Costs during intial temp selection\n\r");
+    for(int i = 0; i < dfg.num_nodes; i++){
+        printf("%u\n\r", cost_arr[i]);
+    }
+
     float std_dev = calculate_std_dev(cost_arr, dfg.num_nodes);
 
     free_sub_grid(&grid_cpy);
     free(cost_arr);
+
+    return round(20.0*std_dev);
 }
 
 bool can_exit_anneal(float curr_temp, sub_grid_t* grid, dfg_t dfg){
@@ -479,6 +527,7 @@ uint32_t anneal(sub_grid_t* grid, dfg_t dfg, uint32_t iters_per_temp, uint32_t i
     float swap_dist_mod;
 
     while(!can_exit_anneal(temp, grid, dfg)){
+        printf("Current Temperature %f\n\r", temp);
         n_accepted = 0;
 
         for(int i = 0; i < iters_per_temp; i++){
@@ -511,13 +560,35 @@ uint32_t anneal(sub_grid_t* grid, dfg_t dfg, uint32_t iters_per_temp, uint32_t i
 
 void infer_mux_cfgs(sub_grid_t* sub_grid, dfg_t dfg){
     sub_grid->row_xbar_cfgs = malloc(sub_grid->num_rows*sizeof(row_xbar_cfg_t));
+
+    for(int i = 0; i < sub_grid->num_rows; i++){
+        for(int j = 0; j < NUM_GRID_COLS; j++){
+            sub_grid->row_xbar_cfgs[i].arr[0][j] = 0;
+            sub_grid->row_xbar_cfgs[i].arr[1][j] = 0;
+        }
+    }
     
     for(int i = 0; i < dfg.num_edges; i++){
         uint32_t from_node_row, from_node_col;
-        uint32_t to_node_row, to_node_col;      
+        uint32_t to_node_row, to_node_col;  
 
-        find_node_pos(sub_grid, dfg.edges[i].fromNode, &from_node_row, &from_node_col);
-        find_node_pos(sub_grid, dfg.edges[i].toNode, &to_node_row, &to_node_col);
+         printf("Edge from: %u, to: %u, slot input: %u\n\r",
+        dfg.edges[i].fromNode,
+        dfg.edges[i].toNode,
+        dfg.edges[i].slot_inp
+        );
+
+        if(dfg.nodes[dfg.edges[i].fromNode-1].is_input){
+            find_io_unit(sub_grid, dfg.edges[i].fromNode, &from_node_row, false);
+        }else{
+            find_node_pos(sub_grid, dfg.edges[i].fromNode, &from_node_row, &from_node_col);
+        }
+        
+        if(dfg.nodes[dfg.edges[i].toNode-1].is_output){
+            find_io_unit(sub_grid, dfg.edges[i].toNode, &to_node_row, true);
+        }else{
+            find_node_pos(sub_grid, dfg.edges[i].toNode, &to_node_row, &to_node_col);
+        }        
 
         //check for LSI path
         if(!dfg.nodes[dfg.edges[i].fromNode-1].is_input && !dfg.nodes[dfg.edges[i].fromNode-1].is_output && from_node_row == to_node_row && (from_node_col+1) == to_node_col){
@@ -527,17 +598,16 @@ void infer_mux_cfgs(sub_grid_t* sub_grid, dfg_t dfg){
 
         uint32_t row = from_node_row;
         bool path_found = false;
-
+        printf("Starting on row %u, from node %u \n\r", from_node_row, dfg.edges[i].fromNode);
         int32_t pt_col = -1;
         while(!path_found){
             if(to_node_row == row){
                 if(pt_col != -1){
-                    sub_grid->row_xbar_cfgs[row].arr[dfg.edges[i].slot_inp][to_node_col] = pt_col;
                     if(dfg.nodes[dfg.edges[i].toNode-1].is_output){
                         sub_grid->io_unit_cfgs[row].io_mux_inp = NUM_READ_PORTS+ pt_col;
                     }else{
                         sub_grid->row_xbar_cfgs[row].arr[dfg.edges[i].slot_inp][to_node_col] = pt_col;
-                    }  
+                    }
                 }else if(dfg.nodes[dfg.edges[i].fromNode-1].is_input){
                     sub_grid->row_xbar_cfgs[row].arr[dfg.edges[i].slot_inp][to_node_col] = IO_UNIT;
                 }else{
@@ -549,6 +619,9 @@ void infer_mux_cfgs(sub_grid_t* sub_grid, dfg_t dfg){
                 }
                 path_found = true;
                 break;
+            }else if(row == from_node_row && !dfg.nodes[dfg.edges[i].fromNode-1].is_input){
+                row++;
+                continue;
             }
 
             if(row >= sub_grid->num_rows){
@@ -557,23 +630,25 @@ void infer_mux_cfgs(sub_grid_t* sub_grid, dfg_t dfg){
             }            
 
             bool pt_found = false;
-            for(int i = 0; i < NUM_GRID_COLS; i++){
-                if(sub_grid->grid_slots[row][i].ou == PASSTHROUGH && sub_grid->grid_slots[row][i].node_id == dfg.edges[i].fromNode){
+            for(int j = 0; j < NUM_GRID_COLS; j++){
+                if(sub_grid->grid_slots[row][j].ou == PASSTHROUGH && sub_grid->grid_slots[row][j].node_id == dfg.edges[i].fromNode){
+                    printf("Configuring PT MUX in row %u, col %u, fromNode is %u\n\r", row, i, dfg.edges[i].fromNode);
                     pt_found = true;
                     if(pt_col != -1){
-                        sub_grid->row_xbar_cfgs[row].arr[PT_SLOT_INPUT][i] = pt_col;
+                        sub_grid->row_xbar_cfgs[row].arr[PT_SLOT_INPUT][j] = pt_col;
                     }else if(dfg.nodes[dfg.edges[i].fromNode-1].is_input){
-                        sub_grid->row_xbar_cfgs[row].arr[PT_SLOT_INPUT][i] = IO_UNIT;
+                        sub_grid->row_xbar_cfgs[row].arr[PT_SLOT_INPUT][j] = IO_UNIT;
                     }else{
-                        sub_grid->row_xbar_cfgs[row].arr[PT_SLOT_INPUT][i] = from_node_col;
+                        sub_grid->row_xbar_cfgs[row].arr[PT_SLOT_INPUT][j] = from_node_col;
                     }
-                    pt_col = i;
+                    pt_col = j;
                     break;
                 }
             }
 
             if(!pt_found){
-                printf("Error inferring xbar cfgs, couldn't find a required passthrough \n\r");
+                printf("Error inferring xbar cfgs, couldn't find a required passthrough from %u to %u on row %u\n\r", dfg.edges[i].fromNode, dfg.edges[i].toNode, row);
+                print_sub_grid(sub_grid);
                 while(1);
             }
 
@@ -584,6 +659,8 @@ void infer_mux_cfgs(sub_grid_t* sub_grid, dfg_t dfg){
 }
 
 bool gen_sub_grid(dfg_t dfg, sub_grid_t* sub_grid){
+    printf("Generating Sub Grid\n\r");
+    printf("Initialising Sub Grid\n\r");
     //allocate memory
     init_sub_grid(sub_grid, sub_grid->num_rows);
 
@@ -595,15 +672,20 @@ bool gen_sub_grid(dfg_t dfg, sub_grid_t* sub_grid){
 
         for(int j = 0; j < NUM_GRID_COLS; j++){
             sub_grid->grid_slots[i][j].ou = UNUSED;
+            sub_grid->grid_slots[i][j].node_id = 0; //id 0 will never be used by a dfg node
         }
     }
 
     //scatter DFG into grid
+    print_dfg(dfg);
+    printf("Scattering DFG\n\r");
     scatter_dfg(sub_grid, dfg);
-    
+    print_sub_grid(sub_grid);
     //do annealing
-    float init_temp = select_init_temp(sub_grid, dfg);
+    printf("Selecting intial Temp\n\r");
+    float init_temp = select_init_temp(sub_grid, dfg);    
     uint32_t iters_per_temp = round(10*(powf((float) dfg.num_nodes, 1.33f)));
+    printf("Initial temp selected: %f, iters per temp: %u, performing annealing\n\r", init_temp, iters_per_temp);
     uint32_t final_cost = anneal(sub_grid, dfg, iters_per_temp, sub_grid->num_rows, NUM_GRID_COLS, init_temp);
 
     //check if there were any unconnected nets
@@ -612,6 +694,7 @@ bool gen_sub_grid(dfg_t dfg, sub_grid_t* sub_grid){
     copy_sub_grid(&temp_grid, sub_grid);
 
     uint32_t unconn_nets = unconnected_nets_cost(&temp_grid, dfg);
+    printf("After Annealing num uconn nets: %u\n\r", unconn_nets);
     if(unconn_nets > 0){
         free_sub_grid(sub_grid);
         free_sub_grid(&temp_grid);
@@ -619,9 +702,36 @@ bool gen_sub_grid(dfg_t dfg, sub_grid_t* sub_grid){
     }
 
     //if all nets are connectable, infer the grid mux configs
+    printf("Inferring MUX cfgs\n\r");
     infer_mux_cfgs(sub_grid, dfg);
 
+    printf("MUX CFGs inferred\n\r");
+    print_sub_grid(sub_grid);
+    print_mux_cfgs(sub_grid);
 
     free_sub_grid(&temp_grid);
     return true;
+}
+
+
+void print_sub_grid(sub_grid_t* sub_grid){
+    printf("Printing Sub Grid\n\r");
+
+    for(int i = 0; i < sub_grid->num_rows; i++){
+        for(int j = 0; j < NUM_GRID_COLS; j++){
+            printf("ID:%u OU:%u\t", sub_grid->grid_slots[i][j].node_id, sub_grid->grid_slots[i][j].ou);
+            
+        }
+        printf("IO:%u I:%u O:%u", sub_grid->io_unit_cfgs[i].node_id, sub_grid->io_unit_cfgs[i].is_inp, sub_grid->io_unit_cfgs[i].is_output);
+        printf("\n\r");
+    }
+}
+
+void print_mux_cfgs(sub_grid_t* sub_grid){
+    for(int i = 0; i < sub_grid->num_rows; i++){
+        for(int j = 0; j < NUM_GRID_COLS; j++){
+            printf("m_in0: %u m_in1: %u\t", sub_grid->row_xbar_cfgs[i].arr[0][j], sub_grid->row_xbar_cfgs[i].arr[1][j]);
+        }
+        printf("io_in:%u\n\r", sub_grid->io_unit_cfgs[i].io_mux_inp);
+    }
 }
