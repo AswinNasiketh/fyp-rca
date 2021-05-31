@@ -21,6 +21,8 @@ module rca_profiler
     logic cache_operation; //to know whether its a branch instruction which is taken
     logic profiler_lock; //To lock profile cache when sequence selection routines are running
 
+    
+
     assign sbb = ($signed(branch_data.branch_pc_offset) < $signed(21'd0)) && (signed'(branch_data.branch_pc_offset) > SBB_MAX_OFFSET);
 
     assign cache_operation = branch_data.branch_instr_issue && branch_data.branch_taken && ~profiler_lock;
@@ -116,7 +118,9 @@ module rca_profiler
     //CPU interface
 
     always_ff @(posedge clk)
-        if(issue.new_request && profiler_inputs.toggle_lock)
+        if(rst)
+            profiler_lock <= 1'b1;
+        else if(issue.new_request && profiler_inputs.toggle_lock)
             profiler_lock <= !profiler_lock;
 
     logic waiting_for_ack; 
