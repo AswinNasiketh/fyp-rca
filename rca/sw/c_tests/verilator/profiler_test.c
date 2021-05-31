@@ -15,15 +15,16 @@ int main(void) {
 
     printf("Test fn is at %x\n\r", (uint32_t)fn_pointer);
 
-    volatile uint32_t test_num;
+    uint32_t test_num = 2000;
 
     for(int i = 0; i < 200; i++){
-        test_num += i % 2;
+        test_num++;
+        asm("");
     }
 
-    for(int i = 0; i < 200; i++){
-        test_num -= i % 2;
+    for(int i = 0; i < 205; i++){
+        test_num -= i;
     }
 
-    // printf("Final result ")
+    printf("Final result %u\n\r", test_num);
 }
