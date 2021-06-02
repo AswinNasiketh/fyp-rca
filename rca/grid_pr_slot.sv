@@ -43,7 +43,7 @@ logic input2_fifo_populated;
         .fifo(input1_fifo_if)
     );
 
-    assign input1_fifo_if.pop = ou_data_in_ack1;
+    assign input1_fifo_if.pop = ou_data_in_ack1 && input1_fifo_populated; //only allow pops when FIFO is populated
     assign input1_fifo_if.data_in = data_in1;
     assign input1_fifo_if.potential_push = data_valid_in1;
     assign input1_fifo_if.push =  data_valid_in1 && uses_data_in1;
@@ -58,7 +58,7 @@ logic input2_fifo_populated;
         .fifo(input2_fifo_if)
     );
 
-    assign input2_fifo_if.pop = ou_data_in_ack2;
+    assign input2_fifo_if.pop = ou_data_in_ack2 && input2_fifo_populated;
     assign input2_fifo_if.data_in = data_in2;
     assign input2_fifo_if.potential_push = data_valid_in2;
     assign input2_fifo_if.push = data_valid_in2 && uses_data_in2;
@@ -69,6 +69,9 @@ logic input2_fifo_populated;
     logic ou_data_in_ack2;
     logic uses_data_in1;
     logic uses_data_in2;
+
+    logic ou_ls_new_request;
+    assign new_request = ou_ls_new_request && (input1_fifo_populated | input2_fifo_populated); //don't allow LS requests unless input FIFOs are populated
 
     pr_module_empty ou(
         .clk,
@@ -83,6 +86,7 @@ logic input2_fifo_populated;
         .data_in_ack2(ou_data_in_ack2),
         .uses_data_in1,
         .uses_data_in2,
+        .new_request(ou_ls_new_request),
         .* //LS interface
     );
     
