@@ -70,8 +70,8 @@ logic input2_fifo_populated;
     logic uses_data_in1;
     logic uses_data_in2;
 
-    logic ou_ls_new_request;
-    assign new_request = ou_ls_new_request && (input1_fifo_populated | input2_fifo_populated); //don't allow LS requests unless input FIFOs are populated
+    // logic ou_ls_new_request;
+    // assign new_request = ou_ls_new_request && (input1_fifo_populated | input2_fifo_populated); //don't allow LS requests unless input FIFOs are populated
 
     pr_module_empty ou(
         .clk,
@@ -86,7 +86,7 @@ logic input2_fifo_populated;
         .data_in_ack2(ou_data_in_ack2),
         .uses_data_in1,
         .uses_data_in2,
-        .new_request(ou_ls_new_request),
+        // .new_request(ou_ls_new_request),
         .* //LS interface
     );
     

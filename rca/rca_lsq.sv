@@ -46,7 +46,7 @@ module rca_lsq
         for(int i = 0; i < GRID_NUM_ROWS; i++)
             grid_new_request[i] = grid.new_request[i];
 
-    assign increment_packet_id = ~packet_id_fifo_if.full && (|grid_new_request); //also serves as fifo push signal. No point in pushing into FIFO an empty packet
+    assign increment_packet_id = ~packet_id_fifo_if.full && (|grid_new_request) && rca_fifo_populated; //also serves as fifo push signal. No point in pushing into FIFO an empty packet. only allow new requests when rca fifo is populated to prevent requests from being set off by PR
 
     //FIFO Data
 
