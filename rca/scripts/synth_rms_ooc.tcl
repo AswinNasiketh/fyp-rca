@@ -3,7 +3,7 @@
 set part_num "xc7z020clg484-1"
 
 #obtain RM files
-
+#set rm_files {}
 set rm_files [glob /home/anv17/FYP/fyp-rca/rca/pr_modules/*.sv]
 
 #form module names
@@ -28,7 +28,6 @@ lappend rm_names pr_module_pt
 #Read config files
 
 read_verilog -sv /home/anv17/FYP/fyp-rca/core/taiga_config.sv
-/home/anv17/FYP/fyp-rca/
 read_verilog -sv /home/anv17/FYP/fyp-rca/core/riscv_types.sv
 read_verilog -sv /home/anv17/FYP/fyp-rca/core/taiga_types.sv
 read_verilog -sv /home/anv17/FYP/fyp-rca/rca/rca_config.sv
@@ -36,6 +35,7 @@ read_verilog -sv /home/anv17/FYP/fyp-rca/rca/rca_config.sv
 
 foreach file_name $rm_files rm_name $rm_names {
 	read_verilog -sv $file_name
+  reorder_files -auto
 	synth_design -top $rm_name -part $part_num -mode out_of_context
         set dcp_path /home/anv17/FYP/fyp-rca/rca/dcps/rm_ooc_synth_dcps/
 	append dcp_path $rm_name "_synth.dcp"
