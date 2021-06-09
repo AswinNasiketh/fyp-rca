@@ -241,7 +241,7 @@ generate
             if(j == 0) begin //LSQ interface only on leftmost slot
                 grid_pr_slot grid_slot(
                     .clk,
-                    .rst,
+                    .rst(pr_requests_incomplete || rst),
                     .data_in1(pr_mux_data_out1[i][j]),
                     .data_valid_in1(pr_mux_data_valid_out1[i][j]),
                     .data_in2(pr_mux_data_out2[i][j]),
@@ -256,14 +256,13 @@ generate
                     .new_request(lsq.new_request[i]),
                     .lsq_full(lsq.fifo_full),
                     .load_data(lsq.load_data),
-                    .load_complete(lsq.load_complete[i]),
-                    .pr_requests_incomplete
+                    .load_complete(lsq.load_complete[i])
                 );
             end
             else begin
                 grid_pr_slot grid_slot(
                     .clk,
-                    .rst,
+                    .rst(pr_requests_incomplete || rst),
                     .data_in1(pr_mux_data_out1[i][j]),
                     .data_valid_in1(pr_mux_data_valid_out1[i][j]),
                     .data_in2(pr_mux_data_out2[i][j]),
@@ -278,8 +277,7 @@ generate
                     .fn3(dummy_fn3[i][j]),
                     .load(dummy_load[j][i]),
                     .store(dummy_store[j][i]),
-                    .new_request(dummy_new_request[j][i]),
-                    .pr_requests_incomplete
+                    .new_request(dummy_new_request[j][i])
                 );
             end
         end

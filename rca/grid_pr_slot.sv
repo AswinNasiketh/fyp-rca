@@ -27,10 +27,7 @@ module grid_pr_slot
     input lsq_full,
 
     input [XLEN-1:0] load_data,
-    input load_complete,
-
-    //PR Decoupling
-    input pr_requests_incomplete
+    input load_complete
 );
 
 //It is anticipated that data at input 1 and input 2 will arrive at different rates => FIFOs are needed
@@ -46,10 +43,10 @@ logic input2_fifo_populated;
         .fifo(input1_fifo_if)
     );
 
-    assign input1_fifo_if.pop = ou_data_in_ack1 && !pr_requests_incomplete; //only allow pops when no PR requests are going on
+    assign input1_fifo_if.pop = ou_data_in_ack1;
     assign input1_fifo_if.data_in = data_in1;
-    assign input1_fifo_if.potential_push = data_valid_in1 && uses_data_in1 && !pr_requests_incomplete;
-    assign input1_fifo_if.push =  data_valid_in1 && uses_data_in1 && !pr_requests_incomplete;
+    assign input1_fifo_if.potential_push = data_valid_in1 && uses_data_in1;
+    assign input1_fifo_if.push =  data_valid_in1 && uses_data_in1;
 
     assign input1_fifo_populated = input1_fifo_if.valid;
 
@@ -61,10 +58,10 @@ logic input2_fifo_populated;
         .fifo(input2_fifo_if)
     );
 
-    assign input2_fifo_if.pop = ou_data_in_ack2 && !pr_requests_incomplete;
+    assign input2_fifo_if.pop = ou_data_in_ack2;
     assign input2_fifo_if.data_in = data_in2;
-    assign input2_fifo_if.potential_push = data_valid_in2 && uses_data_in2 && !pr_requests_incomplete;
-    assign input2_fifo_if.push = data_valid_in2 && uses_data_in2 && !pr_requests_incomplete;
+    assign input2_fifo_if.potential_push = data_valid_in2 && uses_data_in2;
+    assign input2_fifo_if.push = data_valid_in2 && uses_data_in2;
 
     assign input2_fifo_populated = input2_fifo_if.valid;
 
