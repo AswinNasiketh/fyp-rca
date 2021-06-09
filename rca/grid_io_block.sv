@@ -19,7 +19,9 @@ module grid_io_block
     output ls_requested,
 
     output data_valid_out,
-    output [XLEN-1:0] data_out
+    output [XLEN-1:0] data_out,
+
+    input pr_requests_incomplete
 );
 
     //FIFO to store accelerator output data when in output mode
@@ -32,14 +34,14 @@ module grid_io_block
 
     assign oldest_data.pop = fifo_pop;
     assign oldest_data.data_in = data_in;
-    assign oldest_data.potential_push = data_valid_in && output_mode;
-    assign oldest_data.push = data_valid_in && output_mode;
+    assign oldest_data.potential_push = data_valid_in && output_mode && !pr_requests_incomplete;
+    assign oldest_data.push = data_valid_in && output_mode && !pr_requests_incomplete;
 
     logic [$clog2(MAX_IDS):0] num_ls_requests;
     initial num_ls_requests = 0;
     always_ff @(posedge clk) begin
         if(rst || fifo_rst) num_ls_requests <= 0;
-        else num_ls_requests <= num_ls_requests + ($clog2(MAX_IDS)+1)'(new_ls_request) - ($clog2(MAX_IDS)+1)'(ls_request_ack);
+        else if(!pr_requests_incomplete) num_ls_requests <= num_ls_requests + ($clog2(MAX_IDS)+1)'(new_ls_request) - ($clog2(MAX_IDS)+1)'(ls_request_ack);
     end
     assign ls_requested = (num_ls_requests > 0);
 

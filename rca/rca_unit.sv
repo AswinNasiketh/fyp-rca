@@ -11,6 +11,7 @@ module rca_unit(
     output rca_cpu_reg_config_t rca_config_regs_op,
     rca_writeback_interface.unit rca_wb,
     output rca_config_locked,
+    input pr_requests_incomplete,
 
     rca_lsu_interface.lsq lsu
 );
@@ -104,7 +105,7 @@ module rca_unit(
 
     always_comb begin
         for(int i = 0; i < NUM_IO_UNITS; i++) begin
-            io_unit_output_mode[i] = (|io_unit_addr_match_fb_wb[i]) || (|io_unit_addr_match_nfb_wb[i]);
+            io_unit_output_mode[i] = ((|io_unit_addr_match_fb_wb[i]) || (|io_unit_addr_match_nfb_wb[i])) && !pr_requests_incomplete;
         end
     end
 
@@ -137,7 +138,8 @@ module rca_unit(
         .input_constants(input_constants_out),
         .io_unit_ls_requested,
         .io_unit_ls_ack,
-        .lsq(rca_lsq_grid_if)
+        .lsq(rca_lsq_grid_if),
+        .pr_requests_incomplete
     );
 
     rca_lsq_grid_interface rca_lsq_grid_if();
@@ -145,7 +147,8 @@ module rca_unit(
         .clk, .rst,
         .lsu,
         .grid(rca_lsq_grid_if),
-        .rca_fifo_populated(fifo_populated)
+        .rca_fifo_populated(fifo_populated),
+        .pr_requests_incomplete
     );
 
     logic wb_committing;

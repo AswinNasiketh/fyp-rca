@@ -25,6 +25,9 @@ module rca_pr_grid
     //Config & Control - PR slots
     input [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel [NUM_GRID_MUXES*2],
 
+    //PR decoupling
+    input pr_requests_incomplete,
+
     //LSQ
     rca_lsq_grid_interface.grid lsq
 );
@@ -98,8 +101,9 @@ generate for (i = 0; i < NUM_IO_UNITS; i++) begin : io_units
         .fifo_pop(io_fifo_pop[i]),
         .new_ls_request(row_ls_requested[i]),
         .ls_request_ack(io_unit_ls_ack[i]),
-        .ls_requested(io_unit_ls_requested[i])
-    );
+        .ls_requested(io_unit_ls_requested[i]),
+        .pr_requests_incomplete
+        );
 end endgenerate
 
 typedef logic [XLEN-1:0] pr_slot_mux_data_t [GRID_MUX_INPUTS];
@@ -252,7 +256,8 @@ generate
                     .new_request(lsq.new_request[i]),
                     .lsq_full(lsq.fifo_full),
                     .load_data(lsq.load_data),
-                    .load_complete(lsq.load_complete[i])
+                    .load_complete(lsq.load_complete[i]),
+                    .pr_requests_incomplete
                 );
             end
             else begin
@@ -273,7 +278,8 @@ generate
                     .fn3(dummy_fn3[i][j]),
                     .load(dummy_load[j][i]),
                     .store(dummy_store[j][i]),
-                    .new_request(dummy_new_request[j][i])
+                    .new_request(dummy_new_request[j][i]),
+                    .pr_requests_incomplete
                 );
             end
         end

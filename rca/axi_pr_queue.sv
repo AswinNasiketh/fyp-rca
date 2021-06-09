@@ -27,7 +27,7 @@ module axi_pr_queue
 
     //Interrupt and RCA stall signal
     output logic pr_request_pending, //to ARM core for interrupt
-    output logic pr_requests_incomplete, //for Taiga decoder
+    output logic pr_requests_incomplete, //for PR Decoupling
 
     //Taiga Interfaces
     unit_issue_interface.unit issue,
