@@ -6,7 +6,7 @@ open_checkpoint /home/anv17/FYP/fyp-rca/rca/dcps/top_rcf.dcp
 set rps [get_cells -hierarchical ou]
 
 #Load PBlocks and add cells to PBlocks
-read_xdc /home/anv17/FYP/fyp-rca/rca/xdcs/pblocks.xdc
+read_xdc /home/anv17/FYP/fyp-rca/rca/xdcs/pblocks2.xdc
 
 #Apply SRA RMs (biggest)
 foreach rp $rps {
