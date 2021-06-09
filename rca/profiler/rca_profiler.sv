@@ -10,7 +10,7 @@ module rca_profiler
     //Branch Unit interface
     profiler_branch_interface.profiler branch_data,
 
-    output profiler_exception,
+    output logic profiler_exception,
     input profiler_inputs_t profiler_inputs,
     unit_issue_interface.unit issue,
     unit_writeback_interface.unit wb
@@ -66,7 +66,7 @@ module rca_profiler
     //Profile Cache Replacement Mechanism
     logic new_cache_entry;
     logic [$clog2(NUM_PROFILER_ENTRIES)-1:0] entry_lowest_hits;
-    logic [$clog2(NUM_PROFILER_ENTRIES):0] next_invalid_entry;
+    logic [$clog2(NUM_PROFILER_ENTRIES)-1:0] next_invalid_entry;
     logic any_invalid_entries;
     logic [$clog2(NUM_PROFILER_ENTRIES)-1:0] next_entry_to_replace;
     logic [$clog2(MAX_TAKEN_COUNT)-1:0] lowest_taken_count;
@@ -86,13 +86,15 @@ module rca_profiler
     always_comb begin
         next_invalid_entry = 0;
         any_invalid_entries = 0;
-        while(!any_invalid_entries && next_invalid_entry < ($clog2(NUM_PROFILER_ENTRIES)+1)'(NUM_PROFILER_ENTRIES)) begin
-            any_invalid_entries = !profiler_data[next_invalid_entry[$clog2(NUM_PROFILER_ENTRIES)-1:0]].entry_valid;
-            next_invalid_entry = next_invalid_entry + ($clog2(NUM_PROFILER_ENTRIES)+1)'(!any_invalid_entries);
+        for(int i = NUM_PROFILER_ENTRIES-1; i >= 0; i--) begin
+           if(!profiler_data[i].entry_valid) begin
+                any_invalid_entries = 1'b1;
+                next_invalid_entry = ($clog2(NUM_PROFILER_ENTRIES))'(i);
+            end           
         end
     end
 
-    assign next_entry_to_replace = any_invalid_entries ? next_invalid_entry[$clog2(NUM_PROFILER_ENTRIES)-1:0] : entry_lowest_hits;
+    assign next_entry_to_replace = any_invalid_entries ? next_invalid_entry : entry_lowest_hits;
 
     //Updating Profile Cache
     always_ff @(posedge clk) begin
