@@ -37,7 +37,10 @@ module sra_ou
     assign uses_data_in1 = 1'b1;
     assign uses_data_in2 = 1'b1;
 
-    assign data_out = data_in1 >>> data_in2[4:0];
+    logic signed [XLEN-1:0] sgd_data_out;
+
+    assign sgd_data_out = signed'(data_in1) >>> data_in2[4:0]; //force SV to do signed arithmetic shift
+    assign data_out = sgd_data_out;
     assign data_valid_out = data_valid_in1 && data_valid_in2;
 
     assign data_in_ack1 = data_valid_in1 && data_valid_in2;
