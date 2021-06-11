@@ -110,9 +110,18 @@ module rca_att
         .result(waiting_for_ack)
         );
 
+    //RCA Use counter for Testing purposes
+    logic [XLEN-1:0] use_counter;
+    always_ff @(posedge clk)
+        if(rst)
+            use_counter <= '0;
+        else
+            if((|entry_hit) == 1'b1)
+                use_counter <= use_counter + 'd1;
+
     assign wb.done = waiting_for_ack;
     assign issue.ready = !waiting_for_ack;
-    assign wb.rd = '0; //writes only - could be extending to output old value of field for debugging
+    assign wb.rd = use_counter;
 
     always_ff @(posedge clk)
         if(~waiting_for_ack)
