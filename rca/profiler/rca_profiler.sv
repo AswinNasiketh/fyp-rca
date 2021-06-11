@@ -54,13 +54,11 @@ module rca_profiler
     assign shift_required = |(addr_match & max_reached);
 
     always_comb begin
-        if(shift_required)
-            for(int i = 0; i < NUM_PROFILER_ENTRIES; i++)
-                next_taken_count[i] = profiler_data[i].taken_count >> 1;
-        
-        for(int j = 0; j < NUM_PROFILER_ENTRIES; j++)
-            if(addr_match[j])
-                next_taken_count[j] = profiler_data[j].taken_count + 1;
+        for(int i = 0; i < NUM_PROFILER_ENTRIES; i++)
+            if(shift_required)
+                next_taken_count[i] = {1'b0, profiler_data[i].taken_count[$clog2(MAX_TAKEN_COUNT)-1:1]}  + ($clog2(MAX_TAKEN_COUNT))'(addr_match[i]);
+            else
+                next_taken_count[i] = profiler_data[i].taken_count + ($clog2(MAX_TAKEN_COUNT))'(addr_match[i]);
     end
 
     //Profile Cache Replacement Mechanism
@@ -100,20 +98,19 @@ module rca_profiler
     always_ff @(posedge clk) begin
         if(rst) begin
             for(int i = 0; i < NUM_PROFILER_ENTRIES; i++) begin
-                profiler_data[i].branch_instr_addr = '0;
-                profiler_data[i].taken_count = '0;
-                profiler_data[i].entry_valid = '0;
+                profiler_data[i].branch_instr_addr <= '0;
+                profiler_data[i].taken_count <= '0;
+                profiler_data[i].entry_valid <= '0;
             end
         end
         else begin
             for (int i = 0; i < NUM_PROFILER_ENTRIES; i++)
-                profiler_data[i].taken_count = next_taken_count[i];
-            
-            if(new_cache_entry) begin
-                profiler_data[next_entry_to_replace].branch_instr_addr = branch_data.branch_instr_pc;
-                profiler_data[next_entry_to_replace].taken_count = 1;
-                profiler_data[next_entry_to_replace].entry_valid = 1;
-            end
+                if(new_cache_entry && (next_entry_to_replace == ($clog2(NUM_PROFILER_ENTRIES))'(i))) begin
+                        profiler_data[i].branch_instr_addr <= branch_data.branch_instr_pc;
+                        profiler_data[i].taken_count <= 'd1;
+                        profiler_data[i].entry_valid <= 1'b1;
+                end else
+                        profiler_data[i].taken_count <= next_taken_count[i];
         end
     end
 
