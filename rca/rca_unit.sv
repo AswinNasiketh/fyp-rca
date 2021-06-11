@@ -17,7 +17,7 @@ module rca_unit(
 );
 
     logic [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sel_out [NUM_GRID_MUXES*2];
-    logic [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sels [NUM_IO_UNITS];
+    logic [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sels [NUM_IO_UNITS*2];
     logic [$clog2(NUM_IO_UNITS+1)-1:0] curr_fb_rca_result_mux_sel [NUM_WRITE_PORTS];
     logic [$clog2(NUM_IO_UNITS+1)-1:0] curr_nfb_rca_result_mux_sel [NUM_WRITE_PORTS];
     logic [NUM_IO_UNITS-1:0] curr_rca_io_inp_map;
@@ -82,8 +82,8 @@ module rca_unit(
     grid_control rca_grid_control(.*);
 
     logic [NUM_IO_UNITS-1:0] rs_data_valid;
-    logic [XLEN-1:0] io_unit_data_out [NUM_IO_UNITS];
-    logic io_unit_data_valid_out [NUM_IO_UNITS];
+    logic [XLEN-1:0] io_unit_gwb_data_out [NUM_IO_UNITS];
+    logic io_unit_gwb_data_valid_out [NUM_IO_UNITS];
     logic [NUM_WRITE_PORTS-1:0] io_unit_addr_match_fb_wb [NUM_IO_UNITS];
     logic [NUM_WRITE_PORTS-1:0] io_unit_addr_match_nfb_wb [NUM_IO_UNITS];
     logic io_unit_output_mode [NUM_IO_UNITS];
@@ -105,7 +105,7 @@ module rca_unit(
 
     always_comb begin
         for(int i = 0; i < NUM_IO_UNITS; i++) begin
-            io_unit_output_mode[i] = ((|io_unit_addr_match_fb_wb[i]) || (|io_unit_addr_match_nfb_wb[i])) && !pr_requests_incomplete;
+            io_unit_output_mode[i] = ((|io_unit_addr_match_fb_wb[i]) || (|io_unit_addr_match_nfb_wb[i])) && !pr_requests_incomplete && fifo_populated;
         end
     end
 
@@ -128,8 +128,8 @@ module rca_unit(
         .rst,
         .rs_vals(buf_rs_data),
         .rs_data_valid,
-        .io_unit_data_out,
-        .io_unit_data_valid_out,
+        .io_unit_gwb_data_out,
+        .io_unit_gwb_data_valid_out,
         .curr_io_mux_sels,
         .io_unit_output_mode,
         .io_units_rst(clear_fifos),
@@ -161,8 +161,8 @@ module rca_unit(
     end
 
     grid_wb rca_grid_wb(
-        .io_unit_output_data(io_unit_data_out),
-        .io_unit_output_data_valid(io_unit_data_valid_out),
+        .io_unit_output_data(io_unit_gwb_data_out),
+        .io_unit_output_data_valid(io_unit_gwb_data_valid_out),
         .io_unit_sels,
         .io_unit_sels_valid(fifo_populated),
         .output_data(grid_output_data),

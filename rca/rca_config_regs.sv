@@ -37,8 +37,8 @@ module rca_config_regs (
 
     //Reg file to store IO Unit crossbar configurations
     //Read interface
-    input [$clog2(NUM_IO_UNITS)-1:0] io_mux_addr,
-    output [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sels [NUM_IO_UNITS],
+    input [$clog2(NUM_IO_UNITS*2)-1:0] io_mux_addr,
+    output [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sels [NUM_IO_UNITS*2],
     
     //Write interface - uses address from read interface
     input io_mux_wr_en,
@@ -83,7 +83,7 @@ module rca_config_regs (
 
     logic [$clog2(GRID_MUX_INPUTS)-1:0] grid_mux_sels [NUM_GRID_MUXES*2];
 
-    logic [$clog2(IO_UNIT_MUX_INPUTS)-1:0] io_unit_mux_sels [NUM_IO_UNITS];
+    logic [$clog2(IO_UNIT_MUX_INPUTS)-1:0] io_unit_mux_sels [NUM_IO_UNITS*2];
 
     typedef logic [$clog2(NUM_IO_UNITS+1)-1:0] rca_result_mux_sel_t [NUM_WRITE_PORTS];
     rca_result_mux_sel_t rca_result_mux_sels_fb [NUM_RCAS];

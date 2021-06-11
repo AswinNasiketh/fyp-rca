@@ -303,7 +303,7 @@ module decode_and_issue (
             if(issue_stage_ready)
                 rca_dec_inputs_r.rca_io_mux_config_instr <= rca_io_mux_config_instr;
 
-        assign rca_inputs.io_mux_addr = rs_data[RS1][$clog2(NUM_IO_UNITS)-1:0];
+        assign rca_inputs.io_mux_addr = rs_data[RS1][$clog2(NUM_IO_UNITS*2)-1:0];
         assign rca_inputs.new_io_mux_sel = rs_data[RS2][$clog2(IO_UNIT_MUX_INPUTS)-1:0];
 
         always_ff @(posedge clk) 

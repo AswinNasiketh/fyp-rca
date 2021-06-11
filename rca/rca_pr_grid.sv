@@ -10,13 +10,13 @@ module rca_pr_grid
     //Data
     input [XLEN-1:0] rs_vals [NUM_READ_PORTS],
     input [NUM_IO_UNITS-1:0] rs_data_valid,
-    output [XLEN-1:0] io_unit_data_out [NUM_IO_UNITS],
-    output io_unit_data_valid_out [NUM_IO_UNITS],
+    output [XLEN-1:0] io_unit_gwb_data_out [NUM_IO_UNITS],
+    output io_unit_gwb_data_valid_out [NUM_IO_UNITS],
     output io_unit_ls_requested [NUM_IO_UNITS],
     input io_unit_ls_ack [NUM_IO_UNITS],
 
     //Config & Control - IO units
-    input [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sels [NUM_IO_UNITS],
+    input [$clog2(IO_UNIT_MUX_INPUTS)-1:0] curr_io_mux_sels [NUM_IO_UNITS*2],
     input io_unit_output_mode [NUM_IO_UNITS],
     input io_units_rst,
     input io_fifo_pop [NUM_IO_UNITS],
@@ -35,33 +35,40 @@ module rca_pr_grid
 genvar i, j;
 
 //Implementation - IO Units
-typedef logic [XLEN-1:0] io_mux_data_t [IO_UNIT_MUX_INPUTS];
-io_mux_data_t  io_mux_data_in [NUM_IO_UNITS];
+typedef logic [XLEN-1:0] io_gci_mux_data_t [NUM_READ_PORTS+1];
+io_gci_mux_data_t  io_gci_mux_data_in [NUM_IO_UNITS];
 
-typedef logic io_mux_data_valid_t [IO_UNIT_MUX_INPUTS];
-io_mux_data_valid_t io_mux_data_valid_in [NUM_IO_UNITS];
+typedef logic io_gci_mux_data_valid_t [NUM_READ_PORTS+1];
+io_gci_mux_data_valid_t io_gci_mux_data_valid_in [NUM_IO_UNITS];
 
-logic [XLEN-1:0] io_mux_data_out [NUM_IO_UNITS];
-logic io_mux_data_valid_out [NUM_IO_UNITS];
+typedef logic [XLEN-1:0] io_row_mux_data_t [GRID_NUM_COLS];
+io_row_mux_data_t  io_row_mux_data_in [NUM_IO_UNITS];
+
+typedef logic io_row_mux_data_valid_t [GRID_NUM_COLS];
+io_row_mux_data_valid_t io_row_mux_data_valid_in [NUM_IO_UNITS];
+
+logic [XLEN-1:0] io_gci_mux_data_out [NUM_IO_UNITS];
+logic io_gci_mux_data_valid_out [NUM_IO_UNITS];
+
+logic [XLEN-1:0] io_row_mux_data_out [NUM_IO_UNITS];
+logic io_row_mux_data_valid_out [NUM_IO_UNITS];
 
 logic row_ls_requested [NUM_IO_UNITS];
-assign row_ls_requested[0] = 1'b0; //first IO unit will never be an output
 
 always_comb
     for(int i = 0; i < GRID_NUM_ROWS; i++)
-        row_ls_requested[i+1] = lsq.new_request[i];
+        row_ls_requested[i] = lsq.new_request[i];
 
 always_comb begin
     for (int k = 0; k < NUM_IO_UNITS; k++) begin
 
         for (int i = 0; i < NUM_READ_PORTS; i++)
-            io_mux_data_in[k][i] = rs_vals[i];
+            io_gci_mux_data_in[k][i] = rs_vals[i];
 
-        for (int j = NUM_READ_PORTS; j < NUM_READ_PORTS + GRID_NUM_COLS; j++)
-            if (k < 1) io_mux_data_in[k][j] = 0; //first row doesn't have any preceding outputs
-            else io_mux_data_in[k][j] = pr_unit_data_out[k-1][j - NUM_READ_PORTS];  
+        for (int j = 0; j < GRID_NUM_COLS; j++)
+           io_row_mux_data_in[k][j] = pr_unit_data_out[k][j];  
 
-        io_mux_data_in[k][NUM_READ_PORTS + GRID_NUM_COLS] = input_constants[k];
+        io_gci_mux_data_in[k][NUM_READ_PORTS] = input_constants[k];
     end
 end
 
@@ -69,33 +76,49 @@ always_comb begin
     for (int k = 0; k < NUM_IO_UNITS; k++) begin
 
         for (int i = 0; i < NUM_READ_PORTS; i++)
-            io_mux_data_valid_in[k][i] = rs_data_valid[k];
+            io_gci_mux_data_valid_in[k][i] = rs_data_valid[k];
 
-        for (int j = NUM_READ_PORTS; j < NUM_READ_PORTS + GRID_NUM_COLS; j++)
-            if (k < 1) io_mux_data_valid_in[k][j] = 0; //first row doesn't have any preceding outputs
-            else io_mux_data_valid_in[k][j] = pr_unit_data_valid_out[k-1][j - NUM_READ_PORTS];   
+        for (int j = 0; j < GRID_NUM_COLS; j++)
+            io_row_mux_data_valid_in[k][j] = pr_unit_data_valid_out[k][j];   
         
-        io_mux_data_valid_in[k][NUM_READ_PORTS + GRID_NUM_COLS] = rs_data_valid[k];
+        io_gci_mux_data_valid_in[k][NUM_READ_PORTS] = rs_data_valid[k];
     end
 end
 
 generate for (i = 0; i < NUM_IO_UNITS; i++) begin : io_unit_muxes
-    grid_xbar_mux #(.NUM_INPUTS(IO_UNIT_MUX_INPUTS)) io_mux(
-        .data_in(io_mux_data_in[i]),
-        .data_valid_in(io_mux_data_valid_in[i]),
+    grid_xbar_mux #(.NUM_INPUTS(IO_UNIT_MUX_INPUTS)) io_gci_mux(
+        .data_in(io_gci_mux_data_in[i]),
+        .data_valid_in(io_gci_mux_data_valid_in[i]),
         .data_sel(curr_io_mux_sels[i]),
-        .data_out(io_mux_data_out[i]),
-        .data_valid_out(io_mux_data_valid_out[i])
+        .data_out(io_gci_mux_data_out[i]),
+        .data_valid_out(io_gci_mux_data_valid_out[i])
     );
+
+    grid_xbar_mux #(.NUM_INPUTS(IO_UNIT_MUX_INPUTS)) io_row_mux(
+        .data_in(io_row_mux_data_in[i]),
+        .data_valid_in(io_row_mux_data_valid_in[i]),
+        .data_sel(curr_io_mux_sels[NUM_IO_UNITS + i]),
+        .data_out(io_row_mux_data_out[i]),
+        .data_valid_out(io_row_mux_data_valid_out[i])
+    );
+
 end endgenerate
+
+//to OUs
+logic [XLEN-1:0] io_unit_row_data_out [NUM_IO_UNITS];
+logic io_unit_row_data_valid_out [NUM_IO_UNITS];
 
 generate for (i = 0; i < NUM_IO_UNITS; i++) begin : io_units
     grid_io_block io_unit(
         .clk, .rst,
-        .data_valid_in(io_mux_data_valid_out[i]),
-        .data_in(io_mux_data_out[i]),
-        .data_valid_out(io_unit_data_valid_out[i]),
-        .data_out(io_unit_data_out[i]),
+        .gci_data_valid_in(io_gci_mux_data_valid_out[i]),
+        .gci_data_in(io_gci_mux_data_out[i]),
+        .row_data_valid_in(io_row_mux_data_valid_out[i]),
+        .row_data_in(io_row_mux_data_out[i]),
+        .gwb_data_valid_out(io_unit_gwb_data_valid_out[i]),
+        .gwb_data_out(io_unit_gwb_data_out[i]),
+        .row_data_valid_out(io_unit_row_data_valid_out[i]),
+        .row_data_out(io_unit_row_data_out[i]),
         .output_mode(io_unit_output_mode[i]),
         .fifo_rst(io_units_rst),
         .fifo_pop(io_fifo_pop[i]),
@@ -147,9 +170,9 @@ always_comb begin
                     pr_slot_mux_data_valid_in1[i][j][k] = pr_unit_data_valid_out[i-1][k];
                 end
             end
-            //mux input for data from io unit above
-            pr_slot_mux_data_in1[i][j][GRID_MUX_INPUTS-2] = io_unit_data_out[i];
-            pr_slot_mux_data_valid_in1[i][j][GRID_MUX_INPUTS-2] = io_unit_data_valid_out[i];
+            //mux input for data from io unit
+            pr_slot_mux_data_in1[i][j][GRID_MUX_INPUTS-2] = io_unit_row_data_out[i];
+            pr_slot_mux_data_valid_in1[i][j][GRID_MUX_INPUTS-2] = io_unit_row_data_valid_out[i];
 
             //mux input for data from pr slot on left
             if (j == 0) begin 
@@ -179,9 +202,9 @@ always_comb begin
                     pr_slot_mux_data_valid_in2[i][j][k] = pr_unit_data_valid_out[i-1][k];
                 end
             end
-            //mux input for data from io unit above
-            pr_slot_mux_data_in2[i][j][GRID_MUX_INPUTS-2] = io_unit_data_out[i];
-            pr_slot_mux_data_valid_in2[i][j][GRID_MUX_INPUTS-2] = io_unit_data_valid_out[i];
+            //mux input for data from io unit
+            pr_slot_mux_data_in2[i][j][GRID_MUX_INPUTS-2] = io_unit_row_data_out[i];
+            pr_slot_mux_data_valid_in2[i][j][GRID_MUX_INPUTS-2] = io_unit_row_data_valid_out[i];
 
             //mux input for data from pr slot on left
             if (j == 0) begin 

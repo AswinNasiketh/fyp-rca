@@ -6,8 +6,11 @@ module grid_io_block
 (
     input clk,
     input rst,
-    input data_valid_in,
-    input [XLEN-1:0] data_in,
+    input gci_data_valid_in,
+    input [XLEN-1:0] gci_data_in,
+
+    input row_data_valid_in,
+    input [XLEN-1:0] row_data_in,
 
     input output_mode, //use RCA result MUX sel regfile for this
     input fifo_rst, // control signal from RCA control unit
@@ -18,8 +21,10 @@ module grid_io_block
     input ls_request_ack,
     output ls_requested,
 
-    output data_valid_out,
-    output [XLEN-1:0] data_out,
+    output gwb_data_valid_out,
+    output [XLEN-1:0] gwb_data_out,
+    output row_data_valid_out,
+    output [XLEN-1:0] row_data_out,
 
     input pr_requests_incomplete
 );
@@ -33,9 +38,9 @@ module grid_io_block
     );
 
     assign oldest_data.pop = fifo_pop;
-    assign oldest_data.data_in = data_in;
-    assign oldest_data.potential_push = data_valid_in && output_mode && !pr_requests_incomplete;
-    assign oldest_data.push = data_valid_in && output_mode && !pr_requests_incomplete;
+    assign oldest_data.data_in = row_data_in;
+    assign oldest_data.potential_push = row_data_valid_in && output_mode && !pr_requests_incomplete;
+    assign oldest_data.push = row_data_valid_in && output_mode && !pr_requests_incomplete;
 
     logic [$clog2(MAX_IDS):0] num_ls_requests;
     initial num_ls_requests = 0;
@@ -45,8 +50,10 @@ module grid_io_block
     end
     assign ls_requested = (num_ls_requests > 0);
 
-    //if not in output mode, IO unit just acts as passthrough, otherwise IO unit acts as FIFO
-    assign data_valid_out = output_mode ? oldest_data.valid : data_valid_in;
-    assign data_out = output_mode ? oldest_data.data_out : data_in;
-    
+
+    assign row_data_valid_out = gci_data_valid_in;
+    assign row_data_out = gci_data_in;
+
+    assign gwb_data_out = oldest_data.data_out;
+    assign gwb_data_valid_out = oldest_data.valid;  
 endmodule
