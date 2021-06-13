@@ -10,6 +10,7 @@
 #include <sys/mman.h>
 #include <string.h>
 #include <pthread.h>
+#include "pcap.h"
 
 #define TAIGA_PR_QUEUE_BASEADDR             0x43C00000
 #define TAIGA_PR_QUEUE_MAP_SIZE             0x10000
@@ -21,11 +22,6 @@
 #define GRID_SLOT_SHIFT                     0
 #define OU_ID_MASK                          0x0000001F
 #define OU_ID_SHIFT                         5
-
-#define MAX_PATH_LEN                        100
-#define NUM_GRID_SLOTS                      30
-#define NUM_GRID_COLS                       6
-#define NUM_OUS                             22
 
 typedef enum{
     UNUSED = 0,
@@ -106,9 +102,9 @@ queue_t create_queue(){
 
 uint32_t check_pending_status(void* ptr){
     uint32_t pr_request_pending;
-    printf("Checking PR Request Pending\n\r");
+    // printf("Checking PR Request Pending\n\r");
     pr_request_pending = *((unsigned *)(ptr + TAIGA_PR_QUEUE_REQUEST_PENDING_OFFSET));
-    printf("PR Request Pending: %u\n\r", pr_request_pending);
+    // printf("PR Request Pending: %u\n\r", pr_request_pending);
     return pr_request_pending;
 }
 
@@ -117,7 +113,7 @@ pr_request_t get_pr_request(void* ptr){
     uint32_t grid_slot;
     uint32_t ou_id;
 
-    printf("Peeking PR Request\n\r");
+    // printf("Peeking PR Request\n\r");
     pr_request_raw = *((unsigned *)(ptr + TAIGA_PR_QUEUE_POP_OFFSET));
     grid_slot = (pr_request_raw >> GRID_SLOT_SHIFT) & GRID_SLOT_MASK;
     ou_id = (pr_request_raw >> OU_ID_SHIFT) & OU_ID_MASK;
@@ -127,6 +123,7 @@ pr_request_t get_pr_request(void* ptr){
     return pr_request;
 }
 
+//Unused
 uint32_t pop_pr_request(void* ptr, pr_request_t pr_request){
     uint32_t pr_request_pop_raw;
     uint32_t grid_slot;
@@ -140,51 +137,19 @@ uint32_t pop_pr_request(void* ptr, pr_request_t pr_request){
     return (grid_slot == pr_request.grid_slot && ou_id == pr_request.ou);
 }
 
+// void do_pr_request(pr_request_t pr_request, char pb_paths[NUM_GRID_SLOTS][MAX_PATH_LEN],char ou_file_names[NUM_OUS][20]){
+//     // char path[200] = "";
+//     // strcat(path, pb_paths[pr_request.grid_slot]);
+//     // strcat(path, ou_file_names[pr_request.ou]);
+//     if(!write_partial_bitstream(path)){
+//         printf("Write Partial Bitstream failed!\n");
+//     };
+// }
 
-void populate_paths(char pb_path[NUM_GRID_SLOTS][MAX_PATH_LEN]){
-    uint32_t row, col;
-    for(int i = 0; i < NUM_GRID_SLOTS; i++){
-        //Calculate grid row and column
-        row = i/NUM_GRID_COLS;
-        col = i % NUM_GRID_COLS;
-
-        //Form path string and store to array
-        sprintf(pb_path[i], "~/rps/rp_%u_%u/", row, col);
-    }
-}
-
-void populate_ou_names(char ou_file_names[NUM_OUS][20]){
-    sprintf(ou_file_names[0], "greybox.bin");
-    sprintf(ou_file_names[1], "pt.bin");
-    sprintf(ou_file_names[2], "add.bin");
-    sprintf(ou_file_names[3], "and.bin");
-    sprintf(ou_file_names[4], "auipc.bin");
-    sprintf(ou_file_names[5], "lb.bin");
-    sprintf(ou_file_names[6], "lbu.bin");
-    sprintf(ou_file_names[7], "lh.bin");
-    sprintf(ou_file_names[8], "lhu.bin");
-    sprintf(ou_file_names[9], "lui.bin");
-    sprintf(ou_file_names[10], "lw.bin");
-    sprintf(ou_file_names[11], "or.bin");
-    sprintf(ou_file_names[12], "sb.bin");
-    sprintf(ou_file_names[13], "sh.bin");
-    sprintf(ou_file_names[14], "sll.bin");
-    sprintf(ou_file_names[15], "slt.bin");
-    sprintf(ou_file_names[16], "sltu.bin");
-    sprintf(ou_file_names[17], "sra.bin");
-    sprintf(ou_file_names[18], "srl.bin");
-    sprintf(ou_file_names[19], "sub.bin");
-    sprintf(ou_file_names[20], "sw.bin");
-    sprintf(ou_file_names[21], "xor.bin");
-}
-
-void do_pr_request(pr_request_t pr_request, char pb_paths[NUM_GRID_SLOTS][MAX_PATH_LEN],char ou_file_names[NUM_OUS][20]){
-    char command[200] = "./fpgautil -b ";
-    strcat(command, pb_paths[pr_request.grid_slot]);
-    strcat(command, ou_file_names[pr_request.ou]);
-    strcat(command, " -f Partial");
-    // printf("%s\n\r", command);
-    system(command);
+void do_pr_request(pr_request_t pr_request){
+    if(!write_partial_bitstream(pr_request.grid_slot, pr_request.ou)){
+        printf("Write Partial Bitstream failed!\n");
+    };
 }
 
 uint32_t complete_pr_request(void* ptr){
@@ -196,8 +161,7 @@ uint32_t complete_pr_request(void* ptr){
     return pr_request_pop_raw; //unpredictable
 }
 
-char pb_path[NUM_GRID_SLOTS][MAX_PATH_LEN]; 
-char ou_file_names[NUM_OUS][20];
+
 queue_t pr_request_queue;
 pthread_mutex_t queue_lock;
 volatile uint32_t completed_requests;
@@ -220,7 +184,8 @@ void *do_pr_thread_fn(void *arg){
         pr_request = dequeue_request(&pr_request_queue);
         pthread_mutex_unlock(&queue_lock);
 
-        do_pr_request(pr_request, pb_path, ou_file_names);
+        // do_pr_request(pr_request, pb_path, ou_file_names);
+        do_pr_request(pr_request);
 
         pthread_mutex_lock(&completed_requests_lock);
         completed_requests++;
@@ -235,8 +200,10 @@ void *do_pr_thread_fn(void *arg){
 
 int main(void)
 {
-    populate_paths(pb_path);
-    populate_ou_names(ou_file_names);
+    if(!init_pcap_driver()){
+        printf("Couldn't init PCAP driver!\n");
+        return 1;
+    };
 
     pr_request_queue = create_queue();
 
@@ -265,11 +232,16 @@ int main(void)
 
     int iret = pthread_create(&request_service_thread, NULL, do_pr_thread_fn, NULL);
 
-    while (1) {
-        uint32_t info = 1; /* Enable Interrupt */
-        uint32_t pr_request_pending;
-        pr_request_t pr_request;
+    uint32_t info = 1; /* Enable Interrupt */
+    uint32_t pr_request_pending;
+    pr_request_t pr_request;
 
+    struct pollfd fds = {
+        .fd = fd,
+        .events = POLLIN,
+    };
+
+    while (1) {
         ssize_t nb = write(fd, &info, sizeof(info));
         if (nb < sizeof(info)) {
             perror("write");
@@ -277,21 +249,17 @@ int main(void)
             exit(EXIT_FAILURE);
         }
 
-        struct pollfd fds = {
-            .fd = fd,
-            .events = POLLIN,
-        };
-
         int ret = poll(&fds, 1, 5);
         if (ret >= 1) {
             nb = read(fd, &info, sizeof(info));
             if (nb == sizeof(info)) {
                 /* Do something in response to the interrupt. */
-                printf("Interrupt #%u!\n\r", info);
+                // printf("Interrupt #%u!\n\r", info);
 
                 pr_request_pending = check_pending_status(ptr);
                 while(pr_request_pending == 1){
                     pr_request = get_pr_request(ptr);
+                    // complete_pr_request(ptr);
                     pthread_mutex_lock(&queue_lock);
                     enqueue_request(&pr_request_queue, pr_request);
                     pthread_mutex_unlock(&queue_lock);
