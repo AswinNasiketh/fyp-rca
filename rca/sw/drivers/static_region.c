@@ -33,9 +33,15 @@ uint32_t configure_grid_mux(static_region_t* pstatic_config, uint32_t row, uint3
     return 0;
 }
 
-uint32_t configure_io_unit_mux(static_region_t* pstatic_config, uint32_t io_unit_addr, io_mux_inp_addr_t io_mux_inp_addr){
-    if(io_unit_addr >= NUM_IO_MUX_INPUTS) return 1;
-    pstatic_config->io_mux_sel[io_unit_addr] = io_mux_inp_addr;
+uint32_t configure_gci_io_unit_mux(static_region_t* pstatic_config, uint32_t io_unit_addr, io_gci_mux_inp_addr_t io_mux_inp_addr){
+    if(io_unit_addr >= NUM_IO_UNITS) return 1;
+    pstatic_config->io_gci_mux_sel[io_unit_addr] = io_mux_inp_addr;
+    return 0;
+}
+
+uint32_t configure_row_io_unit_mux(static_region_t* pstatic_config, uint32_t io_unit_addr, io_row_mux_inp_addr_t io_mux_inp_addr){
+    if(io_unit_addr >= NUM_IO_UNITS) return 1;
+    pstatic_config->io_row_mux_sel[io_unit_addr] = io_mux_inp_addr;
     return 0;
 }
 //is_input array must have NUM_IO_UNIT elements
@@ -116,8 +122,13 @@ void write_config(static_region_t* pstatic_config, uint32_t row_start, uint32_t 
     }
 
     //io mux config - just write to all IO units
+    //gci mux sel
     for(int i = 0; i < NUM_IO_UNITS; i++){
-        rca_config_io_mux(i, static_region.io_mux_sel[i]);
+        rca_config_io_mux(i, static_region.io_gci_mux_sel[i]);
+    }
+    //row mux sels
+    for(int i = 0; i < NUM_IO_UNITS; i++){
+        rca_config_io_mux(NUM_IO_UNITS + i, static_region.io_row_mux_sel[i]);
     }
 
     //result mux config - non-feedback

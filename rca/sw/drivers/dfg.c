@@ -510,7 +510,7 @@ uint32_t find_node_depth_acc(dfg_t dfg, uint32_t nodeID, uint32_t num_ls_ops, bo
     uint32_t largest_inp_depth = (inp_node_depths[1] > inp_node_depths[0]) ? inp_node_depths[1] : inp_node_depths[0];
 
     if(dfg.nodes[nodeID-1].op == LB || dfg.nodes[nodeID-1].op == LBU || dfg.nodes[nodeID-1].op == LH || dfg.nodes[nodeID-1].op == LHU || dfg.nodes[nodeID-1].op == LW){
-        return largest_inp_depth + ((num_ls_ops + 1) * RCA_PACKET_LSQ_DEPTH);
+        return largest_inp_depth + ((num_ls_ops + 1) * RCA_PACKET_LSQ_DEPTH) + CPU_LSQ_DEPTH + CPU_MEMORY_LATENCY + LOAD_FORWARD_LATENCY;
     }else if(dfg.nodes[nodeID-1].op == SB || dfg.nodes[nodeID-1].op == SH || dfg.nodes[nodeID-1].op == SW){
         return largest_inp_depth; //don't add anything for stores - constant will be added on
     }else{

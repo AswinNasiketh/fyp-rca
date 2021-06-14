@@ -18,15 +18,15 @@
 #define NUM_GRID_MUX_INPUTS     8 //(NUM_GRID_COLS + 1 (IO) + 1 (LSI))
 #define LSI_GRID_MUX_ADDR       7 //LSI - Left side input
 
-#define NUM_IO_UNITS            6 //(NUM_GRID_ROWS + 1)
-#define NUM_IO_MUX_INPUTS       12 //(NUM_READ_PORTS + NUM_GRID_COLS + 1)
+#define NUM_IO_UNITS            5 //(NUM_GRID_ROWS)
+#define NUM_IO_MUX_INPUTS       6 
 #define IO_UNIT_GRID_MUX_ADDR   6
 
 #define NUM_RCAS                4
 #define NUM_READ_PORTS          5
 #define NUM_WRITE_PORTS         5
 
-#define UNUSED_WRITE_PORT_ADDR  6 //(NUM_IO_UNITS)
+#define UNUSED_WRITE_PORT_ADDR  5 //(NUM_IO_UNITS)
 
 #define NUM_OUS 22
 
@@ -129,6 +129,6 @@ void toggle_profiler_lock();
 profiler_entry_t get_profiler_entry(uint32_t entry_num);
 
 //Function wrapper for ATT configuration
-void set_att_field(rca_t rca, att_field_t field, uint32_t field_value);
+uint32_t set_att_field(rca_t rca, att_field_t field, uint32_t field_value);
 
 #endif //RCA_H

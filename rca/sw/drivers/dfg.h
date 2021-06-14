@@ -8,6 +8,9 @@
 #define CPU_CLK_FREQ                50000000
 #define FRAME_RECONF_TIME_MS        6
 #define RCA_PACKET_LSQ_DEPTH        8
+#define CPU_LSQ_DEPTH               8
+#define CPU_MEMORY_LATENCY          2
+#define LOAD_FORWARD_LATENCY        1
 #define CPU_LOAD_LATENCY            11 //taken from taiga latency diagram + FIFO depth
 
 typedef struct dfg_node_t dfg_node_t;

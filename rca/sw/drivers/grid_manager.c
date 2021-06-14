@@ -39,7 +39,7 @@ void apply_partial_region_cfg(seq_profile_t* seq_profile, uint32_t row_offset){
     for(int i = row_offset; i < row_offset + seq_profile->sub_grid->num_rows; i++){
         k = i - row_offset;
         for(int j = 0; j < NUM_GRID_COLS; j++){
-            // send_pr_request(seq_profile->sub_grid->grid_slots[k][j].ou, grid_coord_to_slot(i,j));
+            send_pr_request(seq_profile->sub_grid->grid_slots[k][j].ou, grid_coord_to_slot(i,j));
         }
     }
 }
@@ -53,15 +53,7 @@ void clear_ous_in_rows(uint32_t row_start, uint32_t row_end){
 }
 
 bool is_fb_output(uint32_t node_id, seq_profile_t* seq_profile){
-    io_unit_cfg_t curr_io_unit;
-    for(int i = 0; i < seq_profile->sub_grid->num_rows; i++){
-        curr_io_unit = seq_profile->sub_grid->io_unit_cfgs[i];
-        if(curr_io_unit.is_inp && curr_io_unit.node_id == node_id){
-            return true;
-        }
-    }
-
-    return false;
+    return seq_profile->dfg->nodes[node_id-1].is_input && seq_profile->dfg->nodes[node_id-1].is_output;
 }
 
 
@@ -88,10 +80,12 @@ void apply_static_region_cfg(seq_profile_t* seq_profile, uint32_t row_offset, rc
         src_reg_addrs[i] = 0;
     }
 
+    bool io_input_mask[NUM_IO_UNITS];
     bool ls_mask_fb[NUM_IO_UNITS];
     bool ls_mask_nfb[NUM_IO_UNITS]; //unused for now
 
     for(int i = 0; i < NUM_IO_UNITS; i++){
+        io_input_mask[i] = false;
         ls_mask_fb[i] = false;
         ls_mask_nfb[i] = false;
     }
@@ -108,30 +102,32 @@ void apply_static_region_cfg(seq_profile_t* seq_profile, uint32_t row_offset, rc
         //configure io units
         curr_io_unit_cfg = seq_profile->sub_grid->io_unit_cfgs[k];
         if(curr_io_unit_cfg.is_output){
-            if(is_fb_output(curr_io_unit_cfg.node_id, seq_profile)){
-                fb_dst_reg_addrs[next_free_fb_dst_reg_slot] = curr_io_unit_cfg.value;
+            if(is_fb_output(curr_io_unit_cfg.out_node_id, seq_profile)){
+                fb_dst_reg_addrs[next_free_fb_dst_reg_slot] = curr_io_unit_cfg.output_reg_addr;
                 configure_fb_result_mux(&s_region, rca, next_free_fb_dst_reg_slot, i);
                 next_free_fb_dst_reg_slot++;
             }else{
-                nfb_dst_reg_addrs[next_free_fb_dst_reg_slot] = curr_io_unit_cfg.value;
+                nfb_dst_reg_addrs[next_free_nfb_dst_reg_slot] = curr_io_unit_cfg.output_reg_addr;
                 configure_nfb_result_mux(&s_region, rca, next_free_nfb_dst_reg_slot, i);
                 next_free_nfb_dst_reg_slot++;
             }
 
-            configure_io_unit_mux(&s_region, i, curr_io_unit_cfg.io_mux_inp);
-        }else if(curr_io_unit_cfg.is_inp){
+            configure_row_io_unit_mux(&s_region, i, curr_io_unit_cfg.io_row_mux_inp);
+        }
+        if(curr_io_unit_cfg.is_inp){
             if(curr_io_unit_cfg.is_reg){
-                src_reg_addrs[next_free_src_reg_slot] = curr_io_unit_cfg.value;
-                configure_io_unit_mux(&s_region, i, next_free_src_reg_slot);
+                src_reg_addrs[next_free_src_reg_slot] = curr_io_unit_cfg.inp_value;
+                configure_gci_io_unit_mux(&s_region, i, next_free_src_reg_slot);
                 next_free_src_reg_slot++;
             }else{
-                configure_input_constant(&s_region, i, curr_io_unit_cfg.value);
-                configure_io_unit_mux(&s_region, i, CONST);
+                configure_input_constant(&s_region, i, curr_io_unit_cfg.inp_value);
+                configure_gci_io_unit_mux(&s_region, i, CONST);
             }
+            io_input_mask[i] = true;
         }
 
         if(curr_io_unit_cfg.wait_for_ls_submit){
-            ls_mask_fb[k] = true;
+            ls_mask_fb[i] = true;
         }
     }
 
@@ -146,10 +142,11 @@ void apply_static_region_cfg(seq_profile_t* seq_profile, uint32_t row_offset, rc
     configure_src_regs(&s_region, rca, src_reg_addrs);
     configure_fb_dst_regs(&s_region, rca, fb_dst_reg_addrs);
     configure_nfb_dst_regs(&s_region, rca, nfb_dst_reg_addrs);
+    configure_io_unit_inp_mask(&s_region, rca, io_input_mask);
     configure_fb_ls_mask(&s_region, rca, ls_mask_fb);
     configure_nfb_ls_mask(&s_region, rca, ls_mask_nfb);
 
-    write_config(&s_region, row_offset, row_offset + seq_profile->sub_grid->num_rows, rca);    
+    write_config(&s_region, row_offset, row_offset + seq_profile->sub_grid->num_rows -1, rca);    
 }
 
 void disable_acc_att(rca_t rca){

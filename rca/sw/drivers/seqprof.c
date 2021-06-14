@@ -18,16 +18,20 @@ seq_profile_t profile_seq(instr_seq_t* seq, profiler_entry_t* profiler_entry){
         }
     }
 
-    uint32_t acc_loop_iteration_latency = 0;
+    uint32_t acc_loop_iteration_latency = 1;
     uint32_t num_ls_ops = 0;
-    bool store_ops = false;
-
+    // bool store_ops = false;
+    // bool load_ops = false;
     for(int i = 0; i < (*dfg).num_nodes; i++){
         if((*dfg).nodes[i].op == LB || (*dfg).nodes[i].op == LBU|| (*dfg).nodes[i].op == LH || (*dfg).nodes[i].op == LHU || (*dfg).nodes[i].op == LW || (*dfg).nodes[i].op == SB || (*dfg).nodes[i].op == SH || (*dfg).nodes[i].op == SW){
             num_ls_ops++;
-            if((*dfg).nodes[i].op == SB || (*dfg).nodes[i].op == SH || (*dfg).nodes[i].op == SW){
-                store_ops = true;
-            }
+            // if((*dfg).nodes[i].op == SB || (*dfg).nodes[i].op == SH || (*dfg).nodes[i].op == SW){
+            //     store_ops = true;
+            // }
+
+            // if((*dfg).nodes[i].op == LB || (*dfg).nodes[i].op == LH || (*dfg).nodes[i].op == LW || (*dfg).nodes[i].op == LHU || (*dfg).nodes[i].op == LBU){
+            //     load_ops = true;
+            // }
         }
     }
 
@@ -41,7 +45,7 @@ seq_profile_t profile_seq(instr_seq_t* seq, profiler_entry_t* profiler_entry){
         }
     }
 
-    if(store_ops){
+    if(num_ls_ops > 0){
         acc_loop_iteration_latency += num_ls_ops+1;
     }
 
@@ -217,7 +221,7 @@ void calc_improvement_diffs(seq_profile_t accelerated_seqs[NUM_RCAS], uint32_t n
 uint32_t count_positive_entries(int32_t* arr, uint32_t num_els){
     uint32_t num_pos_entries = 0;
     for(int i = 0; i < num_els; i++){
-        if(arr[i] >= 0) num_pos_entries++; //TODO: CHANGE BACK TO STRICTLY POSITIVE
+        if(arr[i] > 0) num_pos_entries++;
     }
     return num_pos_entries;
 }

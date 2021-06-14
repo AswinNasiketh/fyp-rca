@@ -2,7 +2,7 @@
 
 
 void handle_profiler_exception(){
-    toggle_profiler_lock();
+    // toggle_profiler_lock();
 
     static seq_profile_t seq_profiles[MAX_STORED_SEQ_PROFS];
     static uint32_t next_seq_prof_index = 0;
@@ -59,8 +59,8 @@ void handle_profiler_exception(){
 
     //Choose accelerator
     select_accelerators(seq_profiles, next_seq_prof_index);
-
-    toggle_profiler_lock();
+    printf("Returning to main program flow\n\r");
+    // toggle_profiler_lock();
 }
 
 

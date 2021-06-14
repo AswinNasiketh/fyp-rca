@@ -14,12 +14,13 @@ uint32_t grid_slot_to_coord(uint32_t slot, uint32_t* row, uint32_t* col){
 }
 
 static void bad_config_trap(){
-    printf("bad config");
+    printf("bad config\n\r");
     // while(1);
 }
 
 reg_port_t int_to_reg_port(uint32_t i){
     if (i > NUM_REG_PORTS || i < 1){
+        printf("Invalid reg port number: %u\n\r", i);
         bad_config_trap();
     } 
 
@@ -90,6 +91,7 @@ static inline void rca_d_config_cpu_reg(uint32_t rs1_val, uint32_t rs2_val){
 void rca_config_cpu_reg(rca_t rca, reg_port_t reg_port, reg_port_type_t reg_port_type, uint32_t reg_addr){
 
     if(reg_addr > NUM_CPU_REGS-1){
+        printf("Reg address given exceeds maximum reg address: %u\n\r", reg_addr);
         bad_config_trap();
     }
 
@@ -120,10 +122,12 @@ void rca_config_cpu_reg(rca_t rca, reg_port_t reg_port, reg_port_type_t reg_port
 void rca_config_grid_mux(uint32_t mux_addr, uint32_t mux_sel){
 
     if(mux_addr > NUM_GRID_MUXES-1){
+        printf("Invalid grid MUX Addr: %u\n\r", mux_addr);
         bad_config_trap();
     }
 
     if(mux_sel > NUM_GRID_MUX_INPUTS-1){
+        printf("Invalid grid MUX Select: %u\n\r", mux_sel);
         bad_config_trap();
     }
 
@@ -139,11 +143,13 @@ void rca_config_grid_mux(uint32_t mux_addr, uint32_t mux_sel){
 }
 
 void rca_config_io_mux(uint32_t io_unit_addr, uint32_t io_mux_sel){
-    if(io_unit_addr > NUM_IO_UNITS-1){
+    if(io_unit_addr > ((NUM_IO_UNITS*2)-1)){
+        printf("Invalid IO Unit Addr: %u\n\r", io_unit_addr);
         bad_config_trap();
     }
 
     if(io_mux_sel > NUM_IO_MUX_INPUTS-1){
+        printf("Invalid IO MUX sel: %u\n\r", io_mux_sel);
         bad_config_trap();
     }
 
@@ -200,6 +206,7 @@ static void inline rca_d_config_result_mux(uint32_t rs1_val, uint32_t rs2_val){
 
 void rca_config_result_mux(rca_t rca, reg_port_t write_port, uint32_t io_unit_addr, bool fb_addr){
     if(io_unit_addr > NUM_IO_UNITS){
+        printf("Invalid Result MUX sel: %u\n\r", io_unit_addr);
         bad_config_trap();
     }
 
@@ -302,6 +309,7 @@ void rca_config_inp_io_unit_map(rca_t rca, bool* io_unit_is_input){
 
 void rca_config_input_constant(uint32_t io_unit_addr, uint32_t c){
     if(io_unit_addr > NUM_IO_UNITS-1){
+        printf("Invalid IO Unit addr for input const: %u\n\r", io_unit_addr);
         bad_config_trap();
     }
 
@@ -457,7 +465,7 @@ uint32_t get_profiler_data(uint32_t entry_num, profiler_field_t field_id){
 }
 
 void toggle_profiler_lock(){
-    printf("Toggling profiler lock!\n\r");
+    // printf("Toggling profiler lock!\n\r");
     uint32_t dummy;
     asm volatile("rcatpl %0, %0, %0"
     :"=r"(dummy)
@@ -480,7 +488,7 @@ profiler_entry_t get_profiler_entry(uint32_t entry_num){
     return profiler_entry;
 }
 
-void set_att_field(rca_t rca, att_field_t field, uint32_t field_value){
+uint32_t set_att_field(rca_t rca, att_field_t field, uint32_t field_value){
     uint32_t dummy;
     uint32_t field_id = field;
     uint32_t rca_num = rca;
@@ -497,4 +505,6 @@ void set_att_field(rca_t rca, att_field_t field, uint32_t field_value){
     :"r"(rs1), "r"(field_value)
     :
     );
+
+    return dummy;// how many times ATT was triggered -used for debugging
 }

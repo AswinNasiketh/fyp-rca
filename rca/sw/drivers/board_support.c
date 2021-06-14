@@ -14,15 +14,19 @@
 int uart_putc(char c, FILE *file) {
 	(void) file;
 	//Ensure space in buffer
+	// toggle_profiler_lock();
 	while (!((*(unsigned volatile char *)LINE_STATUS_REG_ADDR) & TX_BUFFER_EMPTY));
 	*(unsigned volatile char*)UART_RX_TX_REG = (unsigned volatile char) c;
+	// toggle_profiler_lock();
 	return c;  
 }
 
 int uart_getc(FILE *file) {
 	(void) file;
 	//Wait for character
+	// toggle_profiler_lock();
 	while (!((*(unsigned volatile char *)LINE_STATUS_REG_ADDR) & RX_HAS_DATA));
+	// toggle_profiler_lock();
 	return *((unsigned volatile char*)UART_RX_TX_REG);
 }
 
@@ -126,6 +130,7 @@ void end_profiling ()  {
 //Trap Handling
 
 void handle_trap(trapframe_t* tf){
+	toggle_profiler_lock();
     if(tf->cause == MCAUSE_PROFILER_EX){
 		printf("Profiler exception!\n\r");
 		handle_profiler_exception();
@@ -133,4 +138,5 @@ void handle_trap(trapframe_t* tf){
 		printf("Unhandled exception!\n\r");
 		while(1);
 	}
+	toggle_profiler_lock();
 }
