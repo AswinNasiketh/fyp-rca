@@ -38,5 +38,5 @@ foreach rp_dir $rp_dirs {
 	} 
 }
 
-cd $bitstream_dir
-exec bootgen -image greybox.bif -arch zynq -process_bitstream bin -w on
+#cd $bitstream_dir
+#exec bootgen -image greybox.bif -arch zynq -process_bitstream bin -w on

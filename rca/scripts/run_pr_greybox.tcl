@@ -11,7 +11,7 @@ foreach rp $rps {
 
 
 #Load PBlocks and add cells to PBlocks
-read_xdc /home/anv17/FYP/fyp-rca/rca/xdcs/pblocks2.xdc
+read_xdc /home/anv17/FYP/fyp-rca/rca/xdcs/pblocks3.xdc
 puts "Implementing Greybox modules"
 
 set rps [get_cells -hierarchical ou]
@@ -34,5 +34,5 @@ set bs_path $bitstream_dir$bs_name
 write_bitstream $bs_path -force -bin_file -no_partial_bitfile
 close_design
 
-cd $bitstream_dir
-exec bootgen -image greybox.bif -arch zynq -process_bitstream bin -w on
+#cd $bitstream_dir
+#exec bootgen -image greybox.bif -arch zynq -process_bitstream bin -w on

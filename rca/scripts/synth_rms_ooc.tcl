@@ -3,8 +3,10 @@
 set part_num "xc7z020clg484-1"
 
 #obtain RM files
-#set rm_files {}
+set rm_files {}
 set rm_files [glob /home/anv17/FYP/fyp-rca/rca/pr_modules/*.sv]
+
+#lappend rm_files /home/anv17/FYP/fyp-rca/rca/pr_modules/sra.sv
 
 #form module names
 
@@ -19,8 +21,8 @@ puts [llength $rm_names]
 
 #append passthrough OU file to lists
 
-lappend rm_files /home/anv17/FYP/fyp-rca/rca/pr_module_pt.sv
-lappend rm_names pr_module_pt
+#lappend rm_files /home/anv17/FYP/fyp-rca/rca/pr_module_pt.sv
+#lappend rm_names pr_module_pt
 
 
 #OOC Synthesis of the modules
@@ -42,4 +44,4 @@ foreach file_name $rm_files rm_name $rm_names {
 	write_checkpoint $dcp_path
 }
 #Rename PR module DCP
-exec mv /home/anv17/FYP/fyp-rca/rca/dcps/rm_ooc_synth_dcps/pr_module_pt_synth.dcp /home/anv17/FYP/fyp-rca/rca/dcps/rm_ooc_synth_dcps/pt_ou_synth.dcp
+#exec mv /home/anv17/FYP/fyp-rca/rca/dcps/rm_ooc_synth_dcps/pr_module_pt_synth.dcp /home/anv17/FYP/fyp-rca/rca/dcps/rm_ooc_synth_dcps/pt_ou_synth.dcp

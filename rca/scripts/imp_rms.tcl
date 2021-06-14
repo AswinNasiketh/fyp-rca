@@ -9,6 +9,7 @@ set rps [get_cells -hierarchical ou]
 
 #Implement sra RM(largest) first (also to generate a static routed locked design)
 opt_design
+read_checkpoint -incremental /home/anv17/FYP/fyp-rca/rca/dcps/full_configs/sra_routed.dcp 
 place_design
 phys_opt_design
 route_design
