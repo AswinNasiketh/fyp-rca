@@ -19,7 +19,7 @@
  * Author(s):
  *             Eric Matthews <ematthew@sfu.ca>
  */
-`include "/home/anv17/FYP/fyp-rca/rca/rca_config.sv"
+// `include "/home/anv17/FYP/fyp-rca/rca/rca_config.sv"
 package taiga_types;
     import taiga_config::*;
     import riscv_types::*;
